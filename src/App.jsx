@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 
 function App() {
-  console.log("APP VERSION SUPABASE TEST");
   const sujets = [
     "Pensez-vous que les jeunes devraient commencer à travailler pendant leurs études ?",
     "Pensez-vous qu’il est important d’avoir une activité physique régulière dans la vie quotidienne ?",
@@ -32,7 +31,6 @@ function App() {
   const isRecording = status === "recording";
   const isProcessing = status === "processing";
   const hasResult = status === "result";
-
 
   function changerSujet() {
     if (isRecording || isProcessing) return;
@@ -807,32 +805,32 @@ function App() {
   }
 
   async function saveAttempt({ transcript, normalizedFeedback }) {
-  try {
-    const totalScore =
-      typeof normalizedFeedback?.total === "number"
-        ? normalizedFeedback.total
-        : null;
+    try {
+      const totalScore =
+        typeof normalizedFeedback?.total === "number"
+          ? normalizedFeedback.total
+          : null;
 
-    const levelValue = normalizedFeedback?.niveau_estime || null;
+      const levelValue = normalizedFeedback?.niveau_estime || null;
 
-    const { error } = await supabase.from("attempts").insert([
-      {
-        transcript,
-        score: totalScore,
-        level: levelValue,
-        feedback: normalizedFeedback,
-      },
-    ]);
+      const { error } = await supabase.from("attempts").insert([
+        {
+          transcript,
+          score: totalScore,
+          level: levelValue,
+          feedback: normalizedFeedback,
+        },
+      ]);
 
-    if (error) {
-      console.error("SUPABASE SAVE ERROR:", error);
-    } else {
-      console.log("SUPABASE SAVE OK");
+      if (error) {
+        console.error("SUPABASE SAVE ERROR:", error);
+      } else {
+        console.log("SUPABASE SAVE OK");
+      }
+    } catch (error) {
+      console.error("SUPABASE SAVE CATCH:", error);
     }
-  } catch (error) {
-    console.error("SUPABASE SAVE CATCH:", error);
   }
-}
 
   async function analyserTexte(texte, duree) {
     try {
@@ -874,17 +872,24 @@ function App() {
         throw new Error("Le serveur n'a pas renvoyé un JSON exploitable.");
       }
 
-const normalized = normalizeAnalysis(parsedJson, cleanText, durationSec);
+      const normalized = normalizeAnalysis(parsedJson, cleanText, durationSec);
 
-setFeedback(normalized);
-setNiveau(normalized.niveau_estime);
+      setFeedback(normalized);
+      setNiveau(normalized.niveau_estime);
 
-await saveAttempt({
-  transcript: cleanText,
-  normalizedFeedback: normalized,
-});
+      await saveAttempt({
+        transcript: cleanText,
+        normalizedFeedback: normalized,
+      });
 
-setStatus("result");
+      setStatus("result");
+    } catch (e) {
+      console.error(e);
+      setFeedback(`Erreur API : ${e.message}`);
+      setNiveau("");
+      setStatus("result");
+    }
+  }
 
   async function demarrerEnregistrement() {
     if (isRecording || isProcessing) return;
