@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { supabase } from "./lib/supabase";
 
 function App() {
   const sujets = [
@@ -30,6 +31,24 @@ function App() {
   const isRecording = status === "recording";
   const isProcessing = status === "processing";
   const hasResult = status === "result";
+
+  const testSave = async () => {
+    const { data, error } = await supabase.from("attempts").insert([
+      {
+        transcript: "test",
+        score: 10,
+        level: "B1",
+        feedback: { ok: true },
+      },
+    ]);
+
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
+  };
+
+  useEffect(() => {
+    testSave();
+  }, []);
 
   function changerSujet() {
     if (isRecording || isProcessing) return;
