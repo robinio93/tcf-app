@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { supabase } from "./lib/supabase";
 
 function App() {
+  console.log("APP VERSION SUPABASE TEST");
   const sujets = [
     "Pensez-vous que les jeunes devraient commencer à travailler pendant leurs études ?",
     "Pensez-vous qu’il est important d’avoir une activité physique régulière dans la vie quotidienne ?",
@@ -47,6 +48,7 @@ function App() {
   };
 
   useEffect(() => {
+    console.log("USEEFFECT LANCE");
     testSave();
   }, []);
 
