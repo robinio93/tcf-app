@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 
 function App() {
@@ -33,24 +33,6 @@ function App() {
   const isProcessing = status === "processing";
   const hasResult = status === "result";
 
-  const testSave = async () => {
-    const { data, error } = await supabase.from("attempts").insert([
-      {
-        transcript: "test",
-        score: 10,
-        level: "B1",
-        feedback: { ok: true },
-      },
-    ]);
-
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
-  };
-
-  useEffect(() => {
-    console.log("USEEFFECT LANCE");
-    testSave();
-  }, []);
 
   function changerSujet() {
     if (isRecording || isProcessing) return;
@@ -824,6 +806,34 @@ function App() {
     return `${Math.round(value * 100)}%`;
   }
 
+  async function saveAttempt({ transcript, normalizedFeedback }) {
+  try {
+    const totalScore =
+      typeof normalizedFeedback?.total === "number"
+        ? normalizedFeedback.total
+        : null;
+
+    const levelValue = normalizedFeedback?.niveau_estime || null;
+
+    const { error } = await supabase.from("attempts").insert([
+      {
+        transcript,
+        score: totalScore,
+        level: levelValue,
+        feedback: normalizedFeedback,
+      },
+    ]);
+
+    if (error) {
+      console.error("SUPABASE SAVE ERROR:", error);
+    } else {
+      console.log("SUPABASE SAVE OK");
+    }
+  } catch (error) {
+    console.error("SUPABASE SAVE CATCH:", error);
+  }
+}
+
   async function analyserTexte(texte, duree) {
     try {
       const cleanText = String(texte || "").trim();
@@ -864,18 +874,17 @@ function App() {
         throw new Error("Le serveur n'a pas renvoyé un JSON exploitable.");
       }
 
-      const normalized = normalizeAnalysis(parsedJson, cleanText, durationSec);
+const normalized = normalizeAnalysis(parsedJson, cleanText, durationSec);
 
-      setFeedback(normalized);
-      setNiveau(normalized.niveau_estime);
-      setStatus("result");
-    } catch (e) {
-      console.error(e);
-      setFeedback(`Erreur API : ${e.message}`);
-      setNiveau("");
-      setStatus("result");
-    }
-  }
+setFeedback(normalized);
+setNiveau(normalized.niveau_estime);
+
+await saveAttempt({
+  transcript: cleanText,
+  normalizedFeedback: normalized,
+});
+
+setStatus("result");
 
   async function demarrerEnregistrement() {
     if (isRecording || isProcessing) return;
