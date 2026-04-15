@@ -804,14 +804,6 @@ function App() {
   }
 
   async function analyserTexte(texte, duree) {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-    if (!apiKey) {
-      setFeedback("Clé API manquante dans le fichier .env");
-      setStatus("result");
-      return;
-    }
-
     try {
       const cleanText = String(texte || "").trim();
       const durationSec = Math.max(1, Number(duree) || 0);
@@ -826,129 +818,29 @@ function App() {
       setTime(durationSec);
       setStatus("processing");
 
-      const prompt = `
-Rôle : examinateur-coach expert TCF Canada, focalisé sur la TÂCHE 3 : exprimer un point de vue.
-
-Contexte :
-- Le candidat doit donner une opinion de manière spontanée, structurée et argumentée.
-- L’évaluation porte sur : structure, argumentation, langue, fluidité, communication.
-- Si la réponse est courte, pénalise surtout le développement des idées.
-- N’invente pas de fautes si le message est compréhensible.
-
-IMPORTANT :
-- Retourne UNIQUEMENT un JSON valide.
-- Aucun texte autour.
-- Scores = entiers 0 à 10.
-- Une bonne fluidité ou une prononciation naturelle ne signifie pas un niveau élevé.
-- Calibre surtout A2 / B1 / B2.
-- Pour A2 : raisons simples, structure brève, connecteurs très simples, vocabulaire usuel, développement limité.
-- Pour B1 : 2 à 3 raisons claires, discours compréhensible et organisé, exemple court possible.
-- Pour B2 : argumentation méthodique, vraie nuance, exemples plus développés, meilleure cohésion, connecteurs plus variés.
-- Une réponse simple avec opinion + exemple + conclusion ne devient pas automatiquement B1 ou B2.
-- Une très bonne réponse standard reste B2, pas C1/C2 dans cette version.
-
-RÈGLES D’ÉVALUATION :
-1. Durée :
-- A2 : 30–90 sec souvent suffisant
-- B1 : 1–2 min souvent suffisant
-- B2 : 2 min conseillé
-- "trop court" uniquement si ça empêche le développement
-
-2. Réalisme :
-- Long ≠ bon niveau
-- Priorité = qualité des idées + développement + cohésion
-- Une langue simple mais correcte peut correspondre à A2 ou B1
-- B2 demande plus qu’une structure correcte : il faut un développement réellement plus riche
-
-3. Anti-surnotation :
-- Pour un bon A2 simple : plutôt 18–23/50
-- Pour un B1 correct : plutôt 24–31/50
-- Pour un bon B2 standard : plutôt 32–39/50
-- N’utilise pas de 9/10 ou 10/10 partout sauf cas exceptionnel
-
-4. Feedback :
-- Pas de "bien structuré" si c’est très simple
-- Pas de "argumentation développée" si le développement reste basique
-- N’écris "niveau B2" que si les critères B2 sont réellement visibles
-
-5. Confiance :
-- "confiance" doit être un nombre entre 0.5 et 0.95
-
-Format JSON :
-{
-  "meta": {
-    "niveau_cecr_cible": "",
-    "confiance": 0.8,
-    "resume_une_phrase": ""
-  },
-  "score": {
-    "structure": 0,
-    "argumentation": 0,
-    "langue": 0,
-    "fluidite": 0,
-    "communication": 0
-  },
-  "diagnostic": {
-    "points_positifs": ["", "", ""],
-    "points_a_ameliorer": ["", "", ""]
-  },
-  "corrections": {
-    "correction_simple": "",
-    "version_amelioree_b2": ""
-  },
-  "coaching": {
-    "plan_amelioration": ["", "", ""],
-    "phrases_a_utiliser": ["", "", "", "", "", ""],
-    "objectif_prochain_essai": ""
-  },
-  "flags": {
-    "duree_trop_courte": false,
-    "contradiction_opinion": false,
-    "exemple_absent": false,
-    "hors_sujet": false,
-    "hesitations_fortes": false
-  }
-}
-
-Sujet :
-${sujet}
-
-Durée (secondes) :
-${durationSec}
-
-Transcription :
-${cleanText}
-      `.trim();
-
-      const fRes = await fetch("https://api.openai.com/v1/responses", {
+      const response = await fetch("/api/analyze-text", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-5.4-mini",
-          input: prompt,
+          prompt: cleanText,
         }),
       });
 
-      if (!fRes.ok) {
-        const errorText = await fRes.text();
-        throw new Error(`Erreur feedback: ${errorText}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur analyse");
       }
 
-      const fData = await fRes.json();
-      const rawText =
-        fData.output_text ||
-        fData.output
-          ?.map((item) => item.content?.map((c) => c.text || "").join(""))
-          .join("") ||
-        "";
-
-      const parsedJson = extractJsonFromText(rawText);
+      const parsedJson =
+        typeof data.analysis === "object"
+          ? data.analysis
+          : extractJsonFromText(data.analysis || "");
 
       if (!parsedJson) {
-        throw new Error("Le modèle n'a pas renvoyé un JSON exploitable.");
+        throw new Error("Le serveur n'a pas renvoyé un JSON exploitable.");
       }
 
       const normalized = normalizeAnalysis(parsedJson, cleanText, durationSec);
@@ -1044,31 +936,21 @@ ${cleanText}
   }
 
   async function transcrireEtAnalyser(audioFile) {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-    if (!apiKey) {
-      setFeedback("Clé API manquante dans le fichier .env");
-      setStatus("result");
-      return;
-    }
-
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
-      formData.append("model", "gpt-4o-mini-transcribe");
 
-      const tRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      const tRes = await fetch("/api/transcribe", {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}` },
         body: formData,
       });
 
+      const tData = await tRes.json();
+
       if (!tRes.ok) {
-        const errorText = await tRes.text();
-        throw new Error(`Erreur transcription: ${errorText}`);
+        throw new Error(tData.error || "Erreur transcription");
       }
 
-      const tData = await tRes.json();
       const texte = (tData.text || "").trim();
       setTranscription(texte);
 
