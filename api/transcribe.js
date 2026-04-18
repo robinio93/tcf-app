@@ -1,17 +1,24 @@
+import formidable from "formidable";
+import fs from "fs";
+
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-async function readRequestBody(req) {
-  const chunks = [];
+function parseForm(req) {
+  const form = formidable({
+    multiples: false,
+    keepExtensions: true,
+  });
 
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-
-  return Buffer.concat(chunks);
+  return new Promise((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
+  });
 }
 
 export default async function handler(req, res) {
@@ -20,21 +27,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    const contentType = req.headers["content-type"] || "";
+    const { fields, files } = await parseForm(req);
 
-    if (!contentType.includes("multipart/form-data")) {
-      return res.status(400).json({ error: "Invalid content type" });
+    const uploadedFile = files.file;
+
+    if (!uploadedFile) {
+      return res.status(400).json({ error: "File is required" });
     }
 
-    const bodyBuffer = await readRequestBody(req);
+    const file = Array.isArray(uploadedFile) ? uploadedFile[0] : uploadedFile;
+    const modelField = Array.isArray(fields.model) ? fields.model[0] : fields.model;
+    const model = modelField || "gpt-4o-mini-transcribe";
+
+    const fileBuffer = fs.readFileSync(file.filepath);
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new Blob([fileBuffer], { type: file.mimetype || "audio/webm" }),
+      file.originalFilename || "audio.webm"
+    );
+    formData.append("model", model);
 
     const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": contentType,
       },
-      body: bodyBuffer,
+      body: formData,
     });
 
     const data = await response.json();
