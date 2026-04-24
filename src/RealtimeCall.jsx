@@ -8,7 +8,14 @@ const TASK2_MIN_TIME = 180; // 3 min — minimum évaluable
 const TASK2_WARN_TIME = 270; // 4 min 30 — 1 min restante → orange
 const TASK2_DANGER_TIME = 300; // 5 min — 30s restantes → rouge
 const BASE_FOLLOWUP_RULES =
-  "REGLES ABSOLUES : Joue ton role de facon authentique et naturelle. Adapte ton ton au contexte (professionnel, semi-formel ou familier) et aligne-toi sur le registre du candidat : si le candidat te tutoie, tutoie-le ; s'il te vouvoie, vouvoie-le. Fournis des informations coherentes, credibles et realistes selon la situation. Laisse au candidat le temps de formuler ses questions sans relancer trop vite — c'est une application de pratique de la langue, pas un interrogatoire. Si le silence se prolonge vraiment, relance de facon naturelle et coherente avec ton role (ex. 'Y a-t-il autre chose qui vous interesse ?' ou 'Je peux vous expliquer autre chose si vous voulez ?' etc.). Si une question est floue, demande une clarification naturellement. Ne pose PAS de questions au candidat sauf pour ces relances contextuelles. Ne corrige PAS les fautes de francais. Reponds en 2 a 4 phrases par tour — ni trop court ni trop long. Ne sors jamais du role. Reponds uniquement en francais naturel. Ne dis jamais de formule scolaire comme 'Tres bien, question suivante'. Apres environ 6 a 10 echanges, conclus naturellement selon ton role et le ton de l'echange.";
+  "REGLES ABSOLUES DE L'EXAMINATEUR TCF — RESPECTE-LES SANS EXCEPTION : " +
+  "1. RELANCES SYSTEMATIQUES : Apres CHAQUE reponse du candidat, pose une question de suivi directement liee a ce qu'il vient de dire. Ne laisse jamais une replique sans reactir ou sans poser une question complementaire. " +
+  "2. REPONSES TROP COURTES : Si le candidat repond en une phrase ou de facon vague, relance IMMEDIATEMENT avec 'Et concernant...', 'Pourriez-vous preciser...', 'C'est-a-dire ?', 'Qu'est-ce que vous entendez par...', ou 'Pouvez-vous m'en dire plus sur ce point ?'. " +
+  "3. COUVERTURE COMPLETE DU SCENARIO : Tu dois IMPERATIVEMENT aborder tous les aspects du scenario (prix, conditions, horaires, modalites, disponibilites, etc.) sur toute la duree de l'echange. Si le candidat n'a pas demande les tarifs, amene-le naturellement : 'Je peux aussi vous donner une idee des prix si vous voulez.' ou 'Vous voulez qu'on parle des conditions ?' " +
+  "4. DUREE MINIMALE ABSOLUE — 3 MINUTES : Tu ne dois JAMAIS conclure ou laisser la conversation se terminer avant 3 minutes d'echange effectif. Si le candidat dit 'merci au revoir' ou semble vouloir clore, relance immediatement et naturellement : 'Avant de raccrocher, je voulais aussi vous signaler...', 'Attendez, j'avais une derniere chose importante...', ou 'Au fait, j'oubliais de vous mentionner...'. Invente un detail credible et pertinent pour relancer. " +
+  "5. DOSES PROGRESSIVES : Revele les informations progressivement, en petites quantites, pour obliger le candidat a poser plusieurs questions successives. Ne donne jamais tout d'un coup. " +
+  "6. TON ET REGISTRE : Adapte ton registre au candidat (tutoiement si tutoiement, vouvoiement si vouvoiement). Reste dans ton role. Ne corrige jamais les fautes. Ne sors jamais du role. Reponds uniquement en francais naturel. " +
+  "7. LONGUEUR DES REPONSES : 2 a 3 phrases maximum par tour. Laisse toujours de la place pour que le candidat reagisse ou pose une question.";
 
 function buildOpening(roleDesc) {
   return (
@@ -608,6 +615,7 @@ function RealtimeCall({ onBack = null }) {
   const [debrief, setDebrief] = useState(null);
   const [conversationTranscript, setConversationTranscript] = useState([]);
   const debriefSectionRef = useRef(null);
+  const processingSectionRef = useRef(null);
   const [expandedScore, setExpandedScore] = useState(null);
   // null | "transcribing" | "analyzing"
   const [processingStep, setProcessingStep] = useState(null);
@@ -1179,6 +1187,11 @@ function RealtimeCall({ onBack = null }) {
     const hangUpAttemptId = connectAttemptRef.current;
     const scenario = scenarioAtCallRef.current;
 
+    // Afficher l'écran de traitement immédiatement, avant toute autre opération
+    setProcessingStep("transcribing");
+    setCallState("idle");
+    setErrorMessage("");
+
     // Arrêter un enregistrement en cours si le candidat parlait encore
     if (speechRecorderRef.current && speechRecorderRef.current.state !== "inactive") {
       const rec = speechRecorderRef.current;
@@ -1195,9 +1208,6 @@ function RealtimeCall({ onBack = null }) {
     }
 
     setMicrophoneEnabled(false);
-    setCallState("idle");
-    setProcessingStep("transcribing");
-    setErrorMessage("");
 
     // Attendre que les onstop des MediaRecorder finalisent leurs blobs
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -1310,6 +1320,12 @@ function RealtimeCall({ onBack = null }) {
   }
 
   useEffect(() => {
+    if (processingStep === "transcribing" && processingSectionRef.current) {
+      processingSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [processingStep]);
+
+  useEffect(() => {
     if (debriefState === "done" && debriefSectionRef.current) {
       setTimeout(() => {
         debriefSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1343,21 +1359,26 @@ function RealtimeCall({ onBack = null }) {
         <div
           style={{
             borderRadius: "20px",
-            border: "1px solid rgba(148, 163, 184, 0.12)",
+            border: processingStep !== null
+              ? "1px solid rgba(59, 130, 246, 0.45)"
+              : "1px solid rgba(148, 163, 184, 0.12)",
             background: "rgba(15, 23, 42, 0.65)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.24)",
+            boxShadow: processingStep !== null
+              ? "0 0 0 3px rgba(59,130,246,0.12), 0 8px 32px rgba(0,0,0,0.24)"
+              : "0 8px 32px rgba(0, 0, 0, 0.24)",
             padding: "clamp(20px, 4vw, 32px)",
+            transition: "border-color 0.3s ease, box-shadow 0.3s ease",
           }}
         >
           {/* ══════════════════════════════════════════
               VUE TRAITEMENT POST-APPEL
           ══════════════════════════════════════════ */}
           {!isConnecting && !isConnected && processingStep !== null && (
-            <div style={{ textAlign: "center", padding: "36px 16px" }}>
-              <div style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
-                Traitement de votre session...
+            <div ref={processingSectionRef} style={{ textAlign: "center", padding: "36px 16px" }}>
+              <div style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
+                ⏳ Traitement de votre session...
               </div>
               <div style={{ fontSize: "14px", color: "#475569", marginBottom: "36px" }}>
                 Cela prend généralement 5 à 10 secondes
