@@ -57,11 +57,18 @@ export default async function handler(req, res) {
       body: formData,
     });
 
-    const data = await response.json();
+    const raw = await response.text();
+    const data = raw ? JSON.parse(raw) : null;
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: data.error?.message || "Transcription failed",
+        error: data?.error?.message || raw || "Transcription failed",
+      });
+    }
+
+    if (!data) {
+      return res.status(502).json({
+        error: "OpenAI returned an empty transcription response",
       });
     }
 

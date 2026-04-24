@@ -4,10 +4,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, durationSec } = req.body;
+    const { conversation, scenario } = req.body;
 
-    if (!prompt || !prompt.trim()) {
-      return res.status(400).json({ error: "Prompt is required" });
+    if (!conversation?.trim()) {
+      return res.status(400).json({ error: "conversation is required" });
     }
 
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: buildPrompt(prompt, durationSec),
+        input: buildPrompt(conversation, scenario),
       }),
     });
 
@@ -51,29 +51,27 @@ export default async function handler(req, res) {
   }
 }
 
-function buildPrompt(transcript, durationSec) {
-  const dureeStr = Number.isFinite(Number(durationSec))
-    ? `${Math.max(1, Number(durationSec))} secondes`
-    : "inconnue";
-
+function buildPrompt(conversation, scenario) {
   return `Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
-TACHE : 3 — Exprimer un point de vue
-DUREE DE LA PRODUCTION : ${dureeStr}
+TACHE : 2 — Interaction orale
+SUJET / CONSIGNE : ${scenario || "Interaction orale TCF Canada"}
 
-TRANSCRIPTION DU MONOLOGUE :
-${transcript}
+Evalue UNIQUEMENT les repliques du CANDIDAT (lignes [CANDIDAT]). Les repliques [EXAMINATEUR] sont du contexte.
+
+TRANSCRIPTION DU DIALOGUE :
+${conversation}
 
 Evalue selon ces 5 criteres, chacun note de 0 a 4 :
 
 1. REALISATION DE LA TACHE (0-4)
-Le candidat a-t-il exprime un point de vue clair ? A-t-il developpe au moins 2 arguments ? A-t-il donne des exemples concrets ?
+Le candidat a-t-il obtenu les informations recherchees ? A-t-il pose des questions pertinentes et variees ? A-t-il reagi et adapte ses questions aux reponses ?
 - 0 = pas de reponse ou hors sujet
-- 1 = tache a peine abordee, opinion floue ou unique (A1-A2)
-- 2 = tache partiellement realisee, arguments peu developpes (B1 faible)
-- 3 = tache bien realisee, 2 arguments avec quelques exemples (B1+/B2)
-- 4 = tache pleinement accomplie, argumentation riche et structuree (B2+/C1)
+- 1 = tache a peine abordee, questions tres basiques (A1-A2)
+- 2 = tache partiellement realisee, quelques questions pertinentes (B1 faible)
+- 3 = tache bien realisee, questions variees et pertinentes (B1+/B2)
+- 4 = tache pleinement accomplie, questions riches et reactives (B2+/C1)
 
 2. LEXIQUE (0-4)
 - 0 = vocabulaire insuffisant pour communiquer
@@ -86,7 +84,7 @@ Le candidat a-t-il exprime un point de vue clair ? A-t-il developpe au moins 2 a
 - 0 = aucun controle grammatical
 - 1 = structures simples avec erreurs frequentes (A2)
 - 2 = structures simples correctes, erreurs dans le complexe (B1)
-- 3 = bon controle, structures variees (subjonctif, conditionnel tentes), erreurs non systematiques (B2)
+- 3 = bon controle, structures variees, erreurs non systematiques (B2)
 - 4 = excellent controle, variete syntaxique, rares erreurs ponctuelles (C1)
 
 4. FLUIDITE & PRONONCIATION (0-4)
@@ -97,12 +95,12 @@ Le candidat a-t-il exprime un point de vue clair ? A-t-il developpe au moins 2 a
 - 4 = discours naturel et spontane, intonation maitrisee, autocorrection efficace (C1)
 
 5. INTERACTION & COHERENCE (0-4)
-Structure du discours (introduction, developpement, conclusion), connecteurs logiques, registre adapte
-- 0 = discours entierement decousu, aucun connecteur
-- 1 = pas de structure, connecteurs absents ou tres limites, registre inadapte (A2)
-- 2 = structure basique, connecteurs simples (et, mais, parce que, alors) (B1)
-- 3 = structure claire, connecteurs varies (cependant, en revanche, par consequent, de plus) (B2)
-- 4 = argumentation brillante et fluide, registre parfaitement maitrise (C1)
+Reactivite aux reponses, relances, questions de suivi, adaptation au contexte, registre poli approprie
+- 0 = aucune interaction, echanges totalement deconnectes
+- 1 = reponses minimales, pas de relances, registre inadapte (A2)
+- 2 = interaction basique, quelques relances simples, registre acceptable (B1)
+- 3 = interaction fluide, relances variees, bonne adaptation aux reponses (B2)
+- 4 = interaction naturelle et convaincante, registre parfaitement maitrise (C1)
 
 BAREME NIVEAU :
 0-4 : A1 | 5-7 : A2 | 8-11 : B1 | 12-15 : B2 | 16-18 : C1 | 19-20 : C2
@@ -111,11 +109,10 @@ CORRESPONDANCE NCLC :
 A1=NCLC 1-2 | A2=NCLC 3-4 | B1=NCLC 5-6 | B2=NCLC 7-8 | C1=NCLC 9-10 | C2=NCLC 11-12
 
 IMPORTANT :
-- Sois STRICT et REALISTE. Un candidat qui parle moins de 30 secondes ne peut PAS avoir B1.
-- Plafonds de duree : < 30s → realisation_tache note 1 max ; < 60s → total 10 max ; < 120s → total 13 max.
-- Chaque justification doit citer un EXEMPLE CONCRET tire de la transcription (une phrase ou expression reelle du candidat).
-- "correction_simple" = le monologue reformule avec les erreurs de langue corrigees, en conservant exactement le meme niveau de complexite et le meme sens.
-- "version_amelioree" = monologue modele AU NIVEAU JUSTE AU-DESSUS du niveau estime (si B1 estime, donner un modele B2 ; si B2, donner C1).
+- Sois STRICT et REALISTE. Un candidat avec tres peu de repliques ou des repliques tres courtes ne peut pas avoir B2.
+- Chaque justification doit citer un EXEMPLE CONCRET tire de la transcription (une phrase reelle du candidat).
+- "correction_simple" = les tours du CANDIDAT reformules avec les erreurs de langue corrigees, en conservant exactement le meme niveau de complexite et le meme sens.
+- "version_amelioree" = repliques modeles du candidat AU NIVEAU JUSTE AU-DESSUS du niveau estime (si B1 estime, donner un modele B2 ; si B2, donner C1).
 - "conseil_prioritaire" = UN SEUL conseil, le plus impactant pour progresser, concret et actionnable, lie a un defaut reel observe dans la transcription.
 
 Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :

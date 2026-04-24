@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import RealtimeCall from "./RealtimeCall";
 import { supabase } from "./lib/supabase";
 
 function App() {
@@ -23,10 +24,13 @@ function App() {
   const [showDevMode, setShowDevMode] = useState(false);
   const [devText, setDevText] = useState("");
   const [devDuration, setDevDuration] = useState(150);
+  const [appMode, setAppMode] = useState("chooser");
+  const [expandedScore, setExpandedScore] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
+  const elapsedTimeRef = useRef(0);
 
   const isRecording = status === "recording";
   const isProcessing = status === "processing";
@@ -58,6 +62,7 @@ function App() {
     setFeedback(null);
     setTranscription("");
     setTime(0);
+    elapsedTimeRef.current = 0;
     setNiveau("");
     setShowTranscription(false);
     setStatus("idle");
@@ -67,6 +72,7 @@ function App() {
     setFeedback(null);
     setTranscription("");
     setTime(0);
+    elapsedTimeRef.current = 0;
     setNiveau("");
     setShowTranscription(false);
   }
@@ -135,12 +141,13 @@ function App() {
 
   function getCardStyle() {
     return {
-      background: "rgba(15, 23, 42, 0.72)",
-      border: "1px solid rgba(148, 163, 184, 0.14)",
-      borderRadius: "24px",
-      padding: "28px",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
-      backdropFilter: "blur(10px)",
+      background: "rgba(15, 23, 42, 0.65)",
+      border: "1px solid rgba(148, 163, 184, 0.12)",
+      borderRadius: "20px",
+      padding: "24px",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.24)",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
     };
   }
 
@@ -222,6 +229,28 @@ function App() {
     }
   }
 
+  async function readApiJson(response, endpointLabel) {
+    const raw = await response.text();
+
+    if (!raw) {
+      return {
+        data: null,
+        raw: "",
+      };
+    }
+
+    const data = safeJsonParse(raw);
+
+    if (data === null) {
+      throw new Error(`Réponse JSON invalide de ${endpointLabel}.`);
+    }
+
+    return {
+      data,
+      raw,
+    };
+  }
+
   function extractJsonFromText(text) {
     if (!text || typeof text !== "string") return null;
 
@@ -234,574 +263,25 @@ function App() {
     return safeJsonParse(match[0]);
   }
 
-  function normalizeText(value) {
-    return String(value || "").trim();
-  }
-
-  function normalizeArray(value, expectedLength) {
-    if (!Array.isArray(value)) return [];
-    return value
-      .map((item) => String(item || "").trim())
-      .filter(Boolean)
-      .slice(0, expectedLength);
-  }
-
-  function normalizeBoolean(value) {
-    return Boolean(value);
-  }
-
-  function normalizeScoreValue(value) {
-    const n = Number(value);
-    if (Number.isNaN(n)) return 0;
-    return Math.max(0, Math.min(10, Math.round(n)));
-  }
-
-  function normalizeConfidence(value) {
-    if (typeof value !== "number" || Number.isNaN(value)) return null;
-    return Math.max(0.5, Math.min(0.95, value));
-  }
-
-  function levelFromTotal50(total) {
-    if (total <= 7) return "A1 non atteint";
-    if (total <= 14) return "A1";
-    if (total <= 23) return "A2";
-    if (total <= 31) return "B1";
-    return "B2";
-  }
-
-  function durationCapMaxTotal(durationSec) {
-    if (durationSec < 20) return 14;
-    if (durationSec < 45) return 20;
-    if (durationSec < 60) return 22;
-    if (durationSec < 90) return 26;
-    if (durationSec < 120) return 31;
-    return 39;
-  }
-
-  function applyCapWithPriority(scores, maxTotal, order = null) {
-    const keys =
-      order ||
-      ["argumentation", "structure", "fluidite", "communication", "langue"];
-
-    const s = {
-      structure: normalizeScoreValue(scores.structure),
-      argumentation: normalizeScoreValue(scores.argumentation),
-      langue: normalizeScoreValue(scores.langue),
-      fluidite: normalizeScoreValue(scores.fluidite),
-      communication: normalizeScoreValue(scores.communication),
-    };
-
-    let total =
-      s.structure +
-      s.argumentation +
-      s.langue +
-      s.fluidite +
-      s.communication;
-
-    if (total <= maxTotal) {
-      return { ...s, total };
-    }
-
-    while (total > maxTotal) {
-      let changed = false;
-
-      for (const key of keys) {
-        if (s[key] > 0 && total > maxTotal) {
-          s[key] -= 1;
-          total -= 1;
-          changed = true;
-        }
-      }
-
-      if (!changed) break;
-    }
-
-    return { ...s, total };
-  }
-
-  function computeTranscriptFeatures(transcript, durationSec) {
-    const text = String(transcript || "").toLowerCase().trim();
-    const words = text.split(/\s+/).filter(Boolean);
-    const wordCount = words.length;
-
-    const fillerMatches =
-      text.match(/\b(euh|bah|ben|hein|du coup|genre|en fait)\b/g) || [];
-    const fillerCount = fillerMatches.length;
-    const fillerRatio = wordCount > 0 ? fillerCount / wordCount : 0;
-
-    const sentences = text
-      .split(/[.!?]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const sentenceWordCounts = sentences.map(
-      (s) => s.split(/\s+/).filter(Boolean).length
-    );
-
-    const avgSentenceWords =
-      sentenceWordCounts.length > 0
-        ? sentenceWordCounts.reduce((a, b) => a + b, 0) / sentenceWordCounts.length
-        : 0;
-
-    const uniqueWords = new Set(words);
-    const uniqueRatio = wordCount > 0 ? uniqueWords.size / wordCount : 0;
-
-    const advancedConnectorMatches =
-      text.match(
-        /\b(cependant|toutefois|néanmoins|neanmoins|en revanche|à condition que|a condition que|d'une part|d’autre part|d'autre part|par conséquent|par consequent|en effet|de plus|or|pourtant)\b/g
-      ) || [];
-
-    const simpleConnectorMatches =
-      text.match(
-        /\b(et|mais|parce que|donc|ensuite|d'abord|d’abord|puis|alors)\b/g
-      ) || [];
-
-    const argumentMarkers =
-      text.match(
-        /\b(parce que|car|donc|par exemple|d'abord|d’abord|ensuite|cependant|en revanche|mais|en conclusion)\b/g
-      ) || [];
-
-    const hasExampleMarker =
-      /\b(par exemple|par ex|prenons l'exemple|prenons l’exemple)\b/.test(text);
-
-    const hasConclusionMarker =
-      /\b(en conclusion|pour conclure|pour finir|en résumé|en resume)\b/.test(
-        text
-      );
-
-    const hasNuanceMarker =
-      /\b(cependant|toutefois|néanmoins|neanmoins|en revanche|à condition|a condition|mais)\b/.test(
-        text
-      );
-
-    const wpm = durationSec > 0 ? (wordCount / durationSec) * 60 : 0;
-
-    return {
-      durationSec,
-      wordCount,
-      wpm,
-      fillerCount,
-      fillerRatio,
-      hasExampleMarker,
-      hasConclusionMarker,
-      hasNuanceMarker,
-      avgSentenceWords,
-      uniqueRatio,
-      advancedConnectorCount: advancedConnectorMatches.length,
-      simpleConnectorCount: simpleConnectorMatches.length,
-      argumentMarkerCount: argumentMarkers.length,
-      sentenceCount: sentences.length,
-    };
-  }
-
-  function detectProfileLevel(transcript, durationSec) {
-    const f = computeTranscriptFeatures(transcript, durationSec);
-
-    const a2Likely =
-      f.wordCount <= 150 &&
-      f.avgSentenceWords <= 14 &&
-      f.advancedConnectorCount <= 1 &&
-      f.uniqueRatio <= 0.72 &&
-      f.argumentMarkerCount <= 8;
-
-    const b2Likely =
-      durationSec >= 120 &&
-      f.wordCount >= 170 &&
-      f.avgSentenceWords >= 11 &&
-      f.advancedConnectorCount >= 2 &&
-      f.hasExampleMarker &&
-      f.hasNuanceMarker &&
-      f.hasConclusionMarker &&
-      f.argumentMarkerCount >= 7;
-
-    if (b2Likely) return "B2";
-    if (a2Likely) return "A2";
-    return "B1";
-  }
-
-  function finalizeScore({ aiScores, transcript, durationSec, flags = {} }) {
-    const features = computeTranscriptFeatures(transcript, durationSec);
-
-    const local = {
-      structure: normalizeScoreValue(aiScores.structure),
-      argumentation: normalizeScoreValue(aiScores.argumentation),
-      langue: normalizeScoreValue(aiScores.langue),
-      fluidite: normalizeScoreValue(aiScores.fluidite),
-      communication: normalizeScoreValue(aiScores.communication),
-    };
-
-    const exampleAbsent =
-      Boolean(flags.exemple_absent) || !features.hasExampleMarker;
-
-    if (exampleAbsent) {
-      local.argumentation = Math.max(0, local.argumentation - 2);
-    }
-
-    const hesitationsFortes =
-      Boolean(flags.hesitations_fortes) ||
-      (features.fillerRatio >= 0.1 && features.wordCount >= 40);
-
-    if (hesitationsFortes) {
-      local.fluidite = Math.max(0, local.fluidite - 2);
-    }
-
-    if (Boolean(flags.contradiction_opinion)) {
-      local.structure = Math.max(0, local.structure - 2);
-      local.argumentation = Math.max(0, local.argumentation - 2);
-    }
-
-    if (Boolean(flags.hors_sujet)) {
-      local.communication = Math.max(0, local.communication - 2);
-    }
-
-    if (durationSec < 75) {
-      local.argumentation = Math.max(0, local.argumentation - 1);
-      local.structure = Math.max(0, local.structure - 1);
-    } else if (durationSec < 120) {
-      local.argumentation = Math.max(0, local.argumentation - 1);
-    }
-
-    const maxTotal = durationCapMaxTotal(durationSec);
-    const capped = applyCapWithPriority(local, maxTotal);
-    const level = levelFromTotal50(capped.total);
-
-    return {
-      cappedScores: capped,
-      level,
-      features,
-      exampleAbsent,
-      hesitationsFortes,
-    };
-  }
-
-  function applyProfileCaps(scores, profileLevel) {
-    const base = {
-      structure: normalizeScoreValue(scores.structure),
-      argumentation: normalizeScoreValue(scores.argumentation),
-      langue: normalizeScoreValue(scores.langue),
-      fluidite: normalizeScoreValue(scores.fluidite),
-      communication: normalizeScoreValue(scores.communication),
-    };
-
-    if (profileLevel === "A2") {
-      const capped = {
-        structure: Math.min(base.structure, 5),
-        argumentation: Math.min(base.argumentation, 5),
-        langue: Math.min(base.langue, 5),
-        fluidite: Math.min(base.fluidite, 6),
-        communication: Math.min(base.communication, 5),
-      };
-      const total =
-        capped.structure +
-        capped.argumentation +
-        capped.langue +
-        capped.fluidite +
-        capped.communication;
-
-      return { ...capped, total: Math.min(total, 23) };
-    }
-
-    if (profileLevel === "B1") {
-      const capped = {
-        structure: Math.min(Math.max(base.structure, 5), 7),
-        argumentation: Math.min(Math.max(base.argumentation, 5), 7),
-        langue: Math.min(Math.max(base.langue, 5), 7),
-        fluidite: Math.min(Math.max(base.fluidite, 5), 7),
-        communication: Math.min(Math.max(base.communication, 5), 7),
-      };
-      const total =
-        capped.structure +
-        capped.argumentation +
-        capped.langue +
-        capped.fluidite +
-        capped.communication;
-
-      if (total < 24) {
-        const raised = { ...capped };
-        const order = [
-          "argumentation",
-          "structure",
-          "communication",
-          "langue",
-          "fluidite",
-        ];
-        let current = total;
-
-        while (current < 24) {
-          let changed = false;
-          for (const key of order) {
-            if (raised[key] < 7 && current < 24) {
-              raised[key] += 1;
-              current += 1;
-              changed = true;
-            }
-          }
-          if (!changed) break;
-        }
-
-        return { ...raised, total: current };
-      }
-
-      return { ...capped, total: Math.min(total, 31) };
-    }
-
-    const capped = {
-      structure: Math.min(Math.max(base.structure, 6), 8),
-      argumentation: Math.min(Math.max(base.argumentation, 7), 8),
-      langue: Math.min(Math.max(base.langue, 6), 8),
-      fluidite: Math.min(Math.max(base.fluidite, 6), 8),
-      communication: Math.min(Math.max(base.communication, 6), 8),
-    };
-
-    const total =
-      capped.structure +
-      capped.argumentation +
-      capped.langue +
-      capped.fluidite +
-      capped.communication;
-
-    if (total < 32) {
-      const raised = { ...capped };
-      const order = [
-        "argumentation",
-        "structure",
-        "communication",
-        "langue",
-        "fluidite",
-      ];
-      let current = total;
-
-      while (current < 32) {
-        let changed = false;
-        for (const key of order) {
-          if (raised[key] < 8 && current < 32) {
-            raised[key] += 1;
-            current += 1;
-            changed = true;
-          }
-        }
-        if (!changed) break;
-      }
-
-      return { ...raised, total: Math.min(current, 39) };
-    }
-
-    return { ...capped, total: Math.min(total, 39) };
-  }
-
-  function harmonizeWithAiAssessment(raw, profileLevel) {
-    const summary = String(raw?.meta?.resume_une_phrase || "").toLowerCase();
-    const positives = Array.isArray(raw?.diagnostic?.points_positifs)
-      ? raw.diagnostic.points_positifs.join(" ").toLowerCase()
-      : "";
-    const text = `${summary} ${positives}`;
-
-    if (profileLevel === "A2") {
-      if (
-        text.includes("niveau b2") ||
-        text.includes("bon b2") ||
-        text.includes("arguments développés") ||
-        text.includes("arguments developpes")
-      ) {
-        return "B1";
-      }
-      return "A2";
-    }
-
-    if (profileLevel === "B1") {
-      if (
-        text.includes("niveau b2") &&
-        text.includes("exemple") &&
-        text.includes("nuance")
-      ) {
-        return "B2";
-      }
-      return "B1";
-    }
-
-    return "B2";
-  }
-
-  function normalizeAnalysis(raw, transcript, durationSec) {
-    const base = {
-      meta: {
-        niveau_cecr_cible: normalizeText(raw?.meta?.niveau_cecr_cible),
-        confiance: normalizeConfidence(raw?.meta?.confiance),
-        resume_une_phrase: normalizeText(raw?.meta?.resume_une_phrase),
-      },
-      score: {
-        structure: normalizeScoreValue(raw?.score?.structure),
-        argumentation: normalizeScoreValue(raw?.score?.argumentation),
-        langue: normalizeScoreValue(raw?.score?.langue),
-        fluidite: normalizeScoreValue(raw?.score?.fluidite),
-        communication: normalizeScoreValue(raw?.score?.communication),
-      },
-      diagnostic: {
-        points_positifs: normalizeArray(raw?.diagnostic?.points_positifs, 3),
-        points_a_ameliorer: normalizeArray(raw?.diagnostic?.points_a_ameliorer, 3),
-      },
-      corrections: {
-        correction_simple: normalizeText(raw?.corrections?.correction_simple),
-        version_amelioree_b2: normalizeText(raw?.corrections?.version_amelioree_b2),
-      },
-      coaching: {
-        plan_amelioration: normalizeArray(raw?.coaching?.plan_amelioration, 3),
-        phrases_a_utiliser: normalizeArray(raw?.coaching?.phrases_a_utiliser, 6),
-        objectif_prochain_essai: normalizeText(
-          raw?.coaching?.objectif_prochain_essai
-        ),
-      },
-      flags: {
-        duree_trop_courte: normalizeBoolean(raw?.flags?.duree_trop_courte),
-        contradiction_opinion: normalizeBoolean(
-          raw?.flags?.contradiction_opinion
-        ),
-        exemple_absent: normalizeBoolean(raw?.flags?.exemple_absent),
-        hors_sujet: normalizeBoolean(raw?.flags?.hors_sujet),
-        hesitations_fortes: normalizeBoolean(raw?.flags?.hesitations_fortes),
-      },
-    };
-
-    const finalScore = finalizeScore({
-      aiScores: base.score,
-      transcript,
-      durationSec,
-      flags: base.flags,
-    });
-
-    const profileLevel = detectProfileLevel(transcript, durationSec);
-    const aiAlignedLevel = harmonizeWithAiAssessment(raw, profileLevel);
-
-    let mergedScores = { ...finalScore.cappedScores };
-
-    if (aiAlignedLevel === "A2") {
-      mergedScores.structure = Math.min(mergedScores.structure, 5);
-      mergedScores.argumentation = Math.min(mergedScores.argumentation, 5);
-      mergedScores.langue = Math.min(mergedScores.langue, 5);
-      mergedScores.communication = Math.min(mergedScores.communication, 5);
-    }
-
-    if (aiAlignedLevel === "B2" && profileLevel !== "A2") {
-      mergedScores.structure = Math.max(mergedScores.structure, 6);
-      mergedScores.argumentation = Math.max(mergedScores.argumentation, 7);
-      mergedScores.langue = Math.max(mergedScores.langue, 6);
-      mergedScores.fluidite = Math.max(mergedScores.fluidite, 6);
-      mergedScores.communication = Math.max(mergedScores.communication, 6);
-    }
-
-    const profileCapped = applyProfileCaps(mergedScores, profileLevel);
-
-    const enforcedTotal =
-      typeof profileCapped.total === "number"
-        ? profileCapped.total
-        : profileCapped.structure +
-          profileCapped.argumentation +
-          profileCapped.langue +
-          profileCapped.fluidite +
-          profileCapped.communication;
-
-    return {
-      ...base,
-      score: {
-        structure: profileCapped.structure,
-        argumentation: profileCapped.argumentation,
-        langue: profileCapped.langue,
-        fluidite: profileCapped.fluidite,
-        communication: profileCapped.communication,
-      },
-      total: enforcedTotal,
-      niveau_estime: levelFromTotal50(enforcedTotal),
-      niveau_profil_local: profileLevel,
-      niveau_initial_apres_penalites: finalScore.level,
-      features: finalScore.features,
-      local_flags: {
-        exemple_absent: finalScore.exampleAbsent,
-        hesitations_fortes: finalScore.hesitationsFortes,
-        reponse_tres_simple: profileLevel === "A2",
-      },
-    };
-  }
-
-  function parseFeedback(feedback) {
-    if (!feedback || typeof feedback !== "object") return null;
-
-    return {
-      resume: feedback.meta?.resume_une_phrase || "",
-      positif: Array.isArray(feedback.diagnostic?.points_positifs)
-        ? feedback.diagnostic.points_positifs.join("\n")
-        : "",
-      amelioration: Array.isArray(feedback.diagnostic?.points_a_ameliorer)
-        ? feedback.diagnostic.points_a_ameliorer.join("\n")
-        : "",
-      correction: feedback.corrections?.correction_simple || "",
-      version: feedback.corrections?.version_amelioree_b2 || "",
-      coaching: Array.isArray(feedback.coaching?.plan_amelioration)
-        ? feedback.coaching.plan_amelioration.join("\n")
-        : "",
-      phrases: Array.isArray(feedback.coaching?.phrases_a_utiliser)
-        ? feedback.coaching.phrases_a_utiliser.join("\n")
-        : "",
-      objectif: feedback.coaching?.objectif_prochain_essai || "",
-    };
-  }
-
-  function parseScores(feedback) {
-    if (!feedback || typeof feedback !== "object" || !feedback.score) return null;
-
-    const scores = {
-      structure:
-        typeof feedback.score.structure === "number"
-          ? feedback.score.structure
-          : null,
-      argumentation:
-        typeof feedback.score.argumentation === "number"
-          ? feedback.score.argumentation
-          : null,
-      langue:
-        typeof feedback.score.langue === "number"
-          ? feedback.score.langue
-          : null,
-      fluidite:
-        typeof feedback.score.fluidite === "number"
-          ? feedback.score.fluidite
-          : null,
-      communication:
-        typeof feedback.score.communication === "number"
-          ? feedback.score.communication
-          : null,
-    };
-
-    const hasAnyScore = Object.values(scores).some((value) => value !== null);
-    if (!hasAnyScore) return null;
-
-    const total =
-      typeof feedback.total === "number"
-        ? feedback.total
-        : Object.values(scores).reduce((sum, value) => sum + (value || 0), 0);
-
-    return {
-      ...scores,
-      total,
-    };
+  function getLevelColor(niveau) {
+    if (niveau === "C2" || niveau === "C1") return "#60a5fa";
+    if (niveau === "B2") return "#4ade80";
+    if (niveau === "B1") return "#f59e0b";
+    return "#fb7185";
   }
 
   function getScoreColor(total) {
-    if (total >= 32) return "#22c55e";
-    if (total >= 24) return "#f59e0b";
+    if (total >= 12) return "#4ade80";
+    if (total >= 8) return "#f59e0b";
     return "#fb7185";
   }
 
   function getScoreLabel(total) {
-    if (total >= 36) return "B2 solide";
-    if (total >= 32) return "Bon niveau pour viser B2";
-    if (total >= 24) return "Base correcte, encore à renforcer";
-    if (total >= 15) return "Niveau encore limité, travail ciblé utile";
-    return "Réponse encore très fragile";
-  }
-
-  function formatConfidence(value) {
-    if (typeof value !== "number") return null;
-    return `${Math.round(value * 100)}%`;
+    if (total >= 16) return "Niveau C1 — excellent";
+    if (total >= 12) return "Niveau B2 atteint";
+    if (total >= 8) return "Niveau B1 — bon socle";
+    if (total >= 5) return "Niveau A2 — à renforcer";
+    return "Niveau A1 — travail ciblé nécessaire";
   }
 
   async function saveAttempt({ transcript, normalizedFeedback }) {
@@ -811,7 +291,7 @@ function App() {
           ? normalizedFeedback.total
           : null;
 
-      const levelValue = normalizedFeedback?.niveau_estime || null;
+      const levelValue = normalizedFeedback?.niveau_cecrl || null;
 
       const { error } = await supabase.from("attempts").insert([
         {
@@ -824,8 +304,6 @@ function App() {
 
       if (error) {
         console.error("SUPABASE SAVE ERROR:", error);
-      } else {
-        console.log("SUPABASE SAVE OK");
       }
     } catch (error) {
       console.error("SUPABASE SAVE CATCH:", error);
@@ -854,13 +332,20 @@ function App() {
         },
         body: JSON.stringify({
           prompt: cleanText,
+          durationSec,
         }),
       });
 
-      const data = await response.json();
+      const { data } = await readApiJson(response, "/api/analyze-text");
 
       if (!response.ok) {
-        throw new Error(data.error || "Erreur analyse");
+        throw new Error(
+          data?.error || `Erreur analyse (HTTP ${response.status})`
+        );
+      }
+
+      if (!data) {
+        throw new Error("Réponse vide de /api/analyze-text.");
       }
 
       const parsedJson =
@@ -872,10 +357,23 @@ function App() {
         throw new Error("Le serveur n'a pas renvoyé un JSON exploitable.");
       }
 
-      const normalized = normalizeAnalysis(parsedJson, cleanText, durationSec);
+      const normalized = {
+        scores: parsedJson.scores || {},
+        total: Number(parsedJson.total) || 0,
+        niveau_cecrl: parsedJson.niveau_cecrl || "—",
+        niveau_nclc: parsedJson.niveau_nclc || "—",
+        resume_niveau: parsedJson.resume_niveau || "",
+        points_positifs: Array.isArray(parsedJson.points_positifs) ? parsedJson.points_positifs : [],
+        points_ameliorer: Array.isArray(parsedJson.points_ameliorer) ? parsedJson.points_ameliorer : [],
+        correction_simple: parsedJson.correction_simple || "",
+        version_amelioree: parsedJson.version_amelioree || null,
+        phrases_utiles: Array.isArray(parsedJson.phrases_utiles) ? parsedJson.phrases_utiles : [],
+        conseil_prioritaire: parsedJson.conseil_prioritaire || "",
+        objectif_prochain_essai: parsedJson.objectif_prochain_essai || "",
+      };
 
       setFeedback(normalized);
-      setNiveau(normalized.niveau_estime);
+      setNiveau(normalized.niveau_cecrl);
 
       await saveAttempt({
         transcript: cleanText,
@@ -927,6 +425,10 @@ function App() {
         try {
           const finalMimeType = mimeType || mediaRecorder.mimeType || "audio/webm";
           const extension = finalMimeType.includes("ogg") ? "ogg" : "webm";
+          const recordedDuration = Math.max(
+            1,
+            elapsedTimeRef.current || Number(time) || 0
+          );
 
           const audioBlob = new Blob(audioChunksRef.current, {
             type: finalMimeType,
@@ -935,7 +437,7 @@ function App() {
             type: finalMimeType,
           });
 
-          await transcrireEtAnalyser(audioFile);
+          await transcrireEtAnalyser(audioFile, recordedDuration);
         } catch (e) {
           console.error(e);
           setFeedback("Erreur audio");
@@ -947,15 +449,19 @@ function App() {
 
       resetVisualResultOnly();
       mediaRecorder.start();
+      elapsedTimeRef.current = 0;
       setStatus("recording");
 
       timerRef.current = setInterval(() => {
         setTime((t) => {
           if (t >= MAX_TIME) {
+            elapsedTimeRef.current = t;
             mediaRecorder.stop();
             return t;
           }
-          return t + 1;
+          const nextTime = t + 1;
+          elapsedTimeRef.current = nextTime;
+          return nextTime;
         });
       }, 1000);
     } catch (e) {
@@ -970,7 +476,7 @@ function App() {
     mediaRecorderRef.current.stop();
   }
 
-  async function transcrireEtAnalyser(audioFile) {
+  async function transcrireEtAnalyser(audioFile, durationSec = time) {
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
@@ -981,10 +487,16 @@ function App() {
         body: formData,
       });
 
-      const tData = await tRes.json();
+      const { data: tData } = await readApiJson(tRes, "/api/transcribe");
 
       if (!tRes.ok) {
-        throw new Error(tData.error || "Erreur transcription");
+        throw new Error(
+          tData?.error || `Erreur transcription (HTTP ${tRes.status})`
+        );
+      }
+
+      if (!tData) {
+        throw new Error("Réponse vide de /api/transcribe.");
       }
 
       const texte = (tData.text || "").trim();
@@ -996,7 +508,7 @@ function App() {
         return;
       }
 
-      await analyserTexte(texte, time);
+      await analyserTexte(texte, durationSec);
     } catch (e) {
       console.error(e);
       setFeedback(`Erreur API : ${e.message}`);
@@ -1005,242 +517,471 @@ function App() {
     }
   }
 
-  const parsed =
-    feedback && typeof feedback === "object" ? parseFeedback(feedback) : null;
-  const scores =
-    feedback && typeof feedback === "object" ? parseScores(feedback) : null;
   const statusConfig = getStatusConfig();
+  const SHOW_REALTIME_TEST = true;
+
+  if (SHOW_REALTIME_TEST && appMode === "chooser") {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "clamp(32px, 6vw, 64px) 18px",
+        }}
+      >
+        <div style={{ maxWidth: "840px", width: "100%" }}>
+
+          {/* ── Branding ── */}
+          <div style={{ textAlign: "center", marginBottom: "52px" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "22px",
+                fontSize: "12px",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#64748b",
+              }}
+            >
+              <span>🇨🇦</span>
+              Préparation TCF Canada
+            </div>
+
+            <div
+              style={{
+                fontSize: "clamp(42px, 8vw, 76px)",
+                fontWeight: 800,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                marginBottom: "18px",
+                color: "#f1f5f9",
+              }}
+            >
+              TCF Speaking AI
+            </div>
+
+            <div
+              style={{
+                fontSize: "clamp(16px, 2.2vw, 19px)",
+                color: "#94a3b8",
+                lineHeight: 1.65,
+                maxWidth: "520px",
+                margin: "0 auto",
+              }}
+            >
+              Entraînez-vous à l'oral du TCF Canada avec l'IA
+            </div>
+          </div>
+
+          {/* ── Task cards ── */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "18px",
+              marginBottom: "44px",
+            }}
+          >
+            {/* Tâche 2 */}
+            <button className="task-card" onClick={() => setAppMode("realtime")}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "22px",
+                }}
+              >
+                <span style={{ fontSize: "42px", lineHeight: 1 }}>🎙️</span>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "#3b82f6",
+                    background: "rgba(59,130,246,0.12)",
+                    border: "1px solid rgba(59,130,246,0.25)",
+                    borderRadius: "999px",
+                    padding: "4px 11px",
+                  }}
+                >
+                  Tâche 2
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: "clamp(20px, 2.5vw, 24px)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  marginBottom: "10px",
+                }}
+              >
+                Interaction orale
+              </div>
+
+              <div
+                style={{
+                  fontSize: "15px",
+                  color: "#94a3b8",
+                  lineHeight: 1.65,
+                  marginBottom: "28px",
+                }}
+              >
+                Conversation en temps réel avec l'IA — 5 min 30
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#3b82f6",
+                }}
+              >
+                Commencer
+                <span style={{ fontSize: "16px" }}>→</span>
+              </div>
+            </button>
+
+            {/* Tâche 3 */}
+            <button className="task-card" onClick={() => setAppMode("legacy")}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "22px",
+                }}
+              >
+                <span style={{ fontSize: "42px", lineHeight: 1 }}>🎤</span>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "#8b5cf6",
+                    background: "rgba(139,92,246,0.12)",
+                    border: "1px solid rgba(139,92,246,0.25)",
+                    borderRadius: "999px",
+                    padding: "4px 11px",
+                  }}
+                >
+                  Tâche 3
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: "clamp(20px, 2.5vw, 24px)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  marginBottom: "10px",
+                }}
+              >
+                Expression d'un point de vue
+              </div>
+
+              <div
+                style={{
+                  fontSize: "15px",
+                  color: "#94a3b8",
+                  lineHeight: 1.65,
+                  marginBottom: "28px",
+                }}
+              >
+                Monologue argumenté — 4 min 30
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#8b5cf6",
+                }}
+              >
+                Commencer
+                <span style={{ fontSize: "16px" }}>→</span>
+              </div>
+            </button>
+          </div>
+
+          {/* ── Footer ── */}
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: "13px",
+              color: "#475569",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Score /20 basé sur les critères CECRL&nbsp;&bull;&nbsp;Feedback personnalisé par IA
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (SHOW_REALTIME_TEST && appMode === "realtime") {
+    return <RealtimeCall onBack={() => setAppMode("chooser")} />;
+  }
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        color: "white",
-        fontFamily: "Arial, sans-serif",
-        background: `
-          radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 28%),
-          radial-gradient(circle at top right, rgba(34,197,94,0.12), transparent 24%),
-          linear-gradient(180deg, #020817 0%, #081225 35%, #0f172a 100%)
-        `,
         padding: "32px 18px 60px",
       }}
     >
       <div style={{ maxWidth: "980px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "26px" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "16px",
-              marginBottom: "10px",
-              flexWrap: "wrap",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "48px",
-                filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.35))",
-              }}
+        {SHOW_REALTIME_TEST && (
+          <div style={{ marginBottom: "16px" }}>
+            <button
+              className="btn-ghost"
+              onClick={() => setAppMode("chooser")}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              🎤
+              ← Retour
+            </button>
+          </div>
+        )}
+        {/* ── Compact header ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#475569" }}>TCF Speaking AI</span>
+          <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8b5cf6", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: "999px", padding: "4px 11px" }}>
+            Tâche 3
+          </span>
+        </div>
+
+        {/* ══════════════════════════════════════════
+            VUE ENREGISTREMENT EN COURS
+        ══════════════════════════════════════════ */}
+        {isRecording && (
+          <div style={{ ...getCardStyle(), textAlign: "center", padding: "40px 28px", marginBottom: "20px" }}>
+            <p style={{ margin: "0 0 28px", fontSize: "14px", color: "#64748b", fontStyle: "italic", maxWidth: "560px", marginInline: "auto", lineHeight: 1.6 }}>
+              {sujet}
+            </p>
+            <div className="rec-indicator">
+              <div className="rec-dot" />
             </div>
-            <div
-              style={{
-                fontSize: "clamp(42px, 7vw, 82px)",
+            <div style={{ fontSize: "17px", fontWeight: 700, color: "#fca5a5", marginBottom: "24px" }}>
+              Enregistrement en cours
+            </div>
+
+            {/* Timer pendant l'enregistrement */}
+            <div style={{ marginBottom: "28px" }}>
+              <div style={{
+                fontSize: "clamp(28px, 5vw, 42px)",
                 fontWeight: 800,
-                letterSpacing: "-2px",
-                lineHeight: 1,
-                textShadow: "0 14px 30px rgba(0,0,0,0.30)",
+                color: time >= MAX_TIME - 30
+                  ? "#fb7185"
+                  : time >= MIN_TIME
+                  ? "#4ade80"
+                  : "#f1f5f9",
+                marginBottom: "8px",
+                transition: "color 0.5s ease",
+                fontVariantNumeric: "tabular-nums",
+              }}>
+                {formatTime(time)} / {formatTime(MAX_TIME)}
+              </div>
+              <div style={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: time >= MAX_TIME - 30
+                  ? "#fb7185"
+                  : time >= MIN_TIME
+                  ? "#4ade80"
+                  : "#94a3b8",
+                marginBottom: "12px",
+                transition: "color 0.5s ease",
+              }}>
+                {time >= MAX_TIME - 30
+                  ? `⚠️ ${MAX_TIME - time}s restantes`
+                  : time >= MIN_TIME
+                  ? "Minimum conseillé atteint ✓"
+                  : "Minimum conseillé non atteint (2 min)"}
+              </div>
+              <div style={{
+                width: "100%",
+                maxWidth: "400px",
+                height: "6px",
+                margin: "0 auto",
+                background: "rgba(255,255,255,0.08)",
+                borderRadius: "999px",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  width: `${Math.min((time / MAX_TIME) * 100, 100)}%`,
+                  height: "100%",
+                  background: time >= MAX_TIME - 30
+                    ? "linear-gradient(90deg, #fb7185, #ef4444)"
+                    : time >= MIN_TIME
+                    ? "linear-gradient(90deg, #4ade80, #22c55e)"
+                    : "linear-gradient(90deg, #94a3b8, #64748b)",
+                  borderRadius: "999px",
+                  transition: "width 0.5s ease, background 0.5s ease",
+                }} />
+              </div>
+            </div>
+
+            <button
+              onClick={arreterEnregistrement}
+              style={{
+                display: "inline-block",
+                padding: "16px 36px",
+                fontSize: "16px",
+                fontWeight: 700,
+                cursor: "pointer",
+                background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                color: "white",
+                border: "none",
+                borderRadius: "16px",
+                boxShadow: "0 8px 24px rgba(239,68,68,0.35)",
               }}
             >
-              TCF Speaking AI
-            </div>
+              ⏹ Arrêter l'enregistrement
+            </button>
           </div>
+        )}
 
-          <div
-            style={{
-              color: "#cbd5e1",
-              fontSize: "clamp(18px, 2.5vw, 24px)",
-              marginBottom: "18px",
-            }}
-          >
-            Simulation orale — tâche 3 : exprimer une opinion
+        {/* ══════════════════════════════════════════
+            VUE ANALYSE EN COURS
+        ══════════════════════════════════════════ */}
+        {isProcessing && (
+          <div style={{ ...getCardStyle(), textAlign: "center", padding: "40px 28px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "36px", marginBottom: "12px" }}>⏳</div>
+            <div style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>Analyse en cours...</div>
+            <div style={{ color: "#94a3b8", fontSize: "15px" }}>Transcription et feedback IA en cours.</div>
           </div>
+        )}
 
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "10px 16px",
-              borderRadius: "999px",
-              background: statusConfig.bg,
-              border: statusConfig.border,
-              color: statusConfig.color,
-              fontWeight: 700,
-              fontSize: "14px",
-            }}
-          >
-            <span>{statusConfig.emoji}</span>
-            <span>{statusConfig.label}</span>
-          </div>
-        </div>
+        {/* ══════════════════════════════════════════
+            VUE REPOS (idle / result)
+        ══════════════════════════════════════════ */}
+        {!isRecording && !isProcessing && (
+          <div style={{ ...getCardStyle(), padding: "clamp(20px, 4vw, 32px)", marginBottom: "20px" }}>
 
-        <div
-          style={{
-            ...getCardStyle(),
-            marginBottom: "22px",
-            textAlign: "center",
-            padding: "26px 30px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              letterSpacing: "1.8px",
-              color: "#93c5fd",
-              marginBottom: "14px",
-              fontWeight: 700,
-            }}
-          >
-            CONSIGNE
-          </div>
-
-          <div
-            style={{
-              fontSize: "clamp(24px, 3vw, 30px)",
-              fontWeight: 700,
-              marginBottom: "16px",
-            }}
-          >
-            💬 Donnez votre opinion et justifiez votre réponse.
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "14px",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
+            {/* Sujet focal */}
             <div
               style={{
-                padding: "10px 16px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.06)",
-                color: "#e2e8f0",
-                fontWeight: 600,
+                fontSize: "clamp(22px, 4vw, 36px)",
+                fontWeight: 800,
+                lineHeight: 1.2,
+                letterSpacing: "-0.02em",
+                textAlign: "center",
+                marginBottom: "14px",
+                color: "#f1f5f9",
               }}
             >
-              ⏱ Minimum conseillé : 2 minutes
+              {sujet}
             </div>
-            <div
-              style={{
-                padding: "10px 16px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.06)",
-                color: "#e2e8f0",
-                fontWeight: 600,
-              }}
-            >
-              ⏱ Temps maximum : 4 min 30
+
+            {/* Consigne compacte */}
+            <div style={{ textAlign: "center", fontSize: "14px", color: "#64748b", marginBottom: "24px" }}>
+              💬 Donnez votre opinion et justifiez &nbsp;·&nbsp; min 2 min &nbsp;·&nbsp; max 4:30
+            </div>
+
+            {/* Status badge si résultat */}
+            {hasResult && (
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "999px", background: statusConfig.bg, border: statusConfig.border, color: statusConfig.color, fontWeight: 600, fontSize: "14px" }}>
+                  <span>{statusConfig.emoji}</span>
+                  <span>{statusConfig.label}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Timer post-enregistrement */}
+            {time > 0 && (
+              <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                <div style={{ fontSize: "clamp(22px, 4vw, 34px)", fontWeight: 800, color: getTimerColor(), marginBottom: "6px" }}>
+                  {isRecording ? "🔴" : "⏺️"} {formatTime(time)} / {formatTime(MAX_TIME)}
+                </div>
+                <div style={{ color: getTimerColor(), fontWeight: 600, fontSize: "14px", marginBottom: "10px" }}>
+                  {getTimerLabel()}
+                </div>
+                <div style={{ width: "100%", maxWidth: "480px", height: "6px", margin: "0 auto", background: "rgba(255,255,255,0.08)", borderRadius: "999px", overflow: "hidden" }}>
+                  <div style={{ width: `${getTimerProgress()}%`, height: "100%", background: time < MIN_TIME ? "linear-gradient(90deg, #fb7185, #ef4444)" : "linear-gradient(90deg, #4ade80, #22c55e)", borderRadius: "999px", transition: "width 0.35s ease" }} />
+                </div>
+              </div>
+            )}
+
+            {/* Boutons principaux */}
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <button
+                className="btn-start-call"
+                onClick={demarrerEnregistrement}
+                disabled={isProcessing}
+                style={{
+                  flex: 1,
+                  minWidth: "160px",
+                  padding: "16px 20px",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  cursor: isProcessing ? "not-allowed" : "pointer",
+                  background: isProcessing ? "linear-gradient(135deg, #475569, #334155)" : "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "14px",
+                  opacity: isProcessing ? 0.5 : 1,
+                }}
+              >
+                🎤 {time > 0 ? "Réessayer" : "Démarrer"}
+              </button>
+              <button
+                className="btn-ghost"
+                onClick={changerSujet}
+                disabled={isProcessing}
+                style={{ flex: "0 0 auto", padding: "16px 20px", fontSize: "15px" }}
+              >
+                🔄 Nouveau sujet
+              </button>
+            </div>
+
+            {/* Outils discrets */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
+              {!!transcription && (
+                <button
+                  className="btn-ghost"
+                  onClick={() => setShowTranscription(!showTranscription)}
+                  style={{ fontSize: "12px", padding: "6px 12px" }}
+                >
+                  {showTranscription ? "Masquer transcript" : "📝 Transcript"}
+                </button>
+              )}
+              <button
+                className="btn-ghost"
+                onClick={resetSession}
+                disabled={isProcessing}
+                style={{ fontSize: "12px", padding: "6px 12px" }}
+              >
+                🔁 Reset
+              </button>
+              <button
+                className="btn-ghost"
+                onClick={() => setShowDevMode((prev) => !prev)}
+                disabled={isProcessing}
+                style={{ fontSize: "12px", padding: "6px 12px" }}
+              >
+                {showDevMode ? "Masquer outils" : "⋯ Outils"}
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
-        <div
-          style={{
-            ...getCardStyle(),
-            marginBottom: "22px",
-            textAlign: "center",
-            padding: "30px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              letterSpacing: "1.8px",
-              color: "#93c5fd",
-              marginBottom: "16px",
-              fontWeight: 700,
-            }}
-          >
-            SUJET
-          </div>
-
-          <div
-            style={{
-              fontSize: "clamp(28px, 4.2vw, 42px)",
-              fontWeight: 800,
-              lineHeight: 1.15,
-              letterSpacing: "-1px",
-              maxWidth: "860px",
-              margin: "0 auto",
-            }}
-          >
-            {sujet}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "14px",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            marginBottom: "20px",
-          }}
-        >
-          <button
-            onClick={changerSujet}
-            disabled={isRecording || isProcessing}
-            style={getButtonStyle("dark", isRecording || isProcessing)}
-          >
-            🔄 Nouveau sujet
-          </button>
-
-          {!isRecording ? (
-            <button
-              onClick={demarrerEnregistrement}
-              disabled={isProcessing}
-              style={getButtonStyle("green", isProcessing)}
-            >
-              🎤 Démarrer
-            </button>
-          ) : (
-            <button onClick={arreterEnregistrement} style={getButtonStyle("red")}>
-              ⏹ Arrêter
-            </button>
-          )}
-
-          <button
-            onClick={resetSession}
-            disabled={isProcessing}
-            style={getButtonStyle("blue", isProcessing)}
-          >
-            🔁 Reset
-          </button>
-
-          <button
-            onClick={() => setShowDevMode((prev) => !prev)}
-            disabled={isRecording || isProcessing}
-            style={getButtonStyle("violet", isRecording || isProcessing)}
-          >
-            {showDevMode ? "🙈 Masquer test texte" : "🧪 Mode test texte"}
-          </button>
-
-          {!!transcription && (
-            <button
-              onClick={() => setShowTranscription(!showTranscription)}
-              disabled={isRecording || isProcessing}
-              style={getButtonStyle("dark", isRecording || isProcessing)}
-            >
-              {showTranscription ? "🙈 Masquer transcription" : "📝 Voir transcription"}
-            </button>
-          )}
-        </div>
 
         {showDevMode && (
           <div
@@ -1359,92 +1100,6 @@ function App() {
           </div>
         )}
 
-        {(isRecording || time > 0) && (
-          <div
-            style={{
-              ...getCardStyle(),
-              marginBottom: "18px",
-              textAlign: "center",
-              padding: "22px 24px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "clamp(30px, 4vw, 44px)",
-                fontWeight: 800,
-                color: getTimerColor(),
-                marginBottom: "8px",
-              }}
-            >
-              {isRecording ? "🔴" : "⏺️"} {formatTime(time)} / {formatTime(MAX_TIME)}
-            </div>
-
-            <div
-              style={{
-                color: getTimerColor(),
-                fontWeight: 700,
-                fontSize: "16px",
-                marginBottom: "14px",
-              }}
-            >
-              {getTimerLabel()}
-            </div>
-
-            <div
-              style={{
-                width: "100%",
-                maxWidth: "640px",
-                height: "12px",
-                margin: "0 auto",
-                background: "rgba(255,255,255,0.08)",
-                borderRadius: "999px",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: `${getTimerProgress()}%`,
-                  height: "100%",
-                  background:
-                    time < MIN_TIME
-                      ? "linear-gradient(90deg, #fb7185, #ef4444)"
-                      : "linear-gradient(90deg, #4ade80, #16a34a)",
-                  borderRadius: "999px",
-                  transition: "width 0.35s ease",
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {isProcessing && (
-          <div
-            style={{
-              ...getCardStyle(),
-              marginBottom: "18px",
-              textAlign: "center",
-              padding: "24px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "30px",
-                fontWeight: 800,
-                marginBottom: "8px",
-              }}
-            >
-              ⏳ Analyse en cours...
-            </div>
-            <div
-              style={{
-                color: "#cbd5e1",
-                fontSize: "16px",
-              }}
-            >
-              Transcription, notation et coaching IA en cours.
-            </div>
-          </div>
-        )}
 
         {showTranscription && transcription && (
           <div
@@ -1494,340 +1149,164 @@ function App() {
           </div>
         )}
 
-        {hasResult && feedback && typeof feedback === "object" && (
-          <div
-            style={{
-              ...getCardStyle(),
-              marginBottom: "18px",
-              textAlign: "center",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                letterSpacing: "1.8px",
-                color: "#93c5fd",
-                marginBottom: "14px",
-                fontWeight: 700,
-              }}
-            >
-              NIVEAU ESTIMÉ
-            </div>
+        {hasResult && feedback && typeof feedback === "object" && (() => {
+          const lc = getLevelColor(feedback.niveau_cecrl);
+          const sc = getScoreColor(feedback.total);
+          const sl = getScoreLabel(feedback.total);
+          const bc = (n) => n >= 4 ? "#3b82f6" : n >= 3 ? "#22c55e" : n >= 2 ? "#f59e0b" : "#ef4444";
+          const criteria = [
+            ["Réalisation de la tâche", "realisation_tache"],
+            ["Lexique", "lexique"],
+            ["Grammaire", "grammaire"],
+            ["Fluidité & Prononciation", "fluidite_prononciation"],
+            ["Interaction & Cohérence", "interaction_coherence"],
+          ];
+          return (
+            <>
+              {/* ── 1. En-tête niveau ── */}
+              <div style={{ ...getCardStyle(), textAlign: "center", padding: "32px 24px", marginBottom: "16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#475569", marginBottom: "12px" }}>
+                  Niveau estimé — Tâche 3
+                </div>
+                <div className="level-pop" style={{ fontSize: "clamp(64px, 12vw, 96px)", fontWeight: 900, lineHeight: 1, letterSpacing: "-0.04em", color: lc, marginBottom: "6px" }}>
+                  {feedback.niveau_cecrl || "—"}
+                </div>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#a5b4fc", marginBottom: "4px" }}>
+                  NCLC {feedback.niveau_nclc || "—"}
+                </div>
+                <div style={{ fontSize: "14px", color: "#64748b", fontWeight: 600, marginBottom: "16px" }}>
+                  {sl} — {feedback.total ?? 0}/20
+                </div>
+                {feedback.resume_niveau && (
+                  <div style={{ fontSize: "15px", color: "#94a3b8", lineHeight: 1.7, maxWidth: "560px", marginInline: "auto" }}>
+                    {feedback.resume_niveau}
+                  </div>
+                )}
+              </div>
 
-            <div
-              style={{
-                fontSize: "clamp(38px, 6vw, 64px)",
-                fontWeight: 900,
-                color:
-                  niveau === "B2"
-                    ? "#4ade80"
-                    : niveau === "B1"
-                    ? "#f59e0b"
-                    : "#fb7185",
-              }}
-            >
-              🎯 {niveau || "—"}
-            </div>
+              {/* ── 2. Barres de score ── */}
+              <div style={{ ...getCardStyle(), marginBottom: "16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#475569", marginBottom: "8px" }}>
+                  Scores — 5 critères
+                </div>
+                {criteria.map(([label, key]) => {
+                  const score = feedback.scores?.[key];
+                  const note = typeof score?.note === "number" ? score.note : 0;
+                  const color = bc(note);
+                  const isOpen = expandedScore === key;
+                  return (
+                    <div key={key}>
+                      <button className="score-bar-row" onClick={() => setExpandedScore(isOpen ? null : key)}>
+                        <span className="score-bar-label">{label}</span>
+                        <div className="score-bar-track">
+                          <div className="score-bar-fill" style={{ width: `${(note / 4) * 100}%`, background: color }} />
+                        </div>
+                        <span className="score-bar-note" style={{ color }}>{note}/4</span>
+                        <span className="score-bar-chevron">{isOpen ? "▲" : "▼"}</span>
+                      </button>
+                      {isOpen && score?.justification && (
+                        <div className="score-justif" style={{ padding: "4px 10px 12px 167px", fontSize: "13px", color: "#94a3b8", lineHeight: 1.6, fontStyle: "italic" }}>
+                          {score.justification}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "14px", paddingTop: "14px", borderTop: "1px solid rgba(148,163,184,0.1)", flexWrap: "wrap", gap: "8px" }}>
+                  <div style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 900, color: sc }}>Total : {feedback.total ?? 0}/20</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#64748b" }}>{sl}</div>
+                </div>
+              </div>
 
-            {parsed?.resume && (
-              <div
-                style={{
-                  marginTop: "14px",
-                  color: "#e2e8f0",
-                  fontSize: "18px",
-                  lineHeight: 1.6,
-                  maxWidth: "760px",
-                  marginInline: "auto",
-                }}
+              {/* ── 3. Points ── */}
+              {(feedback.points_positifs?.length > 0 || feedback.points_ameliorer?.length > 0) && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "16px" }}>
+                  {feedback.points_positifs?.length > 0 && (
+                    <div style={{ ...getCardStyle(), borderColor: "rgba(34,197,94,0.2)" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px" }}>✅ Points positifs</div>
+                      <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
+                        {feedback.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {feedback.points_ameliorer?.length > 0 && (
+                    <div style={{ ...getCardStyle(), borderColor: "rgba(245,158,11,0.2)" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px" }}>⚠️ Points à améliorer</div>
+                      <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
+                        {feedback.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── 4. Correction + Version côte à côte ── */}
+              {(feedback.correction_simple || feedback.version_amelioree?.texte) && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "16px" }}>
+                  {feedback.correction_simple && (
+                    <div style={getCardStyle()}>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#93c5fd", marginBottom: "12px" }}>Votre réponse corrigée</div>
+                      <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#e2e8f0", fontSize: "14px" }}>{feedback.correction_simple}</div>
+                    </div>
+                  )}
+                  {feedback.version_amelioree?.texte && (
+                    <div style={{ ...getCardStyle(), border: "1px solid rgba(139,92,246,0.28)", background: "rgba(76,29,149,0.12)" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c4b5fd", marginBottom: "12px" }}>
+                        Modèle {feedback.version_amelioree.niveau_cible || "niveau supérieur"}
+                      </div>
+                      <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#ddd6fe", fontSize: "14px" }}>{feedback.version_amelioree.texte}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── 5. Conseil prioritaire (mis en valeur) ── */}
+              {feedback.conseil_prioritaire && (
+                <div style={{ ...getCardStyle(), marginBottom: "16px", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.28)" }}>
+                  <div style={{ display: "flex", gap: "14px" }}>
+                    <span style={{ fontSize: "22px", lineHeight: 1, flexShrink: 0, marginTop: "2px" }}>💡</span>
+                    <div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#60a5fa", marginBottom: "8px" }}>Conseil prioritaire</div>
+                      <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{feedback.conseil_prioritaire}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── 6. Phrases utiles ── */}
+              {feedback.phrases_utiles?.length > 0 && (
+                <div style={{ ...getCardStyle(), marginBottom: "16px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f9a8d4", marginBottom: "12px" }}>Phrases utiles à retenir</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 2, color: "#e2e8f0", fontSize: "14px" }}>
+                    {feedback.phrases_utiles.map((p, i) => <li key={i} style={{ fontStyle: "italic" }}>{p}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {/* ── 7. Objectif prochain essai ── */}
+              {feedback.objectif_prochain_essai && (
+                <div style={{ ...getCardStyle(), marginBottom: "20px", background: "rgba(20,184,166,0.06)", border: "1px solid rgba(20,184,166,0.2)" }}>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "20px", lineHeight: 1, flexShrink: 0 }}>🎯</span>
+                    <div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2dd4bf", marginBottom: "6px" }}>Objectif prochain essai</div>
+                      <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{feedback.objectif_prochain_essai}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── 8. Bouton Nouvel essai ── */}
+              <button
+                className="btn-ghost"
+                onClick={resetVisualResultOnly}
+                style={{ display: "block", width: "100%", padding: "14px", textAlign: "center", fontSize: "15px" }}
               >
-                {parsed.resume}
-              </div>
-            )}
-
-            {feedback?.meta?.confiance !== null && (
-              <div
-                style={{
-                  marginTop: "10px",
-                  color: "#d1fae5",
-                  fontWeight: 700,
-                }}
-              >
-                Confiance du diagnostic : {formatConfidence(feedback.meta.confiance)}
-              </div>
-            )}
-          </div>
-        )}
-
-        {scores && (
-          <div
-            style={{
-              ...getCardStyle(),
-              marginBottom: "18px",
-              border: `1px solid ${getScoreColor(scores.total)}`,
-              background:
-                scores.total >= 32
-                  ? "linear-gradient(135deg, rgba(22,163,74,0.18), rgba(6,78,59,0.22))"
-                  : scores.total >= 24
-                  ? "linear-gradient(135deg, rgba(245,158,11,0.18), rgba(120,53,15,0.22))"
-                  : "linear-gradient(135deg, rgba(239,68,68,0.18), rgba(127,29,29,0.22))",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                letterSpacing: "1.8px",
-                color: getScoreColor(scores.total),
-                marginBottom: "14px",
-                fontWeight: 700,
-              }}
-            >
-              SCORE TCF SIMULÉ
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "12px",
-                marginBottom: "18px",
-              }}
-            >
-              {[
-                ["Structure", scores.structure],
-                ["Argumentation", scores.argumentation],
-                ["Langue", scores.langue],
-                ["Fluidité", scores.fluidite],
-                ["Communication", scores.communication],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  style={{
-                    padding: "14px",
-                    borderRadius: "16px",
-                    background: "rgba(255,255,255,0.05)",
-                  }}
-                >
-                  <div style={{ color: "#cbd5e1", marginBottom: "6px" }}>{label}</div>
-                  <div style={{ fontSize: "28px", fontWeight: 800 }}>{value}/10</div>
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "16px",
-                flexWrap: "wrap",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "clamp(24px, 4vw, 36px)",
-                  fontWeight: 900,
-                  color: getScoreColor(scores.total),
-                }}
-              >
-                Total : {scores.total}/50
-              </div>
-
-              <div
-                style={{
-                  color: "#e2e8f0",
-                  fontWeight: 700,
-                }}
-              >
-                {getScoreLabel(scores.total)}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {feedback && typeof feedback === "object" && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "18px",
-            }}
-          >
-            {parsed?.positif && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#4ade80",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  POINTS POSITIFS
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.positif}
-                </div>
-              </div>
-            )}
-
-            {parsed?.amelioration && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#f59e0b",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  POINTS À AMÉLIORER
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.amelioration}
-                </div>
-              </div>
-            )}
-
-            {parsed?.correction && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#93c5fd",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  CORRECTION SIMPLE
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.correction}
-                </div>
-              </div>
-            )}
-
-            {parsed?.version && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#c084fc",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  VERSION AMÉLIORÉE B2
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.version}
-                </div>
-              </div>
-            )}
-
-            {parsed?.coaching && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#22d3ee",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  PLAN D’AMÉLIORATION
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.coaching}
-                </div>
-              </div>
-            )}
-
-            {parsed?.phrases && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#f9a8d4",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  PHRASES À UTILISER
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.phrases}
-                </div>
-              </div>
-            )}
-
-            {parsed?.objectif && (
-              <div style={getCardStyle()}>
-                <div
-                  style={{
-                    fontSize: "14px",
-                    letterSpacing: "1.8px",
-                    color: "#fde68a",
-                    marginBottom: "14px",
-                    fontWeight: 700,
-                  }}
-                >
-                  OBJECTIF PROCHAIN ESSAI
-                </div>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.8,
-                    color: "#e2e8f0",
-                  }}
-                >
-                  {parsed.objectif}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+                Nouvel essai
+              </button>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
