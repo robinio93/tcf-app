@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RealtimeCall from "./RealtimeCall";
 import { supabase } from "./lib/supabase";
 
@@ -26,8 +26,11 @@ function App() {
   const [devDuration, setDevDuration] = useState(150);
   const [appMode, setAppMode] = useState("chooser");
   const [expandedScore, setExpandedScore] = useState(null);
+  // null | "transcribing" | "analyzing"
+  const [t3ProcessingStep, setT3ProcessingStep] = useState(null);
 
   const mediaRecorderRef = useRef(null);
+  const resultRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
   const elapsedTimeRef = useRef(0);
@@ -35,6 +38,12 @@ function App() {
   const isRecording = status === "recording";
   const isProcessing = status === "processing";
   const hasResult = status === "result";
+
+  useEffect(() => {
+    if (hasResult && resultRef.current) {
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+    }
+  }, [hasResult]);
 
   function changerSujet() {
     if (isRecording || isProcessing) return;
@@ -65,6 +74,7 @@ function App() {
     elapsedTimeRef.current = 0;
     setNiveau("");
     setShowTranscription(false);
+    setT3ProcessingStep(null);
     setStatus("idle");
   }
 
@@ -75,6 +85,7 @@ function App() {
     elapsedTimeRef.current = 0;
     setNiveau("");
     setShowTranscription(false);
+    setT3ProcessingStep(null);
   }
 
   function formatTime(seconds) {
@@ -324,6 +335,8 @@ function App() {
       setTranscription(cleanText);
       setTime(durationSec);
       setStatus("processing");
+      // si appelé depuis le mode dev texte (pas d'audio), démarrer directement à "analyzing"
+      setT3ProcessingStep((prev) => prev === null ? "analyzing" : prev);
 
       const response = await fetch("/api/analyze-text", {
         method: "POST",
@@ -380,11 +393,13 @@ function App() {
         normalizedFeedback: normalized,
       });
 
+      setT3ProcessingStep(null);
       setStatus("result");
     } catch (e) {
       console.error(e);
       setFeedback(`Erreur API : ${e.message}`);
       setNiveau("");
+      setT3ProcessingStep(null);
       setStatus("result");
     }
   }
@@ -421,6 +436,7 @@ function App() {
         clearInterval(timerRef.current);
         timerRef.current = null;
         setStatus("processing");
+        setT3ProcessingStep("transcribing");
 
         try {
           const finalMimeType = mimeType || mediaRecorder.mimeType || "audio/webm";
@@ -505,15 +521,18 @@ function App() {
       if (!texte) {
         setFeedback("⚠️ Aucun son détecté. Vérifiez votre micro et parlez clairement.");
         setStatus("result");
+        setT3ProcessingStep(null);
         return;
       }
 
+      setT3ProcessingStep("analyzing");
       await analyserTexte(texte, durationSec);
     } catch (e) {
       console.error(e);
       setFeedback(`Erreur API : ${e.message}`);
       setNiveau("");
       setStatus("result");
+      setT3ProcessingStep(null);
     }
   }
 
@@ -730,6 +749,22 @@ function App() {
           >
             Score /20 basé sur les critères CECRL&nbsp;&bull;&nbsp;Feedback personnalisé par IA
           </div>
+
+          {/* ── Contact ── */}
+          <div style={{ marginTop: "32px", textAlign: "center", fontSize: "13px" }}>
+            <a
+              href="mailto:pereirasilvarobin@yahoo.fr"
+              style={{
+                color: "#64748b",
+                textDecoration: "none",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#3b82f6")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+            >
+              Une question ? Contactez-moi
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -858,13 +893,61 @@ function App() {
         )}
 
         {/* ══════════════════════════════════════════
-            VUE ANALYSE EN COURS
+            VUE TRAITEMENT POST-ENREGISTREMENT
         ══════════════════════════════════════════ */}
         {isProcessing && (
-          <div style={{ ...getCardStyle(), textAlign: "center", padding: "40px 28px", marginBottom: "20px" }}>
-            <div style={{ fontSize: "36px", marginBottom: "12px" }}>⏳</div>
-            <div style={{ fontSize: "18px", fontWeight: 700, marginBottom: "8px" }}>Analyse en cours...</div>
-            <div style={{ color: "#94a3b8", fontSize: "15px" }}>Transcription et feedback IA en cours.</div>
+          <div style={{ ...getCardStyle(), textAlign: "center", padding: "36px 24px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
+              Traitement de votre enregistrement...
+            </div>
+            <div style={{ fontSize: "14px", color: "#475569", marginBottom: "32px" }}>
+              Cela prend généralement 5 à 10 secondes
+            </div>
+
+            <div style={{ maxWidth: "300px", marginInline: "auto", textAlign: "left" }}>
+              {[
+                {
+                  label: "Transcription de votre monologue",
+                  done: t3ProcessingStep === "analyzing",
+                  active: t3ProcessingStep === "transcribing",
+                },
+                {
+                  label: "Évaluation de votre performance",
+                  done: false,
+                  active: t3ProcessingStep === "analyzing",
+                },
+                {
+                  label: "Génération du feedback personnalisé",
+                  done: false,
+                  active: t3ProcessingStep === "analyzing",
+                },
+              ].map(({ label, done, active }, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    padding: "11px 0",
+                    borderBottom: i < 2 ? "1px solid rgba(148,163,184,0.08)" : "none",
+                    opacity: active || done ? 1 : 0.28,
+                    transition: "opacity 0.4s ease",
+                  }}
+                >
+                  <span style={{ fontSize: "20px", width: "24px", flexShrink: 0, textAlign: "center" }}>
+                    {done ? "✅" : active ? "⏳" : "○"}
+                  </span>
+                  <span style={{
+                    fontSize: "14px",
+                    fontWeight: active ? 700 : 400,
+                    color: done ? "#4ade80" : active ? "#f1f5f9" : "#64748b",
+                    transition: "color 0.3s ease",
+                  }}>
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1148,6 +1231,8 @@ function App() {
             <div style={{ color: "#fecaca" }}>{feedback}</div>
           </div>
         )}
+
+        <div ref={resultRef} />
 
         {hasResult && feedback && typeof feedback === "object" && (() => {
           const lc = getLevelColor(feedback.niveau_cecrl);

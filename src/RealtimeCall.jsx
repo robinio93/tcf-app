@@ -609,6 +609,8 @@ function RealtimeCall({ onBack = null }) {
   const [conversationTranscript, setConversationTranscript] = useState([]);
   const debriefSectionRef = useRef(null);
   const [expandedScore, setExpandedScore] = useState(null);
+  // null | "transcribing" | "analyzing"
+  const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
 
   const selectedScenario = TASK_2_SCENARIOS[scenarioIndex];
@@ -798,6 +800,7 @@ function RealtimeCall({ onBack = null }) {
     setActivity(USER_ACTIVITY);
     setDebrief(null);
     setDebriefState("idle");
+    setProcessingStep(null);
     setConversationTranscript([]);
     setShowTranscript(false);
     setCallTime(0);
@@ -1009,6 +1012,7 @@ function RealtimeCall({ onBack = null }) {
 
     stopCallTimer();
     setCallTime(0);
+    setProcessingStep(null);
     closeRealtimeResources();
     conversationLogRef.current = [];
     currentExaminerTranscriptRef.current = "";
@@ -1192,8 +1196,7 @@ function RealtimeCall({ onBack = null }) {
 
     setMicrophoneEnabled(false);
     setCallState("idle");
-    setUserTurn("Appel termine. Vous pouvez relancer un test.");
-    setStatusNote("Appel termine en cours...");
+    setProcessingStep("transcribing");
     setErrorMessage("");
 
     // Attendre que les onstop des MediaRecorder finalisent leurs blobs
@@ -1207,7 +1210,6 @@ function RealtimeCall({ onBack = null }) {
     // Transcrire les tours candidat via /api/transcribe
     const pendingSlots = rawLog.filter((e) => e._slot !== undefined);
     if (pendingSlots.length > 0) {
-      setStatusNote("Transcription du dialogue en cours...");
       for (const entry of pendingSlots) {
         const blob = blobs[entry._slot];
         if (!blob) continue;
@@ -1235,14 +1237,16 @@ function RealtimeCall({ onBack = null }) {
       .map(({ _slot, ...rest }) => rest)
       .filter((e) => e.text && e.text !== "__pending__");
 
-    setStatusNote("Appel termine. Debrief en cours de generation...");
-
     if (cleanLog.length > 0) {
       setConversationTranscript(cleanLog);
       setShowTranscript(false);
     }
+
     if (cleanLog.length >= 2) {
+      setProcessingStep("analyzing");
       analyzeInteraction(cleanLog, scenario);
+    } else {
+      setProcessingStep(null);
     }
   }
 
@@ -1297,11 +1301,11 @@ function RealtimeCall({ onBack = null }) {
 
       setDebrief(parsed);
       setDebriefState("done");
-      setStatusNote("Debrief pret. Consultez les resultats ci-dessous.");
+      setProcessingStep(null);
     } catch (e) {
       console.error("Debrief error:", e);
       setDebriefState("idle");
-      setStatusNote("Le debrief n'a pas pu etre genere. Vous pouvez relancer un appel.");
+      setProcessingStep(null);
     }
   }
 
@@ -1348,9 +1352,68 @@ function RealtimeCall({ onBack = null }) {
           }}
         >
           {/* ══════════════════════════════════════════
+              VUE TRAITEMENT POST-APPEL
+          ══════════════════════════════════════════ */}
+          {!isConnecting && !isConnected && processingStep !== null && (
+            <div style={{ textAlign: "center", padding: "36px 16px" }}>
+              <div style={{ fontSize: "clamp(20px, 4vw, 26px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
+                Traitement de votre session...
+              </div>
+              <div style={{ fontSize: "14px", color: "#475569", marginBottom: "36px" }}>
+                Cela prend généralement 5 à 10 secondes
+              </div>
+
+              <div style={{ maxWidth: "300px", marginInline: "auto", textAlign: "left" }}>
+                {[
+                  {
+                    label: "Transcription du dialogue",
+                    done: processingStep === "analyzing",
+                    active: processingStep === "transcribing",
+                  },
+                  {
+                    label: "Évaluation de votre performance",
+                    done: false,
+                    active: processingStep === "analyzing",
+                  },
+                  {
+                    label: "Génération du feedback personnalisé",
+                    done: false,
+                    active: processingStep === "analyzing",
+                  },
+                ].map(({ label, done, active }, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "14px",
+                      padding: "11px 0",
+                      borderBottom: i < 2 ? "1px solid rgba(148,163,184,0.08)" : "none",
+                      opacity: active || done ? 1 : 0.28,
+                      transition: "opacity 0.4s ease",
+                    }}
+                  >
+                    <span style={{ fontSize: "20px", width: "24px", flexShrink: 0, textAlign: "center" }}>
+                      {done ? "✅" : active ? "⏳" : "○"}
+                    </span>
+                    <span style={{
+                      fontSize: "14px",
+                      fontWeight: active ? 700 : 400,
+                      color: done ? "#4ade80" : active ? "#f1f5f9" : "#64748b",
+                      transition: "color 0.3s ease",
+                    }}>
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════════
               VUE PRÉ-APPEL (idle / error)
           ══════════════════════════════════════════ */}
-          {!isConnecting && !isConnected && (
+          {!isConnecting && !isConnected && processingStep === null && (
             <>
               {/* Top bar */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
