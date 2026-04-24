@@ -208,6 +208,13 @@ IMPORTANT :
 - "version_amelioree" = repliques modeles AU NIVEAU JUSTE AU-DESSUS du niveau estime.
 - "conseil_prioritaire" = UN SEUL conseil concret et actionnable, le plus impactant.
 
+
+REGLE ABSOLUE DE NOTATION :
+- Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
+- Commence par identifier le critere le PLUS FAIBLE et le critere le PLUS FORT du candidat. Note-les en premier, puis note les 3 autres entre ces deux extremes.
+- Exemples de distributions valides : 1-2-2-3-2, 2-1-3-2-3, 3-2-2-3-4
+- Exemple de distributions INVALIDES : 2-2-2-2-2, 3-3-3-3-3
+
 Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
 {
   "scores": {
@@ -299,6 +306,13 @@ IMPORTANT :
 - "correction_simple" = le monologue reformule avec les erreurs corrigees, meme niveau de complexite.
 - "version_amelioree" = modele AU NIVEAU JUSTE AU-DESSUS du niveau estime.
 - "conseil_prioritaire" = UN SEUL conseil concret et actionnable, le plus impactant.
+
+
+REGLE ABSOLUE DE NOTATION :
+- Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
+- Commence par identifier le critere le PLUS FAIBLE et le critere le PLUS FORT du candidat. Note-les en premier, puis note les 3 autres entre ces deux extremes.
+- Exemples de distributions valides : 1-2-2-3-2, 2-1-3-2-3, 3-2-2-3-4
+- Exemple de distributions INVALIDES : 2-2-2-2-2, 3-3-3-3-3
 
 Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
 {

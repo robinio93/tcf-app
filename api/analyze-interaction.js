@@ -116,6 +116,13 @@ IMPORTANT :
 - "version_amelioree" = repliques modeles du candidat AU NIVEAU JUSTE AU-DESSUS du niveau estime (si B1 estime, donner un modele B2 ; si B2, donner C1).
 - "conseil_prioritaire" = UN SEUL conseil, le plus impactant pour progresser, concret et actionnable, lie a un defaut reel observe dans la transcription.
 
+
+REGLE ABSOLUE DE NOTATION :
+- Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
+- Commence par identifier le critere le PLUS FAIBLE et le critere le PLUS FORT du candidat. Note-les en premier, puis note les 3 autres entre ces deux extremes.
+- Exemples de distributions valides : 1-2-2-3-2, 2-1-3-2-3, 3-2-2-3-4
+- Exemple de distributions INVALIDES : 2-2-2-2-2, 3-3-3-3-3
+
 Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
 {
   "scores": {
