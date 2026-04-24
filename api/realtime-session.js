@@ -25,9 +25,6 @@ function buildSessionPayload() {
       instructions: SESSION_INSTRUCTIONS,
       output_modalities: ["audio"],
       max_output_tokens: "inf",
-      input_audio_transcription: {
-        model: "whisper-1",
-      },
       audio: {
         input: {
           noise_reduction: {
