@@ -200,6 +200,36 @@ BAREME NIVEAU :
 CORRESPONDANCE NCLC :
 A1=NCLC 1-2 | A2=NCLC 3-4 | B1=NCLC 5-6 | B2=NCLC 7-8 | C1=NCLC 9-10 | C2=NCLC 11-12
 
+EXEMPLES DE CALIBRATION — utilise ces exemples comme reference pour tes notes :
+
+Niveau A2 (5-7/20) :
+- Phrases tres courtes, souvent un seul mot : 'Oui', 'Non', 'Je sais pas'
+- Pas de questions posees par le candidat, ou questions tres basiques d'un mot
+- Vocabulaire de base uniquement, repetitions constantes
+- Beaucoup d'hesitations longues (3-5 secondes), silences bloques
+- Aucun connecteur logique
+
+Niveau B1 (8-11/20) :
+- Phrases simples mais completes : 'Je voudrais louer une voiture'
+- Questions basiques : 'C'est combien ?', 'C'est quand ?'
+- Connecteurs simples : et, mais, parce que, alors
+- Quelques hesitations normales, debit irregulier mais intelligible
+- Peut exprimer un besoin mais sans precision ni nuance
+
+Niveau B2 (12-15/20) :
+- Phrases complexes avec subordonnees et conditions
+- Reformulations : 'Ce que je veux dire, c'est que...'
+- Questions precisees et variees : 'Pourriez-vous me detailler les differentes formules ?'
+- Connecteurs varies : cependant, en revanche, par consequent, a condition que
+- Discours fluide avec rares hesitations
+- Capacite a negocier, argumenter, nuancer
+
+Niveau C1 (16-18/20) :
+- Discours spontane et naturel, sans hesitations notables
+- Vocabulaire riche, precis, registre parfaitement adapte a la situation
+- Humour, ironie, nuances culturelles maitrisees
+- Structure argumentative sophistiquee, reformulations elegantes
+
 IMPORTANT :
 - Sois STRICT et REALISTE. Un candidat avec tres peu de repliques ne peut pas avoir B2.
 - NOTES DIFFERENCIEES OBLIGATOIRES : Ne mets PAS la meme note a tous les criteres. Chaque critere doit etre evalue INDEPENDAMMENT. Un candidat peut avoir 3/4 en fluidite mais 1/4 en lexique. Le score 2/4 sur tous les criteres est un signal que tu n'as pas assez analyse la transcription. Relis chaque critere separement et justifie avec des exemples DIFFERENTS tires de la transcription.
@@ -299,6 +329,36 @@ BAREME NIVEAU :
 
 CORRESPONDANCE NCLC :
 A1=NCLC 1-2 | A2=NCLC 3-4 | B1=NCLC 5-6 | B2=NCLC 7-8 | C1=NCLC 9-10 | C2=NCLC 11-12
+
+EXEMPLES DE CALIBRATION — utilise ces exemples comme reference pour tes notes :
+
+Niveau A2 (5-7/20) :
+- Phrases tres courtes, souvent un seul mot : 'Oui', 'Non', 'Je sais pas'
+- Pas de questions posees par le candidat, ou questions tres basiques d'un mot
+- Vocabulaire de base uniquement, repetitions constantes
+- Beaucoup d'hesitations longues (3-5 secondes), silences bloques
+- Aucun connecteur logique
+
+Niveau B1 (8-11/20) :
+- Phrases simples mais completes : 'Je voudrais louer une voiture'
+- Questions basiques : 'C'est combien ?', 'C'est quand ?'
+- Connecteurs simples : et, mais, parce que, alors
+- Quelques hesitations normales, debit irregulier mais intelligible
+- Peut exprimer un besoin mais sans precision ni nuance
+
+Niveau B2 (12-15/20) :
+- Phrases complexes avec subordonnees et conditions
+- Reformulations : 'Ce que je veux dire, c'est que...'
+- Questions precisees et variees : 'Pourriez-vous me detailler les differentes formules ?'
+- Connecteurs varies : cependant, en revanche, par consequent, a condition que
+- Discours fluide avec rares hesitations
+- Capacite a negocier, argumenter, nuancer
+
+Niveau C1 (16-18/20) :
+- Discours spontane et naturel, sans hesitations notables
+- Vocabulaire riche, precis, registre parfaitement adapte a la situation
+- Humour, ironie, nuances culturelles maitrisees
+- Structure argumentative sophistiquee, reformulations elegantes
 
 IMPORTANT :
 - Sois STRICT et REALISTE. Moins de 30s = realisation_tache note 1 max. Moins de 60s = total 10 max. Moins de 120s = total 13 max.
