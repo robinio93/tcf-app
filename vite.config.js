@@ -16,7 +16,7 @@ const SESSION_INSTRUCTIONS = [
   "Apres chaque reponse du candidat, pose une question de suivi ou apporte un element nouveau pour maintenir l'echange.",
   "Si le candidat donne une reponse courte ou vague, relance immediatement avec 'Et concernant...', 'Pourriez-vous preciser...', ou 'C'est-a-dire ?'.",
   "Revele les informations progressivement, en petites doses, pour que le candidat soit amene a poser plusieurs questions.",
-  "Ne conclus JAMAIS la conversation avant 3 minutes. Si le candidat tente de conclure, relance avec un detail supplementaire.",
+  "Si l'echange dure moins de 3 minutes et que le candidat veut partir, relance avec un detail supplementaire. Apres 3 minutes, si le candidat conclut, laisse-le partir poliment.",
   "Au debut, ouvre avec une salutation courte et laisse le candidat exposer sa situation.",
   "Chaque reponse : 2 a 3 phrases maximum. Laisse toujours la place a une reaction du candidat.",
   "Ne corrige pas les fautes de francais. N'agis pas comme un professeur. Ne note pas le candidat.",
@@ -202,7 +202,8 @@ A1=NCLC 1-2 | A2=NCLC 3-4 | B1=NCLC 5-6 | B2=NCLC 7-8 | C1=NCLC 9-10 | C2=NCLC 1
 
 IMPORTANT :
 - Sois STRICT et REALISTE. Un candidat avec tres peu de repliques ne peut pas avoir B2.
-- Chaque justification doit citer un EXEMPLE CONCRET tire de la transcription.
+- NOTES DIFFERENCIEES OBLIGATOIRES : Ne mets PAS la meme note a tous les criteres. Chaque critere doit etre evalue INDEPENDAMMENT. Un candidat peut avoir 3/4 en fluidite mais 1/4 en lexique. Le score 2/4 sur tous les criteres est un signal que tu n'as pas assez analyse la transcription. Relis chaque critere separement et justifie avec des exemples DIFFERENTS tires de la transcription.
+- Chaque justification doit citer un EXEMPLE CONCRET et DIFFERENT tire de la transcription (pas le meme exemple pour plusieurs criteres).
 - "correction_simple" = les tours du CANDIDAT reformules avec les erreurs corrigees, meme niveau de complexite.
 - "version_amelioree" = repliques modeles AU NIVEAU JUSTE AU-DESSUS du niveau estime.
 - "conseil_prioritaire" = UN SEUL conseil concret et actionnable, le plus impactant.

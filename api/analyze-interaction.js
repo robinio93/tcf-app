@@ -110,7 +110,8 @@ A1=NCLC 1-2 | A2=NCLC 3-4 | B1=NCLC 5-6 | B2=NCLC 7-8 | C1=NCLC 9-10 | C2=NCLC 1
 
 IMPORTANT :
 - Sois STRICT et REALISTE. Un candidat avec tres peu de repliques ou des repliques tres courtes ne peut pas avoir B2.
-- Chaque justification doit citer un EXEMPLE CONCRET tire de la transcription (une phrase reelle du candidat).
+- NOTES DIFFERENCIEES OBLIGATOIRES : Ne mets PAS la meme note a tous les criteres. Chaque critere doit etre evalue INDEPENDAMMENT. Un candidat peut avoir 3/4 en fluidite mais 1/4 en lexique. Le score 2/4 sur tous les criteres est un signal que tu n'as pas assez analyse la transcription. Relis chaque critere separement.
+- Chaque justification doit citer un EXEMPLE CONCRET et DIFFERENT tire de la transcription (pas le meme exemple pour plusieurs criteres).
 - "correction_simple" = les tours du CANDIDAT reformules avec les erreurs de langue corrigees, en conservant exactement le meme niveau de complexite et le meme sens.
 - "version_amelioree" = repliques modeles du candidat AU NIVEAU JUSTE AU-DESSUS du niveau estime (si B1 estime, donner un modele B2 ; si B2, donner C1).
 - "conseil_prioritaire" = UN SEUL conseil, le plus impactant pour progresser, concret et actionnable, lie a un defaut reel observe dans la transcription.
