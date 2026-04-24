@@ -237,7 +237,9 @@ IMPORTANT :
 - "correction_simple" = les tours du CANDIDAT reformules avec les erreurs corrigees, meme niveau de complexite.
 - "version_amelioree" = repliques modeles AU NIVEAU JUSTE AU-DESSUS du niveau estime.
 - "conseil_prioritaire" = UN SEUL conseil concret et actionnable, le plus impactant.
-
+- STYLE DU FEEDBACK : Tutoie le candidat (tu, ton, tes) dans tous les champs texte — resume_niveau, points_positifs, points_ameliorer, correction_simple, version_amelioree, conseil_prioritaire, objectif_prochain_essai.
+- CITATIONS OBLIGATOIRES : Dans chaque point_ameliorer, cite les mots ou phrases EXACTES de la transcription entre guillemets, puis donne la version corrigee directement. Ex : Tu as dit 'je veux un voiture' -> dis plutot 'je voudrais une voiture'.
+- CONSEIL PRIORITAIRE ULTRA CONCRET : Pas de generalites ('enrichir le vocabulaire'). Donne des formules de remplacement specifiques. Ex : 'Au lieu de repeter je voudrais, utilise : j'aurais aime, je souhaiterais, serait-il possible de...'
 
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
@@ -366,7 +368,9 @@ IMPORTANT :
 - "correction_simple" = le monologue reformule avec les erreurs corrigees, meme niveau de complexite.
 - "version_amelioree" = modele AU NIVEAU JUSTE AU-DESSUS du niveau estime.
 - "conseil_prioritaire" = UN SEUL conseil concret et actionnable, le plus impactant.
-
+- STYLE DU FEEDBACK : Tutoie le candidat (tu, ton, tes) dans tous les champs texte — resume_niveau, points_positifs, points_ameliorer, correction_simple, version_amelioree, conseil_prioritaire, objectif_prochain_essai.
+- CITATIONS OBLIGATOIRES : Dans chaque point_ameliorer, cite les mots ou phrases EXACTES de la transcription entre guillemets, puis donne la version corrigee directement. Ex : Tu as dit 'je veux un voiture' -> dis plutot 'je voudrais une voiture'.
+- CONSEIL PRIORITAIRE ULTRA CONCRET : Pas de generalites ('enrichir le vocabulaire'). Donne des formules de remplacement specifiques. Ex : 'Au lieu de repeter je voudrais, utilise : j'aurais aime, je souhaiterais, serait-il possible de...'
 
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.

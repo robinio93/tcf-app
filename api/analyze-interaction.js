@@ -145,6 +145,9 @@ IMPORTANT :
 - "correction_simple" = les tours du CANDIDAT reformules avec les erreurs de langue corrigees, en conservant exactement le meme niveau de complexite et le meme sens.
 - "version_amelioree" = repliques modeles du candidat AU NIVEAU JUSTE AU-DESSUS du niveau estime (si B1 estime, donner un modele B2 ; si B2, donner C1).
 - "conseil_prioritaire" = UN SEUL conseil, le plus impactant pour progresser, concret et actionnable, lie a un defaut reel observe dans la transcription.
+- STYLE DU FEEDBACK : Tutoie le candidat (tu, ton, tes) dans tous les champs texte — resume_niveau, points_positifs, points_ameliorer, correction_simple, version_amelioree, conseil_prioritaire, objectif_prochain_essai.
+- CITATIONS OBLIGATOIRES : Dans chaque point_ameliorer, cite les mots ou phrases EXACTES de la transcription entre guillemets, puis donne la version corrigee directement. Ex : Tu as dit 'je veux un voiture' -> dis plutot 'je voudrais une voiture'.
+- CONSEIL PRIORITAIRE ULTRA CONCRET : Pas de generalites ('enrichir le vocabulaire'). Donne des formules de remplacement specifiques. Ex : 'Au lieu de repeter je voudrais, utilise : j aurais aime, je souhaiterais, serait-il possible de...'
 
 
 REGLE ABSOLUE DE NOTATION :
