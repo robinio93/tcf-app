@@ -393,6 +393,21 @@ function App() {
         normalizedFeedback: normalized,
       });
 
+      // Sauvegarde session Supabase (anonyme, best-effort)
+      supabase.from("sessions").insert([{
+        tache: 3,
+        sujet: sujet,
+        transcription: cleanText,
+        scores: normalized.scores,
+        total: normalized.total,
+        niveau_cecrl: normalized.niveau_cecrl,
+        niveau_nclc: normalized.niveau_nclc,
+        feedback_complet: normalized,
+        duree_secondes: durationSec,
+      }]).then(({ error }) => {
+        if (error) console.error("Supabase sessions insert error:", error);
+      });
+
       setT3ProcessingStep(null);
       setStatus("result");
     } catch (e) {

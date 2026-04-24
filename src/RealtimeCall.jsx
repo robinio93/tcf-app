@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "./lib/supabase";
 
 const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
@@ -1312,6 +1313,21 @@ function RealtimeCall({ onBack = null }) {
       setDebrief(parsed);
       setDebriefState("done");
       setProcessingStep(null);
+
+      // Sauvegarde session Supabase (anonyme, best-effort)
+      supabase.from("sessions").insert([{
+        tache: 2,
+        sujet: scenario?.title || selectedScenario.title,
+        transcription: conversationText,
+        scores: parsed.scores,
+        total: parsed.total,
+        niveau_cecrl: parsed.niveau_cecrl,
+        niveau_nclc: parsed.niveau_nclc,
+        feedback_complet: parsed,
+        duree_secondes: callTime > 0 ? callTime : null,
+      }]).then(({ error }) => {
+        if (error) console.error("Supabase sessions insert error:", error);
+      });
     } catch (e) {
       console.error("Debrief error:", e);
       setDebriefState("idle");
