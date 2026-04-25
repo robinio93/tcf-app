@@ -417,10 +417,24 @@ Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
   };
 }
 
-function buildAnalyzeTextPayload(prompt, durationSec) {
+function buildSujetContext(sujetData) {
+  if (!sujetData) return "";
+  const pour = Array.isArray(sujetData.arguments_pour)
+    ? sujetData.arguments_pour.map((a, i) => `${i + 1}. ${a}`).join("\n") : "";
+  const contre = Array.isArray(sujetData.arguments_contre)
+    ? sujetData.arguments_contre.map((a, i) => `${i + 1}. ${a}`).join("\n") : "";
+  const errs = Array.isArray(sujetData.erreurs_typiques_b1)
+    ? sujetData.erreurs_typiques_b1.map((e) => `- ${e}`).join("\n") : "";
+  const connecteurs = Array.isArray(sujetData.connecteurs_utiles)
+    ? sujetData.connecteurs_utiles.join(" / ") : "";
+  return `\nCONTEXTE DU SUJET "${sujetData.sujet || ""}" :\n\nArguments POUR attendus :\n${pour}\n\nArguments CONTRE attendus :\n${contre}\n\nErreurs typiques d'un candidat B1 sur ce sujet :\n${errs}\n\nDifference cle B1 → B2 :\n${sujetData.difference_b1_b2 || ""}\n\nConnecteurs utiles :\n${connecteurs}\n\nINSTRUCTION CRITIQUE : Dans tes points_ameliorer, cite explicitement les arguments que le candidat n'a PAS developpes.\n`;
+}
+
+function buildAnalyzeTextPayload(prompt, durationSec, sujetData) {
   const dureeStr = Number.isFinite(Number(durationSec))
     ? `${Math.max(1, Number(durationSec))} secondes`
     : "inconnue";
+  const contextBlock = buildSujetContext(sujetData);
 
   return {
     model: "gpt-4o-mini",
@@ -429,7 +443,7 @@ Tu evalues la production orale d'un candidat.
 
 TACHE : 3 — Exprimer un point de vue
 DUREE DE LA PRODUCTION : ${dureeStr}
-
+${contextBlock}
 TRANSCRIPTION DU MONOLOGUE :
 ${prompt}
 
@@ -628,6 +642,7 @@ function localApiDevPlugin(env) {
           const body = await readJsonBody(req);
           const prompt = typeof body?.prompt === "string" ? body.prompt : "";
           const durationSec = Number(body?.durationSec);
+          const sujetData = body?.sujetData ?? null;
 
           if (!prompt.trim()) {
             json(res, 400, { error: "Prompt is required" });
@@ -643,7 +658,8 @@ function localApiDevPlugin(env) {
             body: JSON.stringify(
               buildAnalyzeTextPayload(
                 prompt,
-                Number.isFinite(durationSec) ? durationSec : null
+                Number.isFinite(durationSec) ? durationSec : null,
+                sujetData
               )
             ),
           });

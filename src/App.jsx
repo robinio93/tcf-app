@@ -3,18 +3,20 @@ import RealtimeCall from "./RealtimeCall";
 import Task1Interview from "./Task1Interview";
 import { supabase } from "./lib/supabase";
 
-function App() {
-  const sujets = [
-    "Pensez-vous que les jeunes devraient commencer à travailler pendant leurs études ?",
-    "Pensez-vous qu’il est important d’avoir une activité physique régulière dans la vie quotidienne ?",
-    "À votre avis, est-il préférable de vivre dans une grande ville ou dans une petite ville ?",
-    "Est-il préférable de faire ses achats en ligne ou dans un magasin physique ?",
-  ];
+const FALLBACK_TASK3_SUBJECTS = [
+  { sujet: "Pensez-vous que les jeunes devraient commencer à travailler pendant leurs études ?" },
+  { sujet: "Pensez-vous qu’il est important d’avoir une activité physique régulière dans la vie quotidienne ?" },
+  { sujet: "À votre avis, est-il préférable de vivre dans une grande ville ou dans une petite ville ?" },
+  { sujet: "Est-il préférable de faire ses achats en ligne ou dans un magasin physique ?" },
+];
 
+function App() {
   const MIN_TIME = 120; // 2 minutes
   const MAX_TIME = 270; // 4 min 30
 
-  const [sujet, setSujet] = useState(sujets[0]);
+  const [task3Subjects, setTask3Subjects] = useState([]);
+  const [task3Index, setTask3Index] = useState(0);
+  const [task3Loaded, setTask3Loaded] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [transcription, setTranscription] = useState("");
   const [time, setTime] = useState(0);
@@ -35,10 +37,35 @@ function App() {
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
   const elapsedTimeRef = useRef(0);
+  const subjectAtRecordingRef = useRef(null);
 
   const isRecording = status === "recording";
   const isProcessing = status === "processing";
   const hasResult = status === "result";
+
+  const currentSubject = task3Subjects[task3Index] ?? null;
+  const sujet = currentSubject?.sujet ?? (task3Loaded ? "Sujet non disponible" : "Chargement du sujet...");
+
+  useEffect(() => {
+    async function loadTask3Subjects() {
+      try {
+        const { data, error } = await supabase
+          .from("task3_references")
+          .select("*")
+          .order("numero");
+        if (!error && data && data.length > 0) {
+          setTask3Subjects([...data].sort(() => Math.random() - 0.5));
+        } else {
+          setTask3Subjects([...FALLBACK_TASK3_SUBJECTS].sort(() => Math.random() - 0.5));
+        }
+      } catch {
+        setTask3Subjects([...FALLBACK_TASK3_SUBJECTS].sort(() => Math.random() - 0.5));
+      } finally {
+        setTask3Loaded(true);
+      }
+    }
+    loadTask3Subjects();
+  }, []);
 
   useEffect(() => {
     if (hasResult && resultRef.current) {
@@ -47,9 +74,12 @@ function App() {
   }, [hasResult]);
 
   function changerSujet() {
-    if (isRecording || isProcessing) return;
-    const index = Math.floor(Math.random() * sujets.length);
-    setSujet(sujets[index]);
+    if (isRecording || isProcessing || task3Subjects.length === 0) return;
+    const nextIndex = (task3Index + 1) % task3Subjects.length;
+    if (nextIndex === 0 && task3Subjects.length > 1) {
+      setTask3Subjects((prev) => [...prev].sort(() => Math.random() - 0.5));
+    }
+    setTask3Index(nextIndex);
     resetSession();
   }
 
@@ -339,6 +369,17 @@ function App() {
       // si appelé depuis le mode dev texte (pas d'audio), démarrer directement à "analyzing"
       setT3ProcessingStep((prev) => prev === null ? "analyzing" : prev);
 
+      const subjectData = subjectAtRecordingRef.current;
+      const sujetData = subjectData?.arguments_pour ? {
+        sujet: subjectData.sujet,
+        arguments_pour: subjectData.arguments_pour,
+        arguments_contre: subjectData.arguments_contre,
+        erreurs_typiques_b1: subjectData.erreurs_typiques_b1,
+        difference_b1_b2: subjectData.difference_b1_b2,
+        expressions_cles: subjectData.expressions_cles,
+        connecteurs_utiles: subjectData.connecteurs_utiles,
+      } : null;
+
       const response = await fetch("/api/analyze-text", {
         method: "POST",
         headers: {
@@ -347,6 +388,7 @@ function App() {
         body: JSON.stringify({
           prompt: cleanText,
           durationSec,
+          sujetData,
         }),
       });
 
@@ -397,7 +439,7 @@ function App() {
       // Sauvegarde session Supabase (anonyme, best-effort)
       supabase.from("sessions").insert([{
         tache: 3,
-        sujet: sujet,
+        sujet: subjectAtRecordingRef.current?.sujet ?? sujet,
         transcription: cleanText,
         scores: normalized.scores,
         total: normalized.total,
@@ -422,6 +464,7 @@ function App() {
 
   async function demarrerEnregistrement() {
     if (isRecording || isProcessing) return;
+    subjectAtRecordingRef.current = task3Subjects[task3Index] ?? null;
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -1112,10 +1155,10 @@ function App() {
               <button
                 className="btn-ghost"
                 onClick={changerSujet}
-                disabled={isProcessing}
+                disabled={isProcessing || !task3Loaded || task3Subjects.length === 0}
                 style={{ flex: "0 0 auto", padding: "16px 20px", fontSize: "15px" }}
               >
-                🔄 Nouveau sujet
+                {!task3Loaded ? "⏳" : "🔄"} Nouveau sujet
               </button>
             </div>
 

@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, durationSec } = req.body;
+    const { prompt, durationSec, sujetData } = req.body;
 
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: "Prompt is required" });
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: buildPrompt(prompt, durationSec),
+        input: buildPrompt(prompt, durationSec, sujetData),
       }),
     });
 
@@ -51,17 +51,54 @@ export default async function handler(req, res) {
   }
 }
 
-function buildPrompt(transcript, durationSec) {
+function buildSujetContext(sujetData) {
+  if (!sujetData) return "";
+  const pour = Array.isArray(sujetData.arguments_pour)
+    ? sujetData.arguments_pour.map((a, i) => `${i + 1}. ${a}`).join("\n")
+    : "";
+  const contre = Array.isArray(sujetData.arguments_contre)
+    ? sujetData.arguments_contre.map((a, i) => `${i + 1}. ${a}`).join("\n")
+    : "";
+  const errs = Array.isArray(sujetData.erreurs_typiques_b1)
+    ? sujetData.erreurs_typiques_b1.map((e) => `- ${e}`).join("\n")
+    : "";
+  const connecteurs = Array.isArray(sujetData.connecteurs_utiles)
+    ? sujetData.connecteurs_utiles.join(" / ")
+    : "";
+  return `
+CONTEXTE DU SUJET "${sujetData.sujet || ""}" :
+
+Arguments POUR attendus :
+${pour}
+
+Arguments CONTRE attendus :
+${contre}
+
+Erreurs typiques d'un candidat B1 sur ce sujet :
+${errs}
+
+Difference cle B1 → B2 :
+${sujetData.difference_b1_b2 || ""}
+
+Connecteurs utiles pour ce sujet :
+${connecteurs}
+
+INSTRUCTION CRITIQUE : Dans tes points_ameliorer, cite explicitement les arguments que le candidat n'a PAS developpes. Exemple : "Tu n'as pas mentionne [argument manquant]. Tu aurais pu dire : [formulation concrete]."
+`;
+}
+
+function buildPrompt(transcript, durationSec, sujetData) {
   const dureeStr = Number.isFinite(Number(durationSec))
     ? `${Math.max(1, Number(durationSec))} secondes`
     : "inconnue";
+  const contextBlock = buildSujetContext(sujetData);
 
   return `Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
 TACHE : 3 — Exprimer un point de vue
 DUREE DE LA PRODUCTION : ${dureeStr}
-
+${contextBlock}
 TRANSCRIPTION DU MONOLOGUE :
 ${transcript}
 
