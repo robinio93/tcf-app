@@ -32,6 +32,7 @@ function App() {
   const [time, setTime] = useState(0);
   const [niveau, setNiveau] = useState("");
   const [showTranscription, setShowTranscription] = useState(false);
+  const [showT3Details, setShowT3Details] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | recording | processing | result
 
   const [appMode, setAppMode] = useState("chooser");
@@ -82,6 +83,7 @@ function App() {
 
   function changerSujet() {
     if (isRecording || isProcessing || task3Subjects.length === 0) return;
+    setShowT3Details(false);
     const nextIndex = (task3Index + 1) % task3Subjects.length;
     if (nextIndex === 0 && task3Subjects.length > 1) {
       setTask3Subjects((prev) => [...prev].sort(() => Math.random() - 0.5));
@@ -1027,9 +1029,78 @@ function App() {
             </div>
 
             {/* Consigne compacte */}
-            <div style={{ textAlign: "center", fontSize: "14px", color: "#64748b", marginBottom: "24px" }}>
-              💬 Donnez votre opinion et justifiez &nbsp;·&nbsp; min 2 min &nbsp;·&nbsp; max 4:30
+            <div style={{ textAlign: "center", fontSize: "14px", color: "#64748b", marginBottom: "20px" }}>
+              Donnez votre opinion et justifiez &nbsp;·&nbsp; min 2 min &nbsp;·&nbsp; max 4:30
             </div>
+
+            {/* Votre objectif */}
+            <div style={{
+              background: "rgba(139,92,246,0.05)",
+              borderLeft: "3px solid #8b5cf6",
+              borderRadius: "0 10px 10px 0",
+              padding: "14px 18px",
+              marginBottom: "10px",
+            }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c4b5fd", marginBottom: "6px" }}>
+                Votre objectif
+              </div>
+              <div style={{ fontSize: "14px", color: "#e2e8f0", lineHeight: 1.65 }}>
+                Donnez votre opinion personnelle sur ce sujet et justifiez-la avec au moins 2 arguments. Illustrez vos idées avec des exemples concrets. Utilisez des connecteurs logiques pour structurer votre propos.
+              </div>
+            </div>
+
+            {/* Accordéon "Voir les détails du sujet" */}
+            <button
+              className="btn-ghost"
+              onClick={() => setShowT3Details((v) => !v)}
+              style={{ marginBottom: "10px", fontSize: "13px" }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                {showT3Details ? <IconChevronUp size={13} /> : <IconChevronDown size={13} />}
+                {showT3Details ? "Masquer les détails" : "Voir les détails du sujet"}
+              </span>
+            </button>
+
+            {showT3Details && currentSubject && (
+              <div style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(148,163,184,0.1)",
+                borderRadius: "14px",
+                padding: "16px 18px",
+                marginBottom: "10px",
+              }}>
+                {Array.isArray(currentSubject.arguments_pour) && currentSubject.arguments_pour.length > 0 && (
+                  <div style={{ marginBottom: "14px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c4b5fd", marginBottom: "8px" }}>
+                      Arguments pour
+                    </div>
+                    <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#94a3b8", fontSize: "14px" }}>
+                      {currentSubject.arguments_pour.map((a, i) => <li key={i}>{a}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {Array.isArray(currentSubject.arguments_contre) && currentSubject.arguments_contre.length > 0 && (
+                  <div style={{ marginBottom: "14px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c4b5fd", marginBottom: "8px" }}>
+                      Arguments contre
+                    </div>
+                    <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#94a3b8", fontSize: "14px" }}>
+                      {currentSubject.arguments_contre.map((a, i) => <li key={i}>{a}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {Array.isArray(currentSubject.connecteurs_utiles) && currentSubject.connecteurs_utiles.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#c4b5fd", marginBottom: "8px" }}>
+                      Connecteurs utiles
+                    </div>
+                    <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#94a3b8", fontSize: "14px" }}>
+                      {currentSubject.connecteurs_utiles.map((c, i) => <li key={i}>{c}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Status badge si résultat */}
             {hasResult && (
