@@ -25,7 +25,6 @@ export default function DevPanel() {
   const [t3Subjects, setT3Subjects] = useState([]);
   const [scenarioId, setScenarioId] = useState("");
   const [subjectId, setSubjectId] = useState("");
-  const [level, setLevel] = useState("B1");
   const [transcript, setTranscript] = useState("");
   const [duration, setDuration] = useState(180);
   const [loading, setLoading] = useState(false);
@@ -53,19 +52,6 @@ export default function DevPanel() {
 
   // Clear transcript when scenario/subject changes
   useEffect(() => { setTranscript(""); }, [scenarioId, subjectId]);
-
-  function loadReferenceLevel(lvl) {
-    setLevel(lvl);
-    const key = `dialogue_${lvl.toLowerCase()}`;
-    const mkey = `monologue_${lvl.toLowerCase()}`;
-    if (task === 2) {
-      const sc = scenarios.find((s) => s.id === scenarioId);
-      setTranscript(sc?.[key] || "");
-    } else if (task === 3) {
-      const sj = t3Subjects.find((s) => s.id === subjectId);
-      setTranscript(sj?.[mkey] || "");
-    }
-  }
 
   async function analyze() {
     if (!transcript.trim()) return;
@@ -204,16 +190,6 @@ export default function DevPanel() {
             </div>
           )}
 
-          {/* Row 3: Level selector */}
-          {task !== 1 && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "12px", color: "#78716c", fontWeight: 600, minWidth: "80px" }}>Niveau ref.</span>
-              {["A2", "B1", "B2"].map((l) => (
-                <button key={l} style={btn(level === l)} onClick={() => loadReferenceLevel(l)}>{l}</button>
-              ))}
-              <span style={{ fontSize: "11px", color: "#57534e", marginLeft: "4px" }}>— charge le dialogue/monologue de référence dans le champ</span>
-            </div>
-          )}
 
           {/* Row 4: Transcript */}
           <div>
