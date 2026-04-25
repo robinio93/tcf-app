@@ -708,10 +708,11 @@ function App() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(3, 1fr)",
               gap: "18px",
               marginBottom: "44px",
             }}
+            className="task-cards-grid"
           >
             {/* Tâche 1 */}
             <button className="task-card" onClick={() => setAppMode("task1")}>

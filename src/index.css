@@ -298,6 +298,33 @@ body {
   .score-justif       { padding-left: 16px !important; }
 }
 
+/* ─── Task cards grid — responsive ──────────────────────────── */
+/* Desktop ≥ 1024px : 3 colonnes égales (défaut inline) */
+/* Tablet 768-1023px : 2 colonnes, Tâche 3 centrée seule */
+@media (max-width: 1023px) {
+  .task-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .task-cards-grid > *:last-child {
+    grid-column: 1 / -1;
+    max-width: calc(50% - 9px);
+    margin-inline: auto;
+    width: 100%;
+  }
+}
+
+/* Mobile < 768px : 1 colonne empilée */
+@media (max-width: 767px) {
+  .task-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .task-cards-grid > *:last-child {
+    grid-column: auto;
+    max-width: 100%;
+    margin-inline: 0;
+  }
+}
+
 /* ─── Niveau CECRL — apparition scale-up ────────────────────── */
 @keyframes level-pop {
   0%   { transform: scale(0.7); opacity: 0; }
