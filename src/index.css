@@ -389,6 +389,23 @@ body {
   }
 }
 
+/* ─── Sélecteur de rythme — pulse tant que pas sélectionné ─── */
+@keyframes pace-pulse {
+  0%, 100% {
+    border-color: rgba(59, 130, 246, 0.25);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    border-color: rgba(59, 130, 246, 0.65);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+  }
+}
+
+.pace-selector--needs-attention {
+  animation: pace-pulse 2s ease-in-out infinite;
+  border-radius: 16px;
+}
+
 /* ─── Task cards grid — responsive ──────────────────────────── */
 /* Desktop ≥ 1024px : 3 colonnes égales (défaut inline) */
 /* Tablet 768-1023px : 2 colonnes, Tâche 3 centrée seule */

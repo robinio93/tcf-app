@@ -1742,14 +1742,16 @@ function RealtimeCall({ onBack = null }) {
               )}
 
               {/* Question rythme — obligatoire avant de démarrer */}
-              <div style={{
-                marginTop: "20px",
-                padding: "18px",
-                borderRadius: "16px",
-                border: speechRate ? "1px solid rgba(59,130,246,0.3)" : "1px solid rgba(148,163,184,0.18)",
-                background: "rgba(255,255,255,0.03)",
-                transition: "border-color 0.3s ease",
-              }}>
+              <div
+                className={`pace-selector${!speechRate ? " pace-selector--needs-attention" : ""}`}
+                style={{
+                  marginTop: "20px",
+                  padding: "18px",
+                  borderRadius: "16px",
+                  border: speechRate ? "1px solid rgba(59,130,246,0.3)" : "1px solid rgba(148,163,184,0.18)",
+                  background: "rgba(255,255,255,0.03)",
+                  transition: "border-color 0.3s ease",
+                }}>
                 <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#475569", marginBottom: "6px" }}>
                   Avant de commencer
                 </div>
@@ -1815,7 +1817,11 @@ function RealtimeCall({ onBack = null }) {
                     touchAction: "manipulation",
                   }}
                 >
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={18} /> Commencer l'appel</span>
+                  {speechRate ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={18} /> Commencer l'appel</span>
+                  ) : (
+                    <span>Choisissez votre rythme ↑</span>
+                  )}
                 </button>
               </div>
             </div>
