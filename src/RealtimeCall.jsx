@@ -633,7 +633,7 @@ function RealtimeCall({ onBack = null }) {
   const [scenarios, setScenarios] = useState([]);
   const [scenariosLoaded, setScenariosLoaded] = useState(false);
   const [scenarioIndex, setScenarioIndex] = useState(0);
-  const [speechRate, setSpeechRate] = useState("slow"); // "slow" = 1400ms | "fast" = 800ms
+  const [speechRate, setSpeechRate] = useState(""); // "" = non choisi | "slow" = 1800ms | "fast" = 1000ms
   const [showScenario, setShowScenario] = useState(
     () => typeof window !== "undefined" ? window.innerWidth >= 640 : true
   );
@@ -1095,7 +1095,7 @@ function RealtimeCall({ onBack = null }) {
         throw new Error("Ce navigateur ne prend pas en charge l'acces micro.");
       }
 
-      const silenceDuration = speechRate === "fast" ? 800 : 1400;
+      const silenceDuration = speechRate === "fast" ? 1000 : 1800;
       const clientSecret = await createRealtimeSession(silenceDuration);
 
       if (connectAttemptRef.current !== attemptId) {
@@ -1718,46 +1718,61 @@ function RealtimeCall({ onBack = null }) {
                 </button>
               )}
 
-              {/* Sélecteur de rythme */}
-              <div style={{ marginTop: "16px", marginBottom: "4px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "8px", letterSpacing: "0.03em" }}>
-                  Rythme de parole :
+              {/* Question rythme — obligatoire avant de démarrer */}
+              <div style={{
+                marginTop: "20px",
+                padding: "18px",
+                borderRadius: "16px",
+                border: speechRate ? "1px solid rgba(59,130,246,0.3)" : "1px solid rgba(148,163,184,0.18)",
+                background: "rgba(255,255,255,0.03)",
+                transition: "border-color 0.3s ease",
+              }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#475569", marginBottom: "6px" }}>
+                  Avant de commencer
                 </div>
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ fontSize: "16px", fontWeight: 700, color: "#e2e8f0", marginBottom: "14px", lineHeight: 1.3 }}>
+                  Comment parlez-vous le français ?
+                </div>
+                <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
                   {[
-                    { key: "slow", label: "🐢 Je parle lentement", sub: "avec hésitations" },
-                    { key: "fast", label: "🚀 Je parle couramment", sub: "sans hésitations" },
-                  ].map(({ key, label, sub }) => (
+                    { key: "slow", emoji: "🐢", label: "Avec des hésitations" },
+                    { key: "fast", emoji: "🚀", label: "Couramment" },
+                  ].map(({ key, emoji, label }) => (
                     <button
                       key={key}
                       onClick={() => setSpeechRate(key)}
                       style={{
                         flex: 1,
-                        padding: "10px 12px",
+                        padding: "14px 12px",
                         borderRadius: "12px",
                         border: speechRate === key
-                          ? "1px solid rgba(59,130,246,0.5)"
-                          : "1px solid rgba(148,163,184,0.15)",
+                          ? "1px solid rgba(59,130,246,0.6)"
+                          : "1px solid rgba(148,163,184,0.2)",
                         background: speechRate === key
-                          ? "rgba(59,130,246,0.12)"
-                          : "rgba(255,255,255,0.03)",
-                        color: speechRate === key ? "#93c5fd" : "#64748b",
+                          ? "rgba(59,130,246,0.15)"
+                          : "rgba(255,255,255,0.04)",
+                        color: speechRate === key ? "#93c5fd" : "#94a3b8",
                         cursor: "pointer",
-                        textAlign: "left",
+                        textAlign: "center",
                         transition: "all 0.2s ease",
+                        boxShadow: speechRate === key ? "0 0 0 1px rgba(59,130,246,0.2)" : "none",
                       }}
                     >
+                      <div style={{ fontSize: "22px", marginBottom: "4px", lineHeight: 1 }}>{emoji}</div>
                       <div style={{ fontSize: "13px", fontWeight: 700 }}>{label}</div>
-                      <div style={{ fontSize: "11px", opacity: 0.7, marginTop: "2px" }}>{sub}</div>
                     </button>
                   ))}
                 </div>
+                <div style={{ fontSize: "12px", color: "#475569", textAlign: "center" }}>
+                  Cela aide l'IA à respecter votre rythme
+                </div>
               </div>
 
-              {/* CTA principal */}
+              {/* CTA principal — bloqué tant qu'aucun rythme choisi */}
               <button
                 className="btn-start-call"
                 onClick={startCall}
+                disabled={!speechRate}
                 style={{
                   display: "block",
                   width: "100%",
@@ -1765,12 +1780,15 @@ function RealtimeCall({ onBack = null }) {
                   fontSize: "17px",
                   fontWeight: 700,
                   letterSpacing: "-0.01em",
-                  cursor: "pointer",
-                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-                  color: "white",
+                  cursor: speechRate ? "pointer" : "not-allowed",
+                  background: speechRate
+                    ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                    : "rgba(59,130,246,0.15)",
+                  color: speechRate ? "white" : "rgba(255,255,255,0.3)",
                   border: "none",
                   borderRadius: "16px",
-                  marginTop: "8px",
+                  marginTop: "12px",
+                  transition: "all 0.3s ease",
                 }}
               >
                 🎙️ Commencer l'appel
