@@ -1735,8 +1735,8 @@ function RealtimeCall({ onBack = null }) {
                 </div>
                 <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
                   {[
-                    { key: "slow", emoji: "🐢", label: "Avec des hésitations" },
-                    { key: "fast", emoji: "🚀", label: "Couramment" },
+                    { key: "slow", emoji: "🐢", label: "Lentement" },
+                    { key: "fast", emoji: "⚡", label: "Normalement" },
                   ].map(({ key, emoji, label }) => (
                     <button
                       key={key}
