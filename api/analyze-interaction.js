@@ -1,3 +1,17 @@
+function extractJson(rawText) {
+  if (!rawText) return "";
+  let text = rawText
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  try { JSON.parse(text); return text; } catch { /* */ }
+  const match = text.match(/\{[\s\S]*\}/);
+  if (match) {
+    try { JSON.parse(match[0]); return match[0]; } catch { /* */ }
+  }
+  return text;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -18,6 +32,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
+        max_output_tokens: 2000,
         input: buildPrompt(conversation, scenario, scenarioData, durationSec),
       }),
     });
@@ -40,10 +55,7 @@ export default async function handler(req, res) {
       data.output?.map((item) => item.content?.map((c) => c.text || "").join("")).join("") ||
       "";
 
-    const analysis = rawText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```\s*$/i, "")
-      .trim();
+    const analysis = extractJson(rawText);
 
     return res.status(200).json({ analysis });
   } catch (error) {
