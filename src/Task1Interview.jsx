@@ -732,6 +732,28 @@ function Task1Interview({ onBack = null }) {
   return (
     <div style={{ minHeight: "100vh", padding: "32px 18px 48px", boxSizing: "border-box" }}>
       <div style={{ width: "100%", maxWidth: "960px", margin: "0 auto" }}>
+
+        {/* ── Header hors cadre — ligne 1 : Retour ── */}
+        {typeof onBack === "function" && (
+          <div style={{ marginBottom: "16px" }}>
+            <button className="btn-ghost" onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <IconArrowLeft size={14} /> Retour
+            </button>
+          </div>
+        )}
+
+        {/* ── Header hors cadre — ligne 2 : TCF Speaking AI + badge ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#475569" }}>TCF Speaking AI</span>
+          <span style={{
+            fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+            color: "#10b981", background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)",
+            borderRadius: "999px", padding: "4px 11px",
+          }}>
+            Tâche 1
+          </span>
+        </div>
+
         <div
           className="t1-precall-wrapper"
           style={{
@@ -805,21 +827,6 @@ function Task1Interview({ onBack = null }) {
           {/* ══ VUE PRÉ-APPEL ══ */}
           {!isConnecting && !isConnected && processingStep === null && (
             <div className="t1-precall">
-              {/* Top bar */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
-                {typeof onBack === "function" ? (
-                  <button className="btn-ghost" onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><IconArrowLeft size={14} /> Retour</span>
-                  </button>
-                ) : <div />}
-                <span style={{
-                  fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "#34d399", background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)",
-                  borderRadius: "999px", padding: "4px 11px",
-                }}>
-                  Tâche 1
-                </span>
-              </div>
 
               {/* Titre */}
               <div style={{ textAlign: "center", marginBottom: "20px" }}>
