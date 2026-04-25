@@ -414,6 +414,74 @@ body {
   border-radius: 16px;
 }
 
+/* ─── Onboarding accordéon mobile ─────────────────────────── */
+.onboarding-toggle {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .onboarding-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .onboarding-toggle:active {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(148, 163, 184, 0.25);
+  }
+
+  .onboarding-section {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin-bottom: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease, margin-bottom 0.3s ease;
+  }
+
+  .onboarding-section--open {
+    max-height: 1200px;
+    opacity: 1;
+    margin-bottom: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .onboarding-toggle { display: none; }
+
+  .onboarding-section {
+    margin-bottom: 44px;
+  }
+}
+
+/* Cards onboarding — non cliquables, style discret */
+.onboarding-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(148, 163, 184, 0.05);
+  border-radius: 16px;
+  padding: 16px 14px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: default;
+  pointer-events: none;
+}
+
 /* ─── Task cards grid — responsive ──────────────────────────── */
 /* Desktop ≥ 1024px : 3 colonnes égales (défaut inline) */
 /* Tablet 768-1023px : 2 colonnes, Tâche 3 centrée seule */

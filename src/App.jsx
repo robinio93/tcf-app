@@ -27,6 +27,7 @@ function App() {
   const [task3Subjects, setTask3Subjects] = useState([]);
   const [task3Index, setTask3Index] = useState(0);
   const [task3Loaded, setTask3Loaded] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [transcription, setTranscription] = useState("");
   const [time, setTime] = useState(0);
@@ -671,36 +672,39 @@ function App() {
             </div>
           </div>
 
-          {/* ── Comment ça marche ── */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "12px",
-              marginBottom: "44px",
-            }}
+          {/* ── Comment ça marche — accordéon mobile ── */}
+          <button
+            className="onboarding-toggle"
+            onClick={() => setOnboardingOpen((v) => !v)}
+            aria-expanded={onboardingOpen}
           >
-            {[
-              { icon: <IconChoose />, color: "#3b82f6", title: "Choisissez une tâche", desc: "Interaction orale, expression d'un point de vue ou entretien dirigé" },
-              { icon: <IconSpeak />, color: "#8b5cf6", title: "Parlez naturellement", desc: "L'IA joue le rôle de l'examinateur — parlez directement au micro" },
-              { icon: <IconChart />, color: "#10b981", title: "Recevez votre feedback", desc: "Score /20, niveau CECRL et conseils personnalisés en 30 secondes" },
-            ].map(({ icon, color, title, desc }) => (
-              <div
-                key={title}
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(148,163,184,0.1)",
-                  borderRadius: "16px",
-                  padding: "18px 16px",
-                  textAlign: "center",
-                  backdropFilter: "blur(8px)",
-                }}
-              >
-                <div style={{ color, marginBottom: "10px", display: "flex", justifyContent: "center" }}>{icon}</div>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#e2e8f0", marginBottom: "5px" }}>{title}</div>
-                <div style={{ fontSize: "13px", color: "#64748b", lineHeight: 1.55 }}>{desc}</div>
-              </div>
-            ))}
+            <span>Comment ça marche ?</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: onboardingOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s ease" }}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          <div className={`onboarding-section${onboardingOpen ? " onboarding-section--open" : ""}`}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "12px",
+                marginBottom: "0",
+              }}
+            >
+              {[
+                { icon: <IconChoose size={28} />, color: "#3b82f6", title: "Choisissez une tâche", desc: "Interaction orale, expression d'un point de vue ou entretien dirigé" },
+                { icon: <IconSpeak size={28} />, color: "#8b5cf6", title: "Parlez naturellement", desc: "L'IA joue le rôle de l'examinateur — parlez directement au micro" },
+                { icon: <IconChart size={28} />, color: "#10b981", title: "Recevez votre feedback", desc: "Score /20, niveau CECRL et conseils personnalisés en 30 secondes" },
+              ].map(({ icon, color, title, desc }) => (
+                <div key={title} className="onboarding-card">
+                  <div style={{ color, marginBottom: "8px", display: "flex", justifyContent: "center" }}>{icon}</div>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#cbd5e1", marginBottom: "4px" }}>{title}</div>
+                  <div style={{ fontSize: "12px", color: "#475569", lineHeight: 1.5 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* ── Task cards ── */}
