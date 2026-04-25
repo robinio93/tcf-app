@@ -26,7 +26,52 @@ function buildOpening(roleDesc) {
   );
 }
 
-const TASK_2_SCENARIOS = [
+// Converts a Supabase scenario_references row to the shape the UI expects.
+function adaptScenario(row) {
+  const roleMatch = row.role_examinateur.match(
+    /[Ll]['']examinateur(?:\s+joue\s+)([\s\S]+?)\.?\s*$/
+  );
+  const roleDesc = roleMatch ? roleMatch[1].trim() : row.role_examinateur;
+
+  const pointsCles = Array.isArray(row.points_cles_attendus)
+    ? `Points importants que le candidat devrait aborder : ${row.points_cles_attendus.join(", ")}. `
+    : "";
+
+  return {
+    id: row.id,
+    badge: `${row.emoji_categorie} ${row.categorie}`,
+    title: row.titre,
+    summary: row.consigne,
+    examinerRole: row.role_examinateur,
+    candidateGoal: Array.isArray(row.points_a_penser)
+      ? row.points_a_penser.join(". ") + "."
+      : row.consigne,
+    prompts: Array.isArray(row.points_a_penser) ? row.points_a_penser : [],
+    openingInstruction: buildOpening(roleDesc),
+    followupInstruction:
+      `Tu joues ${roleDesc}. Scenario : ${row.consigne} ` +
+      pointsCles +
+      BASE_FOLLOWUP_RULES,
+    _raw: row,
+  };
+}
+
+// Placeholder shown while scenarios load from Supabase
+const LOADING_SCENARIO = {
+  id: "loading",
+  badge: "⏳ Chargement",
+  title: "Chargement des scénarios...",
+  summary: "Connexion à la base de données en cours.",
+  examinerRole: "",
+  candidateGoal: "",
+  prompts: [],
+  openingInstruction: "",
+  followupInstruction: "",
+  _raw: null,
+};
+
+// Kept only as emergency fallback if Supabase is unreachable
+const FALLBACK_SCENARIOS = [
   {
     id: "car-rental",
     category: "🚗 Transport",
@@ -583,6 +628,8 @@ function RealtimeCall({ onBack = null }) {
   const [callState, setCallState] = useState("idle");
   const [activity, setActivity] = useState(USER_ACTIVITY);
   const [errorMessage, setErrorMessage] = useState("");
+  const [scenarios, setScenarios] = useState([]);
+  const [scenariosLoaded, setScenariosLoaded] = useState(false);
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [showScenario, setShowScenario] = useState(
     () => typeof window !== "undefined" ? window.innerWidth >= 640 : true
@@ -622,20 +669,13 @@ function RealtimeCall({ onBack = null }) {
   const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
 
-  const selectedScenario = TASK_2_SCENARIOS[scenarioIndex];
+  const selectedScenario = scenarios[scenarioIndex] ?? LOADING_SCENARIO;
   const isConnecting = callState === "connecting";
   const isConnected = callState === "connected";
 
-  function pickNextScenarioIndex(currentIndex) {
-    if (TASK_2_SCENARIOS.length <= 1) return currentIndex;
-
-    let nextIndex = currentIndex;
-
-    while (nextIndex === currentIndex) {
-      nextIndex = Math.floor(Math.random() * TASK_2_SCENARIOS.length);
-    }
-
-    return nextIndex;
+  function getNextScenarioIndex(currentIndex, list) {
+    if (list.length <= 1) return 0;
+    return (currentIndex + 1) % list.length;
   }
 
   function formatCallTime(seconds) {
@@ -799,10 +839,16 @@ function RealtimeCall({ onBack = null }) {
   }
 
   function changeScenario() {
-    if (isConnecting || isConnected) return;
+    if (isConnecting || isConnected || scenarios.length === 0) return;
 
-    const nextIndex = pickNextScenarioIndex(scenarioIndex);
-    const nextScenario = TASK_2_SCENARIOS[nextIndex];
+    const nextIndex = getNextScenarioIndex(scenarioIndex, scenarios);
+
+    // Reshuffle when wrapping around to the start
+    if (nextIndex === 0 && scenarios.length > 1) {
+      setScenarios((prev) => [...prev].sort(() => Math.random() - 0.5));
+    }
+
+    const nextScenario = scenarios[nextIndex] ?? LOADING_SCENARIO;
 
     setScenarioIndex(nextIndex);
     setErrorMessage("");
@@ -1255,13 +1301,13 @@ function RealtimeCall({ onBack = null }) {
 
     if (cleanLog.length >= 2) {
       setProcessingStep("analyzing");
-      analyzeInteraction(cleanLog, scenario);
+      analyzeInteraction(cleanLog, scenario, callTimeAtHangUpRef.current);
     } else {
       setProcessingStep(null);
     }
   }
 
-  async function analyzeInteraction(log, scenario) {
+  async function analyzeInteraction(log, scenario, durationSec) {
     setDebriefState("analyzing");
     setDebrief(null);
 
@@ -1272,12 +1318,22 @@ function RealtimeCall({ onBack = null }) {
       .join("\n");
 
     try {
+      const raw_row = scenario?._raw;
+      const scenarioData = raw_row ? {
+        points_cles_attendus: raw_row.points_cles_attendus,
+        erreurs_typiques_b1: raw_row.erreurs_typiques_b1,
+        difference_b1_b2_bon: raw_row.difference_b1_b2_bon,
+        expressions_cles: raw_row.expressions_cles,
+      } : null;
+
       const response = await fetch("/api/analyze-interaction", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversation: conversationText,
-          scenario: scenario?.title || selectedScenario.title,
+          scenario: scenario?.title || selectedScenario?.title,
+          scenarioData,
+          durationSec: durationSec > 0 ? durationSec : null,
         }),
       });
 
@@ -1334,6 +1390,31 @@ function RealtimeCall({ onBack = null }) {
       setProcessingStep(null);
     }
   }
+
+  // Load scenarios from Supabase on mount, shuffle them, fallback to hardcoded list
+  useEffect(() => {
+    async function loadScenarios() {
+      try {
+        const { data, error } = await supabase
+          .from("scenario_references")
+          .select("*")
+          .order("numero");
+
+        if (!error && data && data.length > 0) {
+          const adapted = data.map(adaptScenario);
+          const shuffled = [...adapted].sort(() => Math.random() - 0.5);
+          setScenarios(shuffled);
+        } else {
+          setScenarios([...FALLBACK_SCENARIOS].sort(() => Math.random() - 0.5));
+        }
+      } catch {
+        setScenarios([...FALLBACK_SCENARIOS].sort(() => Math.random() - 0.5));
+      } finally {
+        setScenariosLoaded(true);
+      }
+    }
+    loadScenarios();
+  }, []);
 
   useEffect(() => {
     if (processingStep === "transcribing" && processingSectionRef.current) {
@@ -1459,10 +1540,17 @@ function RealtimeCall({ onBack = null }) {
                     ← Retour
                   </button>
                 ) : <div />}
-                <button className="btn-ghost" onClick={changeScenario}>
-                  Nouveau sujet
+                <button className="btn-ghost" onClick={changeScenario} disabled={!scenariosLoaded || scenarios.length === 0}>
+                  {!scenariosLoaded ? "⏳ Chargement..." : "Nouveau sujet"}
                 </button>
               </div>
+
+              {/* Spinner pendant le chargement initial */}
+              {!scenariosLoaded && (
+                <div style={{ textAlign: "center", padding: "32px 16px", color: "#64748b", fontSize: "15px" }}>
+                  ⏳ Chargement des scénarios...
+                </div>
+              )}
 
               {/* Scenario : badge + title + summary */}
               <div style={{ marginBottom: "20px", textAlign: "center" }}>

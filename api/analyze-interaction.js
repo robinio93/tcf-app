@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { conversation, scenario } = req.body;
+    const { conversation, scenario, scenarioData, durationSec } = req.body;
 
     if (!conversation?.trim()) {
       return res.status(400).json({ error: "conversation is required" });
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        input: buildPrompt(conversation, scenario),
+        input: buildPrompt(conversation, scenario, scenarioData, durationSec),
       }),
     });
 
@@ -51,12 +51,55 @@ export default async function handler(req, res) {
   }
 }
 
-function buildPrompt(conversation, scenario) {
+function buildScenarioContext(scenario, scenarioData) {
+  if (!scenarioData) return "";
+  const pts = Array.isArray(scenarioData.points_cles_attendus)
+    ? scenarioData.points_cles_attendus.map((p, i) => `${i + 1}. ${p}`).join("\n")
+    : "";
+  const errs = Array.isArray(scenarioData.erreurs_typiques_b1)
+    ? scenarioData.erreurs_typiques_b1.map((e) => `- ${e}`).join("\n")
+    : "";
+  const exprs = Array.isArray(scenarioData.expressions_cles)
+    ? scenarioData.expressions_cles.map((e) => `- "${e}"`).join("\n")
+    : "";
+  return `
+CONTEXTE SPECIFIQUE DU SCENARIO "${scenario}" :
+
+Points cles que le candidat devait absolument aborder :
+${pts}
+
+Erreurs typiques d'un candidat B1 sur ce scenario :
+${errs}
+
+Exemple de formulation B2 sur ce scenario :
+"${scenarioData.difference_b1_b2_bon || ""}"
+
+Expressions cles a maitriser pour ce scenario :
+${exprs}
+
+INSTRUCTION CRITIQUE : Dans tes points_ameliorer, cite explicitement les points cles que le candidat n'a PAS abordes. Exemple : "Tu n'as pas demande [point cle manquant]. Tu aurais pu dire : [expression cle adaptee du scenario]."
+`;
+}
+
+function buildDurationRules(durationSec) {
+  if (!durationSec || durationSec <= 0) return "";
+  const d = Number(durationSec);
+  if (d < 30) return "\nREGLES STRICTES DE NOTATION — DUREE TRES COURTE (moins de 30s de parole candidat) : realisation_tache = 0 ou 1 maximum. Total plafonne a 5/20. Niveau maximum : A1.\n";
+  if (d < 60) return "\nREGLES STRICTES DE NOTATION — DUREE COURTE (moins de 60s de parole candidat) : Total plafonne a 7/20. Niveau maximum : A2.\n";
+  if (d < 90) return "\nREGLES STRICTES DE NOTATION — DUREE INSUFFISANTE (moins de 90s de parole candidat) : Total plafonne a 9/20. Niveau maximum : A2+.\n";
+  return "";
+}
+
+function buildPrompt(conversation, scenario, scenarioData, durationSec) {
+  const contextBlock = buildScenarioContext(scenario, scenarioData);
+  const durationBlock = buildDurationRules(durationSec);
+
   return `Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
 TACHE : 2 — Interaction orale
 SUJET / CONSIGNE : ${scenario || "Interaction orale TCF Canada"}
+${contextBlock}
 
 Evalue UNIQUEMENT les repliques du CANDIDAT (lignes [CANDIDAT]). Les repliques [EXAMINATEUR] sont du contexte.
 
@@ -150,6 +193,12 @@ IMPORTANT :
 - CONSEIL PRIORITAIRE ULTRA CONCRET : Pas de generalites ('enrichir le vocabulaire'). Donne des formules de remplacement specifiques. Ex : 'Au lieu de repeter je voudrais, utilise : j aurais aime, je souhaiterais, serait-il possible de...'
 
 
+REGLES STRICTES DE NOTATION SELON LA DUREE :
+- Moins de 30 secondes de parole candidat → realisation_tache = 0 ou 1 maximum, total plafonne a 5/20
+- Moins de 60 secondes de parole candidat → total plafonne a 7/20
+- Moins de 90 secondes de parole candidat → total plafonne a 9/20
+- Une seule phrase du candidat dans toute la transcription → niveau maximum A2, jamais B1
+${durationBlock}
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
 - Commence par identifier le critere le PLUS FAIBLE et le critere le PLUS FORT du candidat. Note-les en premier, puis note les 3 autres entre ces deux extremes.

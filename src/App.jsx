@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import RealtimeCall from "./RealtimeCall";
+import Task1Interview from "./Task1Interview";
 import { supabase } from "./lib/supabase";
 
 function App() {
@@ -622,6 +623,71 @@ function App() {
               marginBottom: "44px",
             }}
           >
+            {/* Tâche 1 */}
+            <button className="task-card" onClick={() => setAppMode("task1")}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: "22px",
+                }}
+              >
+                <span style={{ fontSize: "42px", lineHeight: 1 }}>👋</span>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "#10b981",
+                    background: "rgba(16,185,129,0.12)",
+                    border: "1px solid rgba(16,185,129,0.25)",
+                    borderRadius: "999px",
+                    padding: "4px 11px",
+                  }}
+                >
+                  Tâche 1
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: "clamp(20px, 2.5vw, 24px)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  marginBottom: "10px",
+                }}
+              >
+                Entretien dirigé
+              </div>
+
+              <div
+                style={{
+                  fontSize: "15px",
+                  color: "#94a3b8",
+                  lineHeight: 1.65,
+                  marginBottom: "28px",
+                }}
+              >
+                Présentation personnelle — 2 min
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#10b981",
+                }}
+              >
+                Commencer
+                <span style={{ fontSize: "16px" }}>→</span>
+              </div>
+            </button>
+
             {/* Tâche 2 */}
             <button className="task-card" onClick={() => setAppMode("realtime")}>
               <div
@@ -762,7 +828,7 @@ function App() {
               letterSpacing: "0.02em",
             }}
           >
-            Score /20 basé sur les critères CECRL&nbsp;&bull;&nbsp;Feedback personnalisé par IA
+            Les 3 tâches de l'épreuve officielle&nbsp;&bull;&nbsp;Score /20 basé sur les critères CECRL&nbsp;&bull;&nbsp;Feedback personnalisé par IA
           </div>
 
           {/* ── Contact ── */}
@@ -783,6 +849,10 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  if (SHOW_REALTIME_TEST && appMode === "task1") {
+    return <Task1Interview onBack={() => setAppMode("chooser")} />;
   }
 
   if (SHOW_REALTIME_TEST && appMode === "realtime") {

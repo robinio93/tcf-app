@@ -23,6 +23,17 @@ const SESSION_INSTRUCTIONS = [
   "Reste dans le scenario. Reponds uniquement en francais naturel.",
 ].join(" ");
 
+const SESSION_INSTRUCTIONS_TASK1 = [
+  "La conversation se deroule uniquement en francais.",
+  "Tu es un examinateur officiel du TCF Canada qui fait passer la Tache 1 : entretien dirige de 2 minutes.",
+  "Tu poses des questions personnelles SIMPLES et DIRECTES sur des themes DIFFERENTS : travail, famille, loisirs, projets d'immigration, vie quotidienne.",
+  "Tu changes de theme apres maximum 2 questions sur le meme sujet. Tu dois couvrir au moins 4 themes differents.",
+  "Questions SIMPLES comme au vrai TCF : 'Quel est votre metier ?', 'Parlez-moi de votre famille.', 'Pourquoi voulez-vous immigrer au Canada ?'.",
+  "Jamais de questions philosophiques ou analytiques. Niveau A2-B2 uniquement.",
+  "Une seule question courte par tour. Tu attends la reponse complete. Vouvoiement obligatoire.",
+  "Tu ne corriges jamais les erreurs. Tu ne donnes pas ton avis. Tu laisses le candidat parler 70% du temps.",
+].join(" ");
+
 function json(res, statusCode, payload, headers = {}) {
   res.statusCode = statusCode;
   res.setHeader("Cache-Control", "no-store");
@@ -111,12 +122,12 @@ function extractAnalysisText(data) {
     .trim();
 }
 
-function buildRealtimeSessionPayload() {
+function buildRealtimeSessionPayload(instructions = SESSION_INSTRUCTIONS) {
   return {
     session: {
       type: "realtime",
       model: "gpt-realtime",
-      instructions: SESSION_INSTRUCTIONS,
+      instructions,
       output_modalities: ["audio"],
       max_output_tokens: "inf",
       audio: {
@@ -141,7 +152,32 @@ function buildRealtimeSessionPayload() {
   };
 }
 
-function buildAnalyzeInteractionPayload(conversation, scenario) {
+function buildDurationRules(durationSec) {
+  const d = Number(durationSec);
+  if (!d || d <= 0) return "";
+  if (d < 30) return "\nREGLES STRICTES — DUREE TRES COURTE (moins de 30s) : realisation_tache = 0 ou 1 max. Total plafonne a 5/20. Niveau max : A1.\n";
+  if (d < 60) return "\nREGLES STRICTES — DUREE COURTE (moins de 60s) : Total plafonne a 7/20. Niveau max : A2.\n";
+  if (d < 90) return "\nREGLES STRICTES — DUREE INSUFFISANTE (moins de 90s) : Total plafonne a 9/20. Niveau max : A2+.\n";
+  return "";
+}
+
+function buildScenarioContext(scenario, scenarioData) {
+  if (!scenarioData) return "";
+  const pts = Array.isArray(scenarioData.points_cles_attendus)
+    ? scenarioData.points_cles_attendus.map((p, i) => `${i + 1}. ${p}`).join("\n")
+    : "";
+  const errs = Array.isArray(scenarioData.erreurs_typiques_b1)
+    ? scenarioData.erreurs_typiques_b1.map((e) => `- ${e}`).join("\n")
+    : "";
+  const exprs = Array.isArray(scenarioData.expressions_cles)
+    ? scenarioData.expressions_cles.map((e) => `- "${e}"`).join("\n")
+    : "";
+  return `\nCONTEXTE SPECIFIQUE DU SCENARIO "${scenario}" :\n\nPoints cles que le candidat devait absolument aborder :\n${pts}\n\nErreurs typiques d'un candidat B1 sur ce scenario :\n${errs}\n\nExemple de formulation B2 :\n"${scenarioData.difference_b1_b2_bon || ""}"\n\nExpressions cles a maitriser :\n${exprs}\n\nINSTRUCTION CRITIQUE : Dans tes points_ameliorer, cite explicitement les points cles que le candidat n'a PAS abordes.\n`;
+}
+
+function buildAnalyzeInteractionPayload(conversation, scenario, scenarioData, durationSec) {
+  const contextBlock = buildScenarioContext(scenario, scenarioData);
+  const durationBlock = buildDurationRules(durationSec);
   return {
     model: "gpt-4o-mini",
     input: `Tu es un examinateur certifie TCF Canada, forme par France Education International.
@@ -149,6 +185,7 @@ Tu evalues la production orale d'un candidat.
 
 TACHE : 2 — Interaction orale
 SUJET / CONSIGNE : ${scenario || "Interaction orale TCF Canada"}
+${contextBlock}
 
 Evalue UNIQUEMENT les repliques du CANDIDAT (lignes [CANDIDAT]). Les repliques [EXAMINATEUR] sont du contexte.
 
@@ -241,6 +278,12 @@ IMPORTANT :
 - CITATIONS OBLIGATOIRES : Dans chaque point_ameliorer, cite les mots ou phrases EXACTES de la transcription entre guillemets, puis donne la version corrigee directement. Ex : Tu as dit 'je veux un voiture' -> dis plutot 'je voudrais une voiture'.
 - CONSEIL PRIORITAIRE ULTRA CONCRET : Pas de generalites ('enrichir le vocabulaire'). Donne des formules de remplacement specifiques. Ex : 'Au lieu de repeter je voudrais, utilise : j'aurais aime, je souhaiterais, serait-il possible de...'
 
+REGLES STRICTES DE NOTATION SELON LA DUREE :
+- Moins de 30 secondes de parole candidat → realisation_tache = 0 ou 1 maximum, total plafonne a 5/20
+- Moins de 60 secondes de parole candidat → total plafonne a 7/20
+- Moins de 90 secondes de parole candidat → total plafonne a 9/20
+- Une seule phrase du candidat dans toute la transcription → niveau maximum A2, jamais B1
+\${durationBlock}
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
 - Commence par identifier le critere le PLUS FAIBLE et le critere le PLUS FORT du candidat. Note-les en premier, puis note les 3 autres entre ces deux extremes.
@@ -255,6 +298,109 @@ Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
     "grammaire": { "note": 0, "justification": "" },
     "fluidite_prononciation": { "note": 0, "justification": "" },
     "interaction_coherence": { "note": 0, "justification": "" }
+  },
+  "total": 0,
+  "niveau_cecrl": "",
+  "niveau_nclc": "",
+  "resume_niveau": "",
+  "points_positifs": ["", "", ""],
+  "points_ameliorer": ["", "", ""],
+  "correction_simple": "",
+  "version_amelioree": { "niveau_cible": "", "texte": "" },
+  "phrases_utiles": ["", "", "", ""],
+  "conseil_prioritaire": "",
+  "objectif_prochain_essai": ""
+}`.trim(),
+  };
+}
+
+function buildAnalyzeInterviewPayload(conversation, durationSec) {
+  const dureeStr = Number.isFinite(Number(durationSec))
+    ? `${Math.max(1, Number(durationSec))} secondes`
+    : "inconnue";
+
+  return {
+    model: "gpt-4o-mini",
+    input: `Tu es un examinateur certifie TCF Canada, forme par France Education International.
+Tu evalues la production orale d'un candidat sur la TACHE 1 (entretien dirige, 2 minutes).
+
+SPECIFICITES DE LA TACHE 1 :
+- Le candidat repond a des questions personnelles simples posees par l'examinateur
+- Il doit parler de lui de maniere naturelle : presentation, famille, travail, loisirs, projets
+- Le niveau attendu est A2-B2 (pas besoin d'argumenter ou negocier)
+- L'important : spontaneite, reponses completes et developpees, variete des sujets abordes
+
+TRANSCRIPTION DU DIALOGUE :
+${conversation}
+
+DUREE REELLE DE L'ENTRETIEN : ${dureeStr}
+
+Evalue UNIQUEMENT les repliques du CANDIDAT (lignes [CANDIDAT]). Les repliques [EXAMINATEUR] sont du contexte.
+
+Evalue selon ces 5 criteres, chacun note de 0 a 4 :
+
+1. REALISATION DE LA TACHE (0-4)
+Le candidat a-t-il repondu avec des phrases COMPLETES et DEVELOPPEES ? A-t-il couvert plusieurs aspects de sa vie ?
+- 0 = reponses d'un seul mot, questions eludees
+- 1 = reponses minimales, souvent un seul mot (A2-)
+- 2 = reponses courtes mais completes, peu de details (A2/B1 faible)
+- 3 = reponses developpees avec details sur plusieurs sujets (B1/B2)
+- 4 = reponses riches, detaillees, naturelles (B2+/C1)
+ATTENTION : Si la duree est inferieure a 90 secondes, ce critere est plafonne a 2/4.
+
+2. LEXIQUE (0-4)
+- 1 = vocabulaire tres limite, memes mots repetes (A2)
+- 2 = vocabulaire suffisant pour parler de sa vie (B1)
+- 3 = vocabulaire varie, peut nuancer et decrire avec precision (B2)
+- 4 = vocabulaire riche, expressions variees (C1)
+
+3. GRAMMAIRE (0-4)
+- 1 = erreurs frequentes dans les accords, conjugaisons, articles (A2)
+- 2 = present et passe compose corrects, quelques erreurs complexes (B1)
+- 3 = bon controle general, structures variees (B2)
+- 4 = excellent controle, variete syntaxique (C1)
+
+4. FLUIDITE ET PRONONCIATION (0-4)
+- 1 = hesitations tres longues, prononciation difficile (A2)
+- 2 = debit assez regulier, globalement intelligible (B1)
+- 3 = discours fluide, prononciation claire (B2)
+- 4 = naturel, debit spontane (C1)
+
+5. INTERACTION ET SPONTANEITE (0-4)
+Capacite a reagir naturellement aux questions, sans reciter un texte appris.
+- 0 = ne repond pas aux questions ou recite un texte prepare
+- 1 = peu de spontaneite, reponses hors-contexte (A2)
+- 2 = repond simplement, ecoute la question (B1)
+- 3 = repond naturellement, fait des liens entre sujets (B2)
+- 4 = spontaneite totale, reactions naturelles (C1)
+ATTENTION : Si reponses en UN SEUL MOT repetees, plafonne a 1/4.
+
+BAREME TOTAL : 0-4 A1 | 5-7 A2 | 8-11 B1 | 12-15 B2 | 16-18 C1 | 19-20 C2
+NCLC : A1=1-2 | A2=3-4 | B1=5-6 | B2=7-8 | C1=9-10 | C2=11-12
+
+EXEMPLES DE CALIBRATION :
+A2 (5-7) : reponses d'un mot ('Oui', 'Trois enfants', 'Ingenieur'), aucun developpement, vocabulaire tres basique
+B1 (8-11) : phrases completes mais courtes, connecteurs simples (et, mais, parce que), debit irregulier
+B2 (12-15) : reponses developpees avec details, vocabulaire varie, discours fluide, structures complexes
+
+IMPORTANT :
+- NOTES DIFFERENCIEES OBLIGATOIRES : au moins 2 notes DIFFERENTES parmi les 5 criteres.
+- Chaque justification DOIT citer un exemple CONCRET tire de la transcription.
+- STYLE : Tutoie le candidat (tu, ton, tes) dans tous les champs texte.
+- CITATIONS : Dans points_ameliorer, cite les mots EXACTS entre guillemets puis donne la version amelioree.
+- CONSEIL PRIORITAIRE : ultra concret avec formules de remplacement specifiques.
+- VERSION AMELIOREE : prends une reponse reelle et montre la reformulation au niveau superieur.
+
+REGLE ABSOLUE : au moins 2 notes DIFFERENTES. Distributions INVALIDES : 2-2-2-2-2, 3-3-3-3-3.
+
+Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks :
+{
+  "scores": {
+    "realisation_tache": { "note": 0, "justification": "" },
+    "lexique": { "note": 0, "justification": "" },
+    "grammaire": { "note": 0, "justification": "" },
+    "fluidite_prononciation": { "note": 0, "justification": "" },
+    "interaction_spontaneite": { "note": 0, "justification": "" }
   },
   "total": 0,
   "niveau_cecrl": "",
@@ -444,6 +590,26 @@ function localApiDevPlugin(env) {
         }
       });
 
+      server.middlewares.use("/api/realtime-session-task1", async (req, res) => {
+        if (req.method !== "GET" && req.method !== "POST") {
+          json(res, 405, { error: "Method not allowed", message: "Use GET or POST." }, { Allow: "GET, POST" });
+          return;
+        }
+        const apiKey = ensureApiKey(env, res);
+        if (!apiKey) return;
+        try {
+          const openaiResponse = await fetch(OPENAI_REALTIME_URL, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify(buildRealtimeSessionPayload(SESSION_INSTRUCTIONS_TASK1)),
+          });
+          const { raw, data } = await readOpenAiJson(openaiResponse);
+          json(res, openaiResponse.status, data || { raw });
+        } catch (error) {
+          json(res, 500, { error: "Unexpected server error", message: error?.message || "Unknown error" });
+        }
+      });
+
       server.middlewares.use("/api/analyze-text", async (req, res) => {
         if (req.method !== "POST") {
           json(
@@ -522,6 +688,8 @@ function localApiDevPlugin(env) {
           const body = await readJsonBody(req);
           const conversation = typeof body?.conversation === "string" ? body.conversation : "";
           const scenario = typeof body?.scenario === "string" ? body.scenario : "";
+          const scenarioData = body?.scenarioData ?? null;
+          const durationSec = Number(body?.durationSec) || 0;
 
           if (!conversation.trim()) {
             json(res, 400, { error: "conversation is required" });
@@ -534,7 +702,7 @@ function localApiDevPlugin(env) {
               "Content-Type": "application/json",
               Authorization: `Bearer ${apiKey}`,
             },
-            body: JSON.stringify(buildAnalyzeInteractionPayload(conversation, scenario)),
+            body: JSON.stringify(buildAnalyzeInteractionPayload(conversation, scenario, scenarioData, durationSec)),
           });
 
           const { raw, data } = await readOpenAiJson(openaiResponse);
@@ -543,6 +711,47 @@ function localApiDevPlugin(env) {
             json(res, openaiResponse.status, {
               error: data?.error?.message || raw || "OpenAI request failed",
             });
+            return;
+          }
+
+          if (!data) {
+            json(res, 502, { error: "OpenAI returned an empty response" });
+            return;
+          }
+
+          json(res, 200, { analysis: extractAnalysisText(data) });
+        } catch (error) {
+          json(res, 500, { error: "Server error", details: error?.message || "Unknown error" });
+        }
+      });
+
+      server.middlewares.use("/api/analyze-interview", async (req, res) => {
+        if (req.method !== "POST") {
+          json(res, 405, { error: "Method not allowed" }, { Allow: "POST" });
+          return;
+        }
+        const apiKey = ensureApiKey(env, res);
+        if (!apiKey) return;
+        try {
+          const body = await readJsonBody(req);
+          const conversation = typeof body?.conversation === "string" ? body.conversation : "";
+          const durationSec = Number(body?.durationSec);
+
+          if (!conversation.trim()) {
+            json(res, 400, { error: "conversation is required" });
+            return;
+          }
+
+          const openaiResponse = await fetch(OPENAI_RESPONSES_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+            body: JSON.stringify(buildAnalyzeInterviewPayload(conversation, Number.isFinite(durationSec) ? durationSec : null)),
+          });
+
+          const { raw, data } = await readOpenAiJson(openaiResponse);
+
+          if (!openaiResponse.ok) {
+            json(res, openaiResponse.status, { error: data?.error?.message || raw || "OpenAI request failed" });
             return;
           }
 
