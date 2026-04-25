@@ -34,9 +34,6 @@ function App() {
   const [showTranscription, setShowTranscription] = useState(false);
   const [status, setStatus] = useState("idle"); // idle | recording | processing | result
 
-  const [showDevMode, setShowDevMode] = useState(false);
-  const [devText, setDevText] = useState("");
-  const [devDuration, setDevDuration] = useState(150);
   const [appMode, setAppMode] = useState("chooser");
   const [expandedScore, setExpandedScore] = useState(null);
   // null | "transcribing" | "analyzing"
@@ -1223,154 +1220,22 @@ function App() {
               </button>
             </div>
 
-            {/* Outils discrets */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
-              {!!transcription && (
+            {/* Transcript discret */}
+            {!!transcription && (
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
                 <button
                   className="btn-ghost"
                   onClick={() => setShowTranscription(!showTranscription)}
                   style={{ fontSize: "12px", padding: "6px 12px" }}
                 >
-                  {showTranscription ? "Masquer transcript" : "📝 Transcript"}
+                  {showTranscription ? "Masquer transcript" : "Voir transcript"}
                 </button>
-              )}
-              <button
-                className="btn-ghost"
-                onClick={resetSession}
-                disabled={isProcessing}
-                style={{ fontSize: "12px", padding: "6px 12px" }}
-              >
-                🔁 Reset
-              </button>
-              <button
-                className="btn-ghost"
-                onClick={() => setShowDevMode((prev) => !prev)}
-                disabled={isProcessing}
-                style={{ fontSize: "12px", padding: "6px 12px" }}
-              >
-                {showDevMode ? "Masquer outils" : "⋯ Outils"}
-              </button>
-            </div>
+              </div>
+            )}
           </div>
         )}
 
 
-        {showDevMode && (
-          <div
-            style={{
-              ...getCardStyle(),
-              marginBottom: "18px",
-              border: "1px solid rgba(139, 92, 246, 0.35)",
-              background:
-                "linear-gradient(135deg, rgba(76,29,149,0.22), rgba(30,41,59,0.72))",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                letterSpacing: "1.8px",
-                color: "#c4b5fd",
-                marginBottom: "14px",
-                fontWeight: 700,
-              }}
-            >
-              MODE TEST TEXTE
-            </div>
-
-            <div
-              style={{
-                color: "#ddd6fe",
-                marginBottom: "16px",
-                lineHeight: 1.6,
-              }}
-            >
-              Colle directement une réponse ici pour tester la notation sans audio.
-            </div>
-
-            <div style={{ marginBottom: "14px" }}>
-              <textarea
-                value={devText}
-                onChange={(e) => setDevText(e.target.value)}
-                placeholder="Colle ici une réponse complète pour tester le scoring..."
-                rows={10}
-                style={{
-                  ...getInputStyle(),
-                  resize: "vertical",
-                  minHeight: "220px",
-                  lineHeight: 1.6,
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "14px",
-                flexWrap: "wrap",
-                alignItems: "center",
-              }}
-            >
-              <div style={{ minWidth: "180px" }}>
-                <div
-                  style={{
-                    fontSize: "13px",
-                    color: "#cbd5e1",
-                    marginBottom: "8px",
-                    fontWeight: 700,
-                  }}
-                >
-                  Durée simulée (secondes)
-                </div>
-                <input
-                  type="number"
-                  min="1"
-                  max="600"
-                  value={devDuration}
-                  onChange={(e) => setDevDuration(Number(e.target.value))}
-                  style={getInputStyle()}
-                />
-              </div>
-
-              <div
-                style={{
-                  paddingTop: "22px",
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <button
-                  onClick={() => analyserTexte(devText, devDuration)}
-                  disabled={isRecording || isProcessing}
-                  style={getButtonStyle("violet", isRecording || isProcessing)}
-                >
-                  🚀 Tester sans audio
-                </button>
-
-                <button
-                  onClick={() => {
-                    setDevText("");
-                    setDevDuration(150);
-                  }}
-                  disabled={isRecording || isProcessing}
-                  style={getButtonStyle("dark", isRecording || isProcessing)}
-                >
-                  🧹 Vider
-                </button>
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: "14px",
-                color: "#cbd5e1",
-                fontSize: "14px",
-              }}
-            >
-              Durée actuelle simulée : <strong>{formatTime(devDuration)}</strong>
-            </div>
-          </div>
-        )}
 
 
         {showTranscription && transcription && (
