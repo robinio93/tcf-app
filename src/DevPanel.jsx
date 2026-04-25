@@ -44,17 +44,20 @@ export default function DevPanel() {
       .then(({ data }) => { if (data) setT3Subjects(data); });
   }, []);
 
-  // Auto-set first item when task changes
+  // Auto-set first item when task changes, always clear transcript
   useEffect(() => {
     if (task === 2 && scenarios.length > 0 && !scenarioId) setScenarioId(scenarios[0].id);
     if (task === 3 && t3Subjects.length > 0 && !subjectId) setSubjectId(t3Subjects[0].id);
-    if (task === 1) setTranscript("");
+    setTranscript("");
   }, [task, scenarios, t3Subjects]);
 
-  // Auto-fill transcript when level/scenario/subject changes
-  useEffect(() => {
-    const key = `dialogue_${level.toLowerCase()}`;
-    const mkey = `monologue_${level.toLowerCase()}`;
+  // Clear transcript when scenario/subject changes
+  useEffect(() => { setTranscript(""); }, [scenarioId, subjectId]);
+
+  function loadReferenceLevel(lvl) {
+    setLevel(lvl);
+    const key = `dialogue_${lvl.toLowerCase()}`;
+    const mkey = `monologue_${lvl.toLowerCase()}`;
     if (task === 2) {
       const sc = scenarios.find((s) => s.id === scenarioId);
       setTranscript(sc?.[key] || "");
@@ -62,7 +65,7 @@ export default function DevPanel() {
       const sj = t3Subjects.find((s) => s.id === subjectId);
       setTranscript(sj?.[mkey] || "");
     }
-  }, [level, scenarioId, subjectId, task, scenarios, t3Subjects]);
+  }
 
   async function analyze() {
     if (!transcript.trim()) return;
@@ -206,9 +209,9 @@ export default function DevPanel() {
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
               <span style={{ fontSize: "12px", color: "#78716c", fontWeight: 600, minWidth: "80px" }}>Niveau ref.</span>
               {["A2", "B1", "B2"].map((l) => (
-                <button key={l} style={btn(level === l)} onClick={() => setLevel(l)}>{l}</button>
+                <button key={l} style={btn(level === l)} onClick={() => loadReferenceLevel(l)}>{l}</button>
               ))}
-              <span style={{ fontSize: "11px", color: "#57534e", marginLeft: "4px" }}>— charge le dialogue/monologue de référence</span>
+              <span style={{ fontSize: "11px", color: "#57534e", marginLeft: "4px" }}>— charge le dialogue/monologue de référence dans le champ</span>
             </div>
           )}
 
