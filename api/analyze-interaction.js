@@ -51,6 +51,45 @@ export default async function handler(req, res) {
   }
 }
 
+function buildFewShotBlock(scenarioData) {
+  if (!scenarioData?.dialogue_a2) return "";
+  return `
+═══════════════════════════════════════════════════════
+EXEMPLES DE REFERENCE POUR CALIBRER TA NOTATION
+═══════════════════════════════════════════════════════
+Voici 3 dialogues de reference pour ce scenario "${scenarioData.titre || ""}". Compare la transcription du candidat a ces exemples pour positionner correctement ton scoring.
+
+──────────────────────────────────────
+EXEMPLE A2 (total cible : 5/20)
+──────────────────────────────────────
+${scenarioData.dialogue_a2}
+
+Notes attendues : realisation=1, lexique=1, grammaire=1, fluidite=1, interaction=1 -> TOTAL = 5/20
+
+──────────────────────────────────────
+EXEMPLE B1 (total cible : 10/20)
+──────────────────────────────────────
+${scenarioData.dialogue_b1}
+
+Notes attendues : realisation=2, lexique=2, grammaire=2, fluidite=2, interaction=2 -> TOTAL = 10/20
+
+──────────────────────────────────────
+EXEMPLE B2 (total cible : 15/20)
+──────────────────────────────────────
+${scenarioData.dialogue_b2}
+
+Notes attendues : realisation=3, lexique=3, grammaire=3, fluidite=3, interaction=3 -> TOTAL = 15/20
+
+INSTRUCTION DE CALIBRAGE :
+- Si la transcription ressemble au A2 -> notes proches de 5/20
+- Si elle ressemble au B1 -> notes proches de 10/20
+- Si elle ressemble au B2 -> notes proches de 15/20
+- Au-dela du B2, on peut monter jusqu'a 18-20/20 pour C1/C2
+- En-dessous du A2, on descend a 0-3/20 pour A1
+═══════════════════════════════════════════════════════
+`;
+}
+
 function buildScenarioContext(scenario, scenarioData) {
   if (!scenarioData) return "";
   const pts = Array.isArray(scenarioData.points_cles_attendus)
@@ -92,6 +131,7 @@ function buildDurationRules(durationSec) {
 
 function buildPrompt(conversation, scenario, scenarioData, durationSec) {
   const contextBlock = buildScenarioContext(scenario, scenarioData);
+  const fewShotBlock = buildFewShotBlock(scenarioData);
   const durationBlock = buildDurationRules(durationSec);
 
   return `Tu es un examinateur certifie TCF Canada, forme par France Education International.
@@ -99,8 +139,7 @@ Tu evalues la production orale d'un candidat.
 
 TACHE : 2 — Interaction orale
 SUJET / CONSIGNE : ${scenario || "Interaction orale TCF Canada"}
-${contextBlock}
-
+${contextBlock}${fewShotBlock}
 Evalue UNIQUEMENT les repliques du CANDIDAT (lignes [CANDIDAT]). Les repliques [EXAMINATEUR] sont du contexte.
 
 TRANSCRIPTION DU DIALOGUE :

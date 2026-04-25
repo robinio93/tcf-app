@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import RealtimeCall from "./RealtimeCall";
 import Task1Interview from "./Task1Interview";
+import DevPanel from "./DevPanel";
 import { supabase } from "./lib/supabase";
+
+const isDevMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dev") === "true";
 
 const FALLBACK_TASK3_SUBJECTS = [
   { sujet: "Pensez-vous que les jeunes devraient commencer à travailler pendant leurs études ?" },
@@ -378,6 +381,9 @@ function App() {
         difference_b1_b2: subjectData.difference_b1_b2,
         expressions_cles: subjectData.expressions_cles,
         connecteurs_utiles: subjectData.connecteurs_utiles,
+        monologue_a2: subjectData.monologue_a2,
+        monologue_b1: subjectData.monologue_b1,
+        monologue_b2: subjectData.monologue_b2,
       } : null;
 
       const response = await fetch("/api/analyze-text", {
@@ -600,6 +606,8 @@ function App() {
 
   if (SHOW_REALTIME_TEST && appMode === "chooser") {
     return (
+      <>
+        {isDevMode && <DevPanel />}
       <div
         style={{
           minHeight: "100vh",
@@ -923,18 +931,31 @@ function App() {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   if (SHOW_REALTIME_TEST && appMode === "task1") {
-    return <Task1Interview onBack={() => setAppMode("chooser")} />;
+    return (
+      <>
+        {isDevMode && <DevPanel />}
+        <Task1Interview onBack={() => setAppMode("chooser")} />
+      </>
+    );
   }
 
   if (SHOW_REALTIME_TEST && appMode === "realtime") {
-    return <RealtimeCall onBack={() => setAppMode("chooser")} />;
+    return (
+      <>
+        {isDevMode && <DevPanel />}
+        <RealtimeCall onBack={() => setAppMode("chooser")} />
+      </>
+    );
   }
 
   return (
+    <>
+      {isDevMode && <DevPanel />}
     <div
       style={{
         minHeight: "100vh",
@@ -1554,6 +1575,7 @@ function App() {
         })()}
       </div>
     </div>
+    </>
   );
 }
 

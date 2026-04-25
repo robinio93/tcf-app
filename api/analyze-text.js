@@ -51,6 +51,44 @@ export default async function handler(req, res) {
   }
 }
 
+function buildFewShotBlock(sujetData) {
+  if (!sujetData?.monologue_a2) return "";
+  return `
+═══════════════════════════════════════════════════════
+EXEMPLES DE REFERENCE POUR CALIBRER TA NOTATION
+═══════════════════════════════════════════════════════
+Voici 3 monologues de reference pour le sujet "${sujetData.sujet || ""}". Compare le monologue du candidat a ces exemples pour positionner correctement ton scoring.
+
+──────────────────────────────────────
+EXEMPLE A2 (total cible : 5/20)
+──────────────────────────────────────
+${sujetData.monologue_a2}
+
+Notes attendues : 1/1/1/1/1 -> TOTAL = 5/20
+
+──────────────────────────────────────
+EXEMPLE B1 (total cible : 10/20)
+──────────────────────────────────────
+${sujetData.monologue_b1}
+
+Notes attendues : 2/2/2/2/2 -> TOTAL = 10/20
+
+──────────────────────────────────────
+EXEMPLE B2 (total cible : 15/20)
+──────────────────────────────────────
+${sujetData.monologue_b2}
+
+Notes attendues : 3/3/3/3/3 -> TOTAL = 15/20
+
+INSTRUCTION DE CALIBRAGE :
+- Si le monologue ressemble au A2 -> notes proches de 5/20
+- Si il ressemble au B1 -> notes proches de 10/20
+- Si il ressemble au B2 -> notes proches de 15/20
+- Au-dela du B2, on peut monter jusqu'a 18-20/20 pour C1/C2
+═══════════════════════════════════════════════════════
+`;
+}
+
 function buildSujetContext(sujetData) {
   if (!sujetData) return "";
   const pour = Array.isArray(sujetData.arguments_pour)
@@ -92,13 +130,14 @@ function buildPrompt(transcript, durationSec, sujetData) {
     ? `${Math.max(1, Number(durationSec))} secondes`
     : "inconnue";
   const contextBlock = buildSujetContext(sujetData);
+  const fewShotBlock = buildFewShotBlock(sujetData);
 
   return `Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
 TACHE : 3 — Exprimer un point de vue
 DUREE DE LA PRODUCTION : ${dureeStr}
-${contextBlock}
+${contextBlock}${fewShotBlock}
 TRANSCRIPTION DU MONOLOGUE :
 ${transcript}
 

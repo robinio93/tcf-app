@@ -160,6 +160,16 @@ function buildDurationRules(durationSec) {
   return "";
 }
 
+function buildFewShotBlockInteraction(scenarioData) {
+  if (!scenarioData?.dialogue_a2) return "";
+  return `\n═══════════════════════════════════════════════════════\nEXEMPLES DE REFERENCE POUR CALIBRER TA NOTATION\n═══════════════════════════════════════════════════════\nVoici 3 dialogues de reference pour ce scenario "${scenarioData.titre || ""}". Compare la transcription du candidat a ces exemples.\n\n──────────────────────────────────────\nEXEMPLE A2 (total cible : 5/20)\n──────────────────────────────────────\n${scenarioData.dialogue_a2}\nNotes attendues : 1/1/1/1/1 -> TOTAL = 5/20\n\n──────────────────────────────────────\nEXEMPLE B1 (total cible : 10/20)\n──────────────────────────────────────\n${scenarioData.dialogue_b1}\nNotes attendues : 2/2/2/2/2 -> TOTAL = 10/20\n\n──────────────────────────────────────\nEXEMPLE B2 (total cible : 15/20)\n──────────────────────────────────────\n${scenarioData.dialogue_b2}\nNotes attendues : 3/3/3/3/3 -> TOTAL = 15/20\n\nINSTRUCTION DE CALIBRAGE : Si la transcription ressemble au A2 -> ~5/20, au B1 -> ~10/20, au B2 -> ~15/20, au-dela -> jusqu'a 20/20 pour C1/C2.\n═══════════════════════════════════════════════════════\n`;
+}
+
+function buildFewShotBlockText(sujetData) {
+  if (!sujetData?.monologue_a2) return "";
+  return `\n═══════════════════════════════════════════════════════\nEXEMPLES DE REFERENCE POUR CALIBRER TA NOTATION\n═══════════════════════════════════════════════════════\nVoici 3 monologues de reference pour le sujet "${sujetData.sujet || ""}". Compare le monologue du candidat a ces exemples.\n\n──────────────────────────────────────\nEXEMPLE A2 (total cible : 5/20)\n──────────────────────────────────────\n${sujetData.monologue_a2}\nNotes attendues : 1/1/1/1/1 -> TOTAL = 5/20\n\n──────────────────────────────────────\nEXEMPLE B1 (total cible : 10/20)\n──────────────────────────────────────\n${sujetData.monologue_b1}\nNotes attendues : 2/2/2/2/2 -> TOTAL = 10/20\n\n──────────────────────────────────────\nEXEMPLE B2 (total cible : 15/20)\n──────────────────────────────────────\n${sujetData.monologue_b2}\nNotes attendues : 3/3/3/3/3 -> TOTAL = 15/20\n\nINSTRUCTION DE CALIBRAGE : Calibre ton scoring par rapport a ces exemples.\n═══════════════════════════════════════════════════════\n`;
+}
+
 function buildScenarioContext(scenario, scenarioData) {
   if (!scenarioData) return "";
   const pts = Array.isArray(scenarioData.points_cles_attendus)
@@ -176,6 +186,7 @@ function buildScenarioContext(scenario, scenarioData) {
 
 function buildAnalyzeInteractionPayload(conversation, scenario, scenarioData, durationSec) {
   const contextBlock = buildScenarioContext(scenario, scenarioData);
+  const fewShotBlock = buildFewShotBlockInteraction(scenarioData);
   const durationBlock = buildDurationRules(durationSec);
   return {
     model: "gpt-4o-mini",
@@ -184,8 +195,7 @@ Tu evalues la production orale d'un candidat.
 
 TACHE : 2 — Interaction orale
 SUJET / CONSIGNE : ${scenario || "Interaction orale TCF Canada"}
-${contextBlock}
-
+${contextBlock}${fewShotBlock}
 Evalue UNIQUEMENT les repliques du CANDIDAT (lignes [CANDIDAT]). Les repliques [EXAMINATEUR] sont du contexte.
 
 TRANSCRIPTION DU DIALOGUE :
@@ -434,6 +444,7 @@ function buildAnalyzeTextPayload(prompt, durationSec, sujetData) {
     ? `${Math.max(1, Number(durationSec))} secondes`
     : "inconnue";
   const contextBlock = buildSujetContext(sujetData);
+  const fewShotBlock = buildFewShotBlockText(sujetData);
 
   return {
     model: "gpt-4o-mini",
@@ -442,7 +453,7 @@ Tu evalues la production orale d'un candidat.
 
 TACHE : 3 — Exprimer un point de vue
 DUREE DE LA PRODUCTION : ${dureeStr}
-${contextBlock}
+${contextBlock}${fewShotBlock}
 TRANSCRIPTION DU MONOLOGUE :
 ${prompt}
 

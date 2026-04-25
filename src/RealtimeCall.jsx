@@ -1325,6 +1325,10 @@ function RealtimeCall({ onBack = null }) {
         erreurs_typiques_b1: raw_row.erreurs_typiques_b1,
         difference_b1_b2_bon: raw_row.difference_b1_b2_bon,
         expressions_cles: raw_row.expressions_cles,
+        titre: raw_row.titre,
+        dialogue_a2: raw_row.dialogue_a2,
+        dialogue_b1: raw_row.dialogue_b1,
+        dialogue_b2: raw_row.dialogue_b2,
       } : null;
 
       const response = await fetch("/api/analyze-interaction", {
