@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
+import {
+  IconArrowLeft, IconChevronUp, IconChevronDown, IconPhone,
+  IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart, IconHourglass,
+} from "./components/Icons";
 
 const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
@@ -780,8 +784,8 @@ function Task1Interview({ onBack = null }) {
                       transition: "opacity 0.4s ease",
                     }}
                   >
-                    <span style={{ fontSize: "20px", width: "24px", flexShrink: 0, textAlign: "center" }}>
-                      {done ? "✅" : active ? "⏳" : "○"}
+                    <span style={{ width: "24px", flexShrink: 0, display: "inline-flex", justifyContent: "center", color: done ? "#4ade80" : active ? "#93c5fd" : "#334155" }}>
+                      {done ? <IconCheck size={18} /> : active ? <IconHourglass size={18} /> : <span style={{ opacity: 0.3 }}>○</span>}
                     </span>
                     <span style={{
                       fontSize: "14px",
@@ -804,7 +808,7 @@ function Task1Interview({ onBack = null }) {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
                 {typeof onBack === "function" ? (
                   <button className="btn-ghost" onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    ← Retour
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><IconArrowLeft size={14} /> Retour</span>
                   </button>
                 ) : <div />}
                 <span style={{
@@ -856,7 +860,7 @@ function Task1Interview({ onBack = null }) {
                 style={{ marginBottom: "12px", fontSize: "13px" }}
               >
                 {showTips ? (
-                  <>▲ Masquer les conseils</>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}><IconChevronUp size={13} /> Masquer les conseils</span>
                 ) : (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -919,7 +923,7 @@ function Task1Interview({ onBack = null }) {
                     cursor: "pointer", textAlign: "center",
                   }}
                 >
-                  📊 Débrief disponible — voir les résultats ↓
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconBarChart size={15} /> Débrief disponible — voir les résultats ↓</span>
                 </button>
               )}
 
@@ -1045,7 +1049,7 @@ function Task1Interview({ onBack = null }) {
                   minHeight: "56px", touchAction: "manipulation",
                 }}
               >
-                ☎ Terminer l'entretien
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconPhone size={18} /> Terminer l'entretien</span>
               </button>
             </>
           )}
@@ -1150,7 +1154,7 @@ function Task1Interview({ onBack = null }) {
                               <div className="score-bar-fill" style={{ width: `${(note / 4) * 100}%`, background: color }} />
                             </div>
                             <span className="score-bar-note" style={{ color }}>{note}/4</span>
-                            <span className="score-bar-chevron">{isOpen ? "▲" : "▼"}</span>
+                            <span className="score-bar-chevron" style={{ display: "inline-flex" }}>{isOpen ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
                           </button>
                           {isOpen && score?.justification && (
                             <div className="score-justif" style={{ padding: "4px 10px 12px 167px", fontSize: "13px", color: "#94a3b8", lineHeight: 1.6, fontStyle: "italic" }}>
@@ -1171,7 +1175,7 @@ function Task1Interview({ onBack = null }) {
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "14px" }}>
                       {Array.isArray(debrief.points_positifs) && debrief.points_positifs.length > 0 && (
                         <div style={{ ...card, padding: "20px", borderColor: "rgba(34,197,94,0.2)" }}>
-                          <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px" }}>✅ Points positifs</div>
+                          <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
                           <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
                             {debrief.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
                           </ul>
@@ -1179,7 +1183,7 @@ function Task1Interview({ onBack = null }) {
                       )}
                       {Array.isArray(debrief.points_ameliorer) && debrief.points_ameliorer.length > 0 && (
                         <div style={{ ...card, padding: "20px", borderColor: "rgba(245,158,11,0.2)" }}>
-                          <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px" }}>⚠️ Points à améliorer</div>
+                          <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconAlert size={13} /> Points à améliorer</div>
                           <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
                             {debrief.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
                           </ul>
@@ -1212,7 +1216,7 @@ function Task1Interview({ onBack = null }) {
                   {debrief.conseil_prioritaire && (
                     <div style={{ ...card, padding: "20px", marginBottom: "14px", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.28)" }}>
                       <div style={{ display: "flex", gap: "14px" }}>
-                        <span style={{ fontSize: "22px", lineHeight: 1, flexShrink: 0, marginTop: "2px" }}>💡</span>
+                        <span style={{ flexShrink: 0, marginTop: "2px", display: "inline-flex", color: "#60a5fa" }}><IconLightbulb size={20} /></span>
                         <div>
                           <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#60a5fa", marginBottom: "8px" }}>Conseil prioritaire</div>
                           <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{debrief.conseil_prioritaire}</div>
@@ -1235,7 +1239,7 @@ function Task1Interview({ onBack = null }) {
                   {debrief.objectif_prochain_essai && (
                     <div style={{ ...card, padding: "20px", marginBottom: "20px", background: "rgba(20,184,166,0.06)", border: "1px solid rgba(20,184,166,0.2)" }}>
                       <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                        <span style={{ fontSize: "20px", lineHeight: 1, flexShrink: 0 }}>🎯</span>
+                        <span style={{ flexShrink: 0, display: "inline-flex", color: "#2dd4bf" }}><IconTarget size={18} /></span>
                         <div>
                           <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2dd4bf", marginBottom: "6px" }}>Objectif prochain essai</div>
                           <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{debrief.objectif_prochain_essai}</div>

@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
+import {
+  IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
+  IconPhone, IconCheck, IconAlert, IconLightbulb, IconTarget,
+  IconBarChart, IconHourglass, IconSpeak, IconClock, IconWave,
+  CategoryBadge,
+} from "./components/Icons";
 
 const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
@@ -1534,8 +1540,8 @@ function RealtimeCall({ onBack = null }) {
                       transition: "opacity 0.4s ease",
                     }}
                   >
-                    <span style={{ fontSize: "20px", width: "24px", flexShrink: 0, textAlign: "center" }}>
-                      {done ? "✅" : active ? "⏳" : "○"}
+                    <span style={{ width: "24px", flexShrink: 0, display: "inline-flex", justifyContent: "center", color: done ? "#4ade80" : active ? "#93c5fd" : "#334155" }}>
+                      {done ? <IconCheck size={18} /> : active ? <IconHourglass size={18} /> : <span style={{ opacity: 0.3 }}>○</span>}
                     </span>
                     <span style={{
                       fontSize: "14px",
@@ -1560,7 +1566,7 @@ function RealtimeCall({ onBack = null }) {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
                 {typeof onBack === "function" ? (
                   <button className="btn-ghost" onClick={onBack} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    ← Retour
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><IconArrowLeft size={14} /> Retour</span>
                   </button>
                 ) : <div />}
                 <button className="btn-ghost" onClick={changeScenario} disabled={!scenariosLoaded || scenarios.length === 0}>
@@ -1592,7 +1598,7 @@ function RealtimeCall({ onBack = null }) {
                     padding: "4px 12px",
                   }}
                 >
-                  {selectedScenario.badge}
+                  <CategoryBadge emoji={selectedScenario._raw?.emoji_categorie} label={selectedScenario._raw?.categorie || selectedScenario.badge} size={11} />
                 </span>
 
                 <h2
@@ -1637,7 +1643,7 @@ function RealtimeCall({ onBack = null }) {
                 onClick={() => setShowScenario((v) => !v)}
                 style={{ marginBottom: "16px", fontSize: "13px" }}
               >
-                {showScenario ? "▲ Masquer les détails" : "▼ Voir les détails du sujet"}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>{showScenario ? <><IconChevronUp size={13} /> Masquer les détails</> : <><IconChevronDown size={13} /> Voir les détails du sujet</>}</span>
               </button>
 
               {/* Détails dépliables : rôle + prompts */}
@@ -1728,7 +1734,7 @@ function RealtimeCall({ onBack = null }) {
                     textAlign: "center",
                   }}
                 >
-                  📊 Débrief disponible — voir les résultats ↓
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconBarChart size={15} /> Débrief disponible — voir les résultats ↓</span>
                 </button>
               )}
 
@@ -1749,9 +1755,9 @@ function RealtimeCall({ onBack = null }) {
                 </div>
                 <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
                   {[
-                    { key: "slow", emoji: "🐢", label: "Lentement" },
-                    { key: "fast", emoji: "🗣️", label: "Normalement" },
-                  ].map(({ key, emoji, label }) => (
+                    { key: "slow", icon: <IconClock size={22} />, label: "Lentement" },
+                    { key: "fast", icon: <IconWave size={22} />, label: "Normalement" },
+                  ].map(({ key, icon, label }) => (
                     <button
                       key={key}
                       onClick={() => setSpeechRate(key)}
@@ -1772,7 +1778,7 @@ function RealtimeCall({ onBack = null }) {
                         boxShadow: speechRate === key ? "0 0 0 1px rgba(59,130,246,0.2)" : "none",
                       }}
                     >
-                      <div style={{ fontSize: "22px", marginBottom: "4px", lineHeight: 1 }}>{emoji}</div>
+                      <div style={{ marginBottom: "6px", display: "flex", justifyContent: "center" }}>{icon}</div>
                       <div style={{ fontSize: "13px", fontWeight: 700 }}>{label}</div>
                     </button>
                   ))}
@@ -1805,7 +1811,7 @@ function RealtimeCall({ onBack = null }) {
                   transition: "all 0.3s ease",
                 }}
               >
-                🎙️ Commencer l'appel
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={18} /> Commencer l'appel</span>
               </button>
             </>
           )}
@@ -1818,7 +1824,7 @@ function RealtimeCall({ onBack = null }) {
               {/* Header compact : badge + titre */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3fc", background: "rgba(125,211,252,0.1)", border: "1px solid rgba(125,211,252,0.22)", borderRadius: "999px", padding: "3px 10px" }}>
-                  {selectedScenario.badge}
+                  <CategoryBadge emoji={selectedScenario._raw?.emoji_categorie} label={selectedScenario._raw?.categorie || selectedScenario.badge} size={11} />
                 </span>
                 <span style={{ fontSize: "15px", fontWeight: 600, color: "#94a3b8", flex: 1, lineHeight: 1.4 }}>
                   {selectedScenario.title}
@@ -1839,7 +1845,7 @@ function RealtimeCall({ onBack = null }) {
                 }}>
                   <span className={`speaker-dot speaker-dot--${activity === USER_ACTIVITY ? "candidate" : "examiner"}`} />
                   <span style={{ fontSize: "18px", fontWeight: 700, color: activity === USER_ACTIVITY ? "#4ade80" : activity === WAITING_ACTIVITY ? "#fbbf24" : "#60a5fa" }}>
-                    {activity === WAITING_ACTIVITY ? "⏳ " : activity === EXAMINER_ACTIVITY ? "🔵 " : "🟢 "}{activity}
+                    {activity === WAITING_ACTIVITY && <span style={{ marginRight: "6px", display: "inline-flex", opacity: 0.8 }}><IconHourglass size={16} /></span>}{activity}
                   </span>
                 </div>
               </div>
@@ -1900,7 +1906,7 @@ function RealtimeCall({ onBack = null }) {
                   touchAction: "manipulation",
                 }}
               >
-                ☎ Raccrocher
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconPhone size={18} /> Raccrocher</span>
               </button>
             </>
           )}
@@ -2075,7 +2081,7 @@ function RealtimeCall({ onBack = null }) {
                           <div className="score-bar-fill" style={{ width: `${(note / 4) * 100}%`, background: color }} />
                         </div>
                         <span className="score-bar-note" style={{ color }}>{note}/4</span>
-                        <span className="score-bar-chevron">{isOpen ? "▲" : "▼"}</span>
+                        <span className="score-bar-chevron" style={{ display: "inline-flex" }}>{isOpen ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
                       </button>
                       {isOpen && score?.justification && (
                         <div className="score-justif" style={{ padding: "4px 10px 12px 167px", fontSize: "13px", color: "#94a3b8", lineHeight: 1.6, fontStyle: "italic" }}>
@@ -2096,7 +2102,7 @@ function RealtimeCall({ onBack = null }) {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "14px" }}>
                   {Array.isArray(debrief.points_positifs) && debrief.points_positifs.length > 0 && (
                     <div style={{ ...card, padding: "20px", borderColor: "rgba(34,197,94,0.2)" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px" }}>✅ Points positifs</div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
                       <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
                         {debrief.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
                       </ul>
@@ -2104,7 +2110,7 @@ function RealtimeCall({ onBack = null }) {
                   )}
                   {Array.isArray(debrief.points_ameliorer) && debrief.points_ameliorer.length > 0 && (
                     <div style={{ ...card, padding: "20px", borderColor: "rgba(245,158,11,0.2)" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px" }}>⚠️ Points à améliorer</div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconAlert size={13} /> Points à améliorer</div>
                       <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
                         {debrief.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
                       </ul>
@@ -2137,7 +2143,7 @@ function RealtimeCall({ onBack = null }) {
               {debrief.conseil_prioritaire && (
                 <div style={{ ...card, padding: "20px", marginBottom: "14px", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.28)" }}>
                   <div style={{ display: "flex", gap: "14px" }}>
-                    <span style={{ fontSize: "22px", lineHeight: 1, flexShrink: 0, marginTop: "2px" }}>💡</span>
+                    <span style={{ flexShrink: 0, marginTop: "2px", display: "inline-flex", color: "#60a5fa" }}><IconLightbulb size={20} /></span>
                     <div>
                       <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#60a5fa", marginBottom: "8px" }}>Conseil prioritaire</div>
                       <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{debrief.conseil_prioritaire}</div>
@@ -2160,7 +2166,7 @@ function RealtimeCall({ onBack = null }) {
               {debrief.objectif_prochain_essai && (
                 <div style={{ ...card, padding: "20px", marginBottom: "20px", background: "rgba(20,184,166,0.06)", border: "1px solid rgba(20,184,166,0.2)" }}>
                   <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                    <span style={{ fontSize: "20px", lineHeight: 1, flexShrink: 0 }}>🎯</span>
+                    <span style={{ flexShrink: 0, display: "inline-flex", color: "#2dd4bf" }}><IconTarget size={18} /></span>
                     <div>
                       <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2dd4bf", marginBottom: "6px" }}>Objectif prochain essai</div>
                       <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{debrief.objectif_prochain_essai}</div>

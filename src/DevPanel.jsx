@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
+import {
+  IconChevronUp, IconChevronDown, IconCheck, IconAlert, IconLightbulb, IconHourglass, IconX,
+} from "./components/Icons";
 
 const CRITERIA_LABELS = {
   realisation_tache: "Réalisation de la tâche",
@@ -149,7 +152,7 @@ export default function DevPanel() {
         <span style={{ fontSize: "13px", fontWeight: 700, color: "#fbbf24", letterSpacing: "0.05em" }}>
           MODE DÉVELOPPEUR — Test sans Realtime/Whisper
         </span>
-        <span style={{ marginLeft: "auto", color: "#f59e0b", fontSize: "12px" }}>{open ? "▲ Réduire" : "▼ Ouvrir"}</span>
+        <span style={{ marginLeft: "auto", color: "#f59e0b", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "4px" }}>{open ? <><IconChevronUp size={12} /> Réduire</> : <><IconChevronDown size={12} /> Ouvrir</>}</span>
       </div>
 
       {open && (
@@ -236,13 +239,13 @@ export default function DevPanel() {
                 opacity: !transcript.trim() ? 0.4 : 1,
               }}
             >
-              {loading ? "⏳ Analyse en cours..." : "🚀 Analyser sans consommer Realtime"}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>{loading && <IconHourglass size={15} />}{loading ? "Analyse en cours..." : "Analyser sans consommer Realtime"}</span>
             </button>
           </div>
 
           {errMsg && (
             <div style={{ color: "#fca5a5", fontSize: "13px", background: "rgba(127,29,29,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
-              ❌ {errMsg}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><IconX size={14} /> {errMsg}</span>
             </div>
           )}
 
@@ -294,7 +297,7 @@ export default function DevPanel() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
                 {result.points_positifs?.length > 0 && (
                   <div style={{ ...card, borderColor: "rgba(34,197,94,0.2)" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#22c55e", marginBottom: "8px" }}>✅ Points positifs</div>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#22c55e", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}><IconCheck size={12} /> Points positifs</div>
                     <ul style={{ margin: 0, padding: "0 0 0 14px", color: "#e2e8f0", fontSize: "12px", lineHeight: 1.8 }}>
                       {result.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
                     </ul>
@@ -302,7 +305,7 @@ export default function DevPanel() {
                 )}
                 {result.points_ameliorer?.length > 0 && (
                   <div style={{ ...card, borderColor: "rgba(245,158,11,0.2)" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", marginBottom: "8px" }}>⚠️ À améliorer</div>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}><IconAlert size={12} /> À améliorer</div>
                     <ul style={{ margin: 0, padding: "0 0 0 14px", color: "#e2e8f0", fontSize: "12px", lineHeight: 1.8 }}>
                       {result.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
                     </ul>
@@ -311,7 +314,7 @@ export default function DevPanel() {
               </div>
               {result.conseil_prioritaire && (
                 <div style={{ ...card, background: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.25)" }}>
-                  <span style={{ fontSize: "14px" }}>💡 </span>
+                  <span style={{ display: "inline-flex", color: "#60a5fa", marginRight: "4px" }}><IconLightbulb size={14} /></span>
                   <span style={{ fontSize: "13px", fontWeight: 700, color: "#60a5fa" }}>Conseil : </span>
                   <span style={{ fontSize: "13px", color: "#e2e8f0" }}>{result.conseil_prioritaire}</span>
                 </div>
@@ -320,7 +323,7 @@ export default function DevPanel() {
           )}
 
           <div style={{ fontSize: "11px", color: "#78716c", paddingTop: "4px" }}>
-            ⚠️ Les sessions en mode dev ne sont PAS enregistrées dans Supabase
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}><IconAlert size={12} /> Les sessions en mode dev ne sont PAS enregistrées dans Supabase</span>
           </div>
         </div>
       )}

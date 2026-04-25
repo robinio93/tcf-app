@@ -3,47 +3,12 @@ import RealtimeCall from "./RealtimeCall";
 import Task1Interview from "./Task1Interview";
 import DevPanel from "./DevPanel";
 import { supabase } from "./lib/supabase";
-
-const IconChoose = ({ size = 32 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 11l3 3L22 4" />
-    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-  </svg>
-);
-const IconSpeak = ({ size = 32 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="9" y="2" width="6" height="13" rx="3" />
-    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-    <line x1="12" y1="19" x2="12" y2="23" />
-    <line x1="8" y1="23" x2="16" y2="23" />
-  </svg>
-);
-const IconChart = ({ size = 32 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
-    <line x1="3" y1="20" x2="21" y2="20" />
-  </svg>
-);
-const IconUser = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-const IconChat = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-);
-const IconWrite = ({ size = 40 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 21l1.5-4.5L15 6l3 3L7.5 19.5z" />
-    <path d="M14 7l3 3" />
-    <line x1="16" y1="3" x2="20" y2="7" />
-  </svg>
-);
+import {
+  IconChoose, IconSpeak, IconChart, IconUser, IconChat, IconWrite,
+  IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
+  IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart,
+  IconHourglass, IconStop,
+} from "./components/Icons";
 
 const isDevMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dev") === "true";
 
@@ -185,7 +150,7 @@ function App() {
     if (status === "recording") {
       return {
         label: "Enregistrement en cours",
-        emoji: "🎙️",
+        icon: <IconSpeak size={14} />,
         color: "#fda4af",
         bg: "rgba(239, 68, 68, 0.12)",
         border: "1px solid rgba(239, 68, 68, 0.25)",
@@ -195,7 +160,7 @@ function App() {
     if (status === "processing") {
       return {
         label: "Analyse IA en cours",
-        emoji: "⏳",
+        icon: <IconHourglass size={14} />,
         color: "#93c5fd",
         bg: "rgba(59, 130, 246, 0.12)",
         border: "1px solid rgba(59, 130, 246, 0.25)",
@@ -205,7 +170,7 @@ function App() {
     if (status === "result") {
       return {
         label: "Résultat disponible",
-        emoji: "✅",
+        icon: <IconCheck size={14} />,
         color: "#86efac",
         bg: "rgba(34, 197, 94, 0.12)",
         border: "1px solid rgba(34, 197, 94, 0.25)",
@@ -214,7 +179,7 @@ function App() {
 
     return {
       label: "Prêt",
-      emoji: "🟢",
+      icon: null,
       color: "#cbd5e1",
       bg: "rgba(148, 163, 184, 0.08)",
       border: "1px solid rgba(148, 163, 184, 0.18)",
@@ -1011,7 +976,7 @@ function App() {
               onClick={() => setAppMode("chooser")}
               style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              ← Retour
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><IconArrowLeft size={14} /> Retour</span>
             </button>
           </div>
         )}
@@ -1109,7 +1074,7 @@ function App() {
                 boxShadow: "0 8px 24px rgba(239,68,68,0.35)",
               }}
             >
-              ⏹ Arrêter l'enregistrement
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconStop size={16} /> Arrêter l'enregistrement</span>
             </button>
           </div>
         )}
@@ -1156,8 +1121,8 @@ function App() {
                     transition: "opacity 0.4s ease",
                   }}
                 >
-                  <span style={{ fontSize: "20px", width: "24px", flexShrink: 0, textAlign: "center" }}>
-                    {done ? "✅" : active ? "⏳" : "○"}
+                  <span style={{ width: "24px", flexShrink: 0, display: "inline-flex", justifyContent: "center", color: done ? "#4ade80" : active ? "#93c5fd" : "#334155" }}>
+                    {done ? <IconCheck size={18} /> : active ? <IconHourglass size={18} /> : <span style={{ opacity: 0.3 }}>○</span>}
                   </span>
                   <span style={{
                     fontSize: "14px",
@@ -1203,7 +1168,7 @@ function App() {
             {hasResult && (
               <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "999px", background: statusConfig.bg, border: statusConfig.border, color: statusConfig.color, fontWeight: 600, fontSize: "14px" }}>
-                  <span>{statusConfig.emoji}</span>
+                  {statusConfig.icon && <span style={{ display: "inline-flex" }}>{statusConfig.icon}</span>}
                   <span>{statusConfig.label}</span>
                 </div>
               </div>
@@ -1244,7 +1209,7 @@ function App() {
                   opacity: isProcessing ? 0.5 : 1,
                 }}
               >
-                🎤 {time > 0 ? "Réessayer" : "Démarrer"}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={16} /> {time > 0 ? "Réessayer" : "Démarrer"}</span>
               </button>
               <button
                 className="btn-ghost"
@@ -1252,7 +1217,7 @@ function App() {
                 disabled={isProcessing || !task3Loaded || task3Subjects.length === 0}
                 style={{ flex: "0 0 auto", padding: "16px 20px", fontSize: "15px" }}
               >
-                {!task3Loaded ? "⏳" : "🔄"} Nouveau sujet
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>{!task3Loaded ? <IconHourglass size={14} /> : <IconRefresh size={14} />} Nouveau sujet</span>
               </button>
             </div>
 
@@ -1509,7 +1474,7 @@ function App() {
                           <div className="score-bar-fill" style={{ width: `${(note / 4) * 100}%`, background: color }} />
                         </div>
                         <span className="score-bar-note" style={{ color }}>{note}/4</span>
-                        <span className="score-bar-chevron">{isOpen ? "▲" : "▼"}</span>
+                        <span className="score-bar-chevron" style={{ display: "inline-flex" }}>{isOpen ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
                       </button>
                       {isOpen && score?.justification && (
                         <div className="score-justif" style={{ padding: "4px 10px 12px 167px", fontSize: "13px", color: "#94a3b8", lineHeight: 1.6, fontStyle: "italic" }}>
@@ -1530,7 +1495,7 @@ function App() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "16px" }}>
                   {feedback.points_positifs?.length > 0 && (
                     <div style={{ ...getCardStyle(), borderColor: "rgba(34,197,94,0.2)" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px" }}>✅ Points positifs</div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
                       <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
                         {feedback.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
                       </ul>
@@ -1538,7 +1503,7 @@ function App() {
                   )}
                   {feedback.points_ameliorer?.length > 0 && (
                     <div style={{ ...getCardStyle(), borderColor: "rgba(245,158,11,0.2)" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px" }}>⚠️ Points à améliorer</div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconAlert size={13} /> Points à améliorer</div>
                       <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
                         {feedback.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
                       </ul>
@@ -1571,7 +1536,7 @@ function App() {
               {feedback.conseil_prioritaire && (
                 <div style={{ ...getCardStyle(), marginBottom: "16px", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.28)" }}>
                   <div style={{ display: "flex", gap: "14px" }}>
-                    <span style={{ fontSize: "22px", lineHeight: 1, flexShrink: 0, marginTop: "2px" }}>💡</span>
+                    <span style={{ flexShrink: 0, marginTop: "2px", display: "inline-flex", color: "#60a5fa" }}><IconLightbulb size={20} /></span>
                     <div>
                       <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#60a5fa", marginBottom: "8px" }}>Conseil prioritaire</div>
                       <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{feedback.conseil_prioritaire}</div>
@@ -1594,7 +1559,7 @@ function App() {
               {feedback.objectif_prochain_essai && (
                 <div style={{ ...getCardStyle(), marginBottom: "20px", background: "rgba(20,184,166,0.06)", border: "1px solid rgba(20,184,166,0.2)" }}>
                   <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                    <span style={{ fontSize: "20px", lineHeight: 1, flexShrink: 0 }}>🎯</span>
+                    <span style={{ flexShrink: 0, display: "inline-flex", color: "#2dd4bf" }}><IconTarget size={18} /></span>
                     <div>
                       <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2dd4bf", marginBottom: "6px" }}>Objectif prochain essai</div>
                       <div style={{ color: "#e2e8f0", lineHeight: 1.7, fontSize: "15px" }}>{feedback.objectif_prochain_essai}</div>
