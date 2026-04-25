@@ -251,6 +251,12 @@ REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
 5. Un candidat qui ne couvre que 2-3 points cles sur 6 a une realisation a 1/4, pas 2/4.
 6. Phrases courtes sans connecteurs = grammaire 1/4, pas 2/4.
 7. Compare TOUJOURS avec les exemples de reference A2/B1/B2 fournis avant de noter. Si le dialogue ressemble au A2 de reference, le total doit etre proche de 5/20.
+8. Une note de 3/4 signifie EXCELLENT, pas juste "correct". Pour avoir 3/4 en lexique, le candidat doit utiliser un vocabulaire varie ET precis avec des formulations elaborees. "C'est combien de plus ?" = 2/4 maximum, jamais 3/4.
+9. Une note de 4/4 est QUASI-IMPOSSIBLE. Elle est reservee aux locuteurs natifs ou C2. Ne donne JAMAIS 4/4 sauf si le candidat est indiscernable d'un francophone natif sur ce critere.
+10. Pour avoir realisation 3/4, le candidat doit couvrir AU MOINS 5 points cles sur 6. S'il en couvre 4, c'est 2/4.
+11. Pour avoir interaction 3/4, le candidat doit faire des relances spontanees, reformuler, resumer et conclure naturellement. Poser des questions de suivi simples = 2/4 maximum.
+12. Le total ne doit JAMAIS depasser 15/20 sauf si le candidat utilise le subjonctif, le conditionnel passe, des expressions idiomatiques et un registre soutenu avec nuance.
+13. VERIFICATION FINALE : ton total est-il coherent avec les exemples A2/B1/B2 fournis ? Si ton total depasse 15, relis et baisse.
 
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.

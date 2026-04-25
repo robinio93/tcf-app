@@ -199,6 +199,12 @@ REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
 5. Un seul argument developpe = realisation 1/4, pas 2/4.
 6. Pas de nuance, pas de conclusion = coherence 1/4.
 7. Compare TOUJOURS avec les exemples de reference A2/B1/B2 fournis avant de noter. Si le monologue ressemble au A2 de reference, le total doit etre proche de 5/20.
+8. Une note de 3/4 signifie EXCELLENT, pas juste "correct". Pour avoir 3/4 en lexique, le candidat doit utiliser un vocabulaire varie ET precis avec des formulations elaborees.
+9. Une note de 4/4 est QUASI-IMPOSSIBLE. Elle est reservee aux locuteurs natifs ou C2. Ne donne JAMAIS 4/4 sauf si le candidat est indiscernable d'un francophone natif sur ce critere.
+10. Pour avoir realisation 3/4, le candidat doit developper AU MOINS 2 arguments avec exemples ET conclure avec nuance. Un seul argument developpe = 2/4 maximum.
+11. Pour avoir coherence 3/4, le candidat doit utiliser des connecteurs varies (cependant, en revanche, par ailleurs, c'est pourquoi) ET structurer son discours intro/developpement/conclusion. Connecteurs basiques (et, mais, parce que) = 2/4 maximum.
+12. Le total ne doit JAMAIS depasser 15/20 sauf si le candidat utilise le subjonctif, le conditionnel passe, des expressions idiomatiques et un registre soutenu avec nuance.
+13. VERIFICATION FINALE : ton total est-il coherent avec les exemples A2/B1/B2 fournis ? Si ton total depasse 15, relis et baisse.
 
 IMPORTANT :
 - Sois STRICT et REALISTE. Un candidat qui parle moins de 30 secondes ne peut PAS avoir B1.

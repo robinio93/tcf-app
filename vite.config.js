@@ -306,6 +306,12 @@ REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
 5. 2-3 points cles couverts sur 6 = realisation 1/4, pas 2/4.
 6. Phrases courtes sans connecteurs = grammaire 1/4, pas 2/4.
 7. Compare TOUJOURS avec les exemples de reference A2/B1/B2. Si le dialogue ressemble au A2, le total doit etre proche de 5/20.
+8. Une note de 3/4 signifie EXCELLENT. "C'est combien de plus ?" = 2/4 lexique maximum, jamais 3/4.
+9. Une note de 4/4 est QUASI-IMPOSSIBLE, reservee aux locuteurs C2 indiscernables d'un natif. Ne jamais donner 4/4 sauf cas exceptionnel.
+10. Realisation 3/4 = AU MOINS 5 points cles sur 6 couverts. 4 points couverts = 2/4.
+11. Interaction 3/4 = relances spontanees + reformulations + conclusion naturelle. Questions simples = 2/4 maximum.
+12. Total > 15/20 interdit sauf subjonctif + conditionnel passe + expressions idiomatiques + registre soutenu.
+13. VERIFICATION FINALE : si ton total depasse 15, relis et baisse.
 
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
@@ -569,6 +575,12 @@ REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
 5. Un seul argument developpe = realisation 1/4, pas 2/4.
 6. Pas de nuance, pas de conclusion = coherence 1/4.
 7. Compare TOUJOURS avec les exemples de reference A2/B1/B2. Si le monologue ressemble au A2, le total doit etre proche de 5/20.
+8. Une note de 3/4 signifie EXCELLENT. Vocabulaire correct sans nuance = 2/4 maximum, pas 3/4.
+9. Une note de 4/4 est QUASI-IMPOSSIBLE, reservee aux locuteurs C2 indiscernables d'un natif. Ne jamais donner 4/4 sauf cas exceptionnel.
+10. Realisation 3/4 = AU MOINS 2 arguments DEVELOPPES avec exemples ET conclusion nuancee. Un seul argument = 2/4.
+11. Coherence 3/4 = connecteurs varies (cependant, en revanche, c'est pourquoi) + structure claire. Connecteurs basiques = 2/4 maximum.
+12. Total > 15/20 interdit sauf subjonctif + conditionnel passe + expressions idiomatiques + registre soutenu.
+13. VERIFICATION FINALE : si ton total depasse 15, relis et baisse.
 
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
