@@ -1009,7 +1009,7 @@ function App() {
             VUE REPOS (idle / result)
         ══════════════════════════════════════════ */}
         {!isRecording && !isProcessing && (
-          <div style={{ ...getCardStyle(), padding: "clamp(20px, 4vw, 32px)", marginBottom: "20px" }}>
+          <div className="t3-precall-wrapper" style={{ ...getCardStyle(), padding: "clamp(20px, 4vw, 32px)", marginBottom: "20px" }}>
           <div className="t3-precall">
             {/* Sujet focal */}
             <div

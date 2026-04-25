@@ -335,30 +335,37 @@ body {
   .score-justif       { padding-left: 16px !important; }
 }
 
-/* ─── Tâche 1 — CTA thumb zone sur mobile ───────────────────── */
-.t1-precall {
+/* ─── Tâches 1 & 3 — Layout mobile thumb zone ─────────────── */
+.t1-precall,
+.t3-precall {
   display: flex;
   flex-direction: column;
 }
 
-/* Mobile < 1024px : contenu + CTA rempli la hauteur visible */
 @media (max-width: 1023px) {
-  .t1-precall {
-    min-height: calc(100svh - 200px);
+  .t1-precall,
+  .t3-precall {
+    min-height: calc(100svh - 32px);
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
   }
-  .t1-precall-cta {
+  .t1-precall-cta,
+  .t3-precall-cta {
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: 24px;
   }
-  .t1-precall-cta button {
-    width: calc(100% + 0px); /* pleine largeur du conteneur */
+  .t1-precall-cta button,
+  .t3-precall-cta button {
+    width: 100%;
     border-radius: 14px;
+  }
+  .t3-precall-wrapper {
+    margin-bottom: 0;
   }
 }
 
-/* Desktop ≥ 1024px : layout normal, pas de min-height */
 @media (min-width: 1024px) {
-  .t1-precall-cta {
+  .t1-precall-cta,
+  .t3-precall-cta {
     margin-top: 8px;
   }
 }
@@ -389,27 +396,6 @@ body {
   }
 }
 
-/* ─── Tâche 3 — CTA thumb zone sur mobile ───────────────────── */
-.t3-precall {
-  display: flex;
-  flex-direction: column;
-}
-
-@media (max-width: 1023px) {
-  .t3-precall {
-    min-height: calc(100svh - 200px);
-  }
-  .t3-precall-cta {
-    margin-top: auto;
-    padding-top: 20px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .t3-precall-cta {
-    margin-top: 8px;
-  }
-}
 
 /* ─── Sélecteur de rythme — pulse tant que pas sélectionné ─── */
 @keyframes pace-pulse {

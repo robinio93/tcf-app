@@ -733,6 +733,7 @@ function Task1Interview({ onBack = null }) {
     <div style={{ minHeight: "100vh", padding: "32px 18px 48px", boxSizing: "border-box" }}>
       <div style={{ width: "100%", maxWidth: "960px", margin: "0 auto" }}>
         <div
+          className="t1-precall-wrapper"
           style={{
             ...card,
             border: processingStep !== null
