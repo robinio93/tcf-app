@@ -834,13 +834,14 @@ function Task1Interview({ onBack = null }) {
 
               {/* Objectif */}
               <div style={{
-                background: "rgba(34,197,94,0.06)",
-                border: "1px solid rgba(34,197,94,0.18)",
-                borderRadius: "14px",
-                padding: "16px 18px",
+                background: "rgba(16,185,129,0.05)",
+                border: "none",
+                borderLeft: "3px solid #10b981",
+                borderRadius: "0 10px 10px 0",
+                padding: "14px 18px",
                 marginBottom: "12px",
               }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#86efac", marginBottom: "6px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#6ee7b7", marginBottom: "6px" }}>
                   Votre objectif
                 </div>
                 <div style={{ fontSize: "15px", color: "#e2e8f0", lineHeight: 1.65 }}>
@@ -854,7 +855,17 @@ function Task1Interview({ onBack = null }) {
                 onClick={() => setShowTips((v) => !v)}
                 style={{ marginBottom: "12px", fontSize: "13px" }}
               >
-                {showTips ? "▲ Masquer les conseils" : "💡 Voir les conseils"}
+                {showTips ? (
+                  <>▲ Masquer les conseils</>
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18h6" /><path d="M10 22h4" />
+                      <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3v1h6v-1c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z" />
+                    </svg>
+                    Voir les conseils
+                  </span>
+                )}
               </button>
 
               {showTips && (
@@ -919,11 +930,19 @@ function Task1Interview({ onBack = null }) {
                 style={{
                   display: "block", width: "100%", padding: "18px 24px",
                   fontSize: "17px", fontWeight: 700, letterSpacing: "-0.01em",
-                  cursor: "pointer", background: "linear-gradient(135deg, #10b981, #059669)",
+                  cursor: "pointer", background: "linear-gradient(135deg, #0d9488, #0f766e)",
                   color: "white", border: "none", borderRadius: "16px", marginTop: "8px",
                 }}
               >
-                🎙️ Commencer l'entretien
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="2" width="6" height="13" rx="3" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                  Commencer l'entretien
+                </span>
               </button>
             </>
           )}
