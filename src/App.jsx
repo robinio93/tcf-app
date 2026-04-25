@@ -4,6 +4,47 @@ import Task1Interview from "./Task1Interview";
 import DevPanel from "./DevPanel";
 import { supabase } from "./lib/supabase";
 
+const IconChoose = ({ size = 32 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 11l3 3L22 4" />
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+  </svg>
+);
+const IconSpeak = ({ size = 32 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="2" width="6" height="13" rx="3" />
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+    <line x1="12" y1="19" x2="12" y2="23" />
+    <line x1="8" y1="23" x2="16" y2="23" />
+  </svg>
+);
+const IconChart = ({ size = 32 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+    <line x1="3" y1="20" x2="21" y2="20" />
+  </svg>
+);
+const IconUser = ({ size = 40 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+const IconChat = ({ size = 40 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+const IconWrite = ({ size = 40 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21l1.5-4.5L15 6l3 3L7.5 19.5z" />
+    <path d="M14 7l3 3" />
+    <line x1="16" y1="3" x2="20" y2="7" />
+  </svg>
+);
+
 const isDevMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dev") === "true";
 
 const FALLBACK_TASK3_SUBJECTS = [
@@ -675,10 +716,10 @@ function App() {
             }}
           >
             {[
-              { icon: "🎙️", title: "Choisissez une tâche", desc: "Interaction orale, expression d'un point de vue ou entretien dirigé" },
-              { icon: "🗣️", title: "Parlez naturellement", desc: "L'IA joue le rôle de l'examinateur — parlez directement au micro" },
-              { icon: "📊", title: "Recevez votre feedback", desc: "Score /20, niveau CECRL et conseils personnalisés en 30 secondes" },
-            ].map(({ icon, title, desc }) => (
+              { icon: <IconChoose />, color: "#3b82f6", title: "Choisissez une tâche", desc: "Interaction orale, expression d'un point de vue ou entretien dirigé" },
+              { icon: <IconSpeak />, color: "#8b5cf6", title: "Parlez naturellement", desc: "L'IA joue le rôle de l'examinateur — parlez directement au micro" },
+              { icon: <IconChart />, color: "#10b981", title: "Recevez votre feedback", desc: "Score /20, niveau CECRL et conseils personnalisés en 30 secondes" },
+            ].map(({ icon, color, title, desc }) => (
               <div
                 key={title}
                 style={{
@@ -690,7 +731,7 @@ function App() {
                   backdropFilter: "blur(8px)",
                 }}
               >
-                <div style={{ fontSize: "26px", marginBottom: "8px", lineHeight: 1 }}>{icon}</div>
+                <div style={{ color, marginBottom: "10px", display: "flex", justifyContent: "center" }}>{icon}</div>
                 <div style={{ fontSize: "14px", fontWeight: 700, color: "#e2e8f0", marginBottom: "5px" }}>{title}</div>
                 <div style={{ fontSize: "13px", color: "#64748b", lineHeight: 1.55 }}>{desc}</div>
               </div>
@@ -716,7 +757,7 @@ function App() {
                   marginBottom: "22px",
                 }}
               >
-                <span style={{ fontSize: "42px", lineHeight: 1 }}>👋</span>
+                <span style={{ color: "#10b981", display: "block", lineHeight: 1 }}><IconUser /></span>
                 <span
                   style={{
                     fontSize: "11px",
@@ -781,7 +822,7 @@ function App() {
                   marginBottom: "22px",
                 }}
               >
-                <span style={{ fontSize: "42px", lineHeight: 1 }}>🎙️</span>
+                <span style={{ color: "#3b82f6", display: "block", lineHeight: 1 }}><IconChat /></span>
                 <span
                   style={{
                     fontSize: "11px",
@@ -846,7 +887,7 @@ function App() {
                   marginBottom: "22px",
                 }}
               >
-                <span style={{ fontSize: "42px", lineHeight: 1 }}>🎤</span>
+                <span style={{ color: "#8b5cf6", display: "block", lineHeight: 1 }}><IconWrite /></span>
                 <span
                   style={{
                     fontSize: "11px",
