@@ -574,12 +574,14 @@ function extractClientSecret(payload) {
   return "";
 }
 
-async function createRealtimeSession() {
+async function createRealtimeSession(silenceDuration = 1200) {
   let response;
 
   try {
     response = await fetch("/api/realtime-session", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ silenceDuration }),
     });
   } catch {
     throw new Error(
@@ -631,6 +633,7 @@ function RealtimeCall({ onBack = null }) {
   const [scenarios, setScenarios] = useState([]);
   const [scenariosLoaded, setScenariosLoaded] = useState(false);
   const [scenarioIndex, setScenarioIndex] = useState(0);
+  const [speechRate, setSpeechRate] = useState("slow"); // "slow" = 1400ms | "fast" = 800ms
   const [showScenario, setShowScenario] = useState(
     () => typeof window !== "undefined" ? window.innerWidth >= 640 : true
   );
@@ -1092,7 +1095,8 @@ function RealtimeCall({ onBack = null }) {
         throw new Error("Ce navigateur ne prend pas en charge l'acces micro.");
       }
 
-      const clientSecret = await createRealtimeSession();
+      const silenceDuration = speechRate === "fast" ? 800 : 1400;
+      const clientSecret = await createRealtimeSession(silenceDuration);
 
       if (connectAttemptRef.current !== attemptId) {
         return;
@@ -1713,6 +1717,42 @@ function RealtimeCall({ onBack = null }) {
                   📊 Débrief disponible — voir les résultats ↓
                 </button>
               )}
+
+              {/* Sélecteur de rythme */}
+              <div style={{ marginTop: "16px", marginBottom: "4px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "8px", letterSpacing: "0.03em" }}>
+                  Rythme de parole :
+                </div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  {[
+                    { key: "slow", label: "🐢 Je parle lentement", sub: "avec hésitations" },
+                    { key: "fast", label: "🚀 Je parle couramment", sub: "sans hésitations" },
+                  ].map(({ key, label, sub }) => (
+                    <button
+                      key={key}
+                      onClick={() => setSpeechRate(key)}
+                      style={{
+                        flex: 1,
+                        padding: "10px 12px",
+                        borderRadius: "12px",
+                        border: speechRate === key
+                          ? "1px solid rgba(59,130,246,0.5)"
+                          : "1px solid rgba(148,163,184,0.15)",
+                        background: speechRate === key
+                          ? "rgba(59,130,246,0.12)"
+                          : "rgba(255,255,255,0.03)",
+                        color: speechRate === key ? "#93c5fd" : "#64748b",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <div style={{ fontSize: "13px", fontWeight: 700 }}>{label}</div>
+                      <div style={{ fontSize: "11px", opacity: 0.7, marginTop: "2px" }}>{sub}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* CTA principal */}
               <button

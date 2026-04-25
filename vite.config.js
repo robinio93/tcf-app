@@ -121,7 +121,7 @@ function extractAnalysisText(data) {
     .trim();
 }
 
-function buildRealtimeSessionPayload(instructions = SESSION_INSTRUCTIONS) {
+function buildRealtimeSessionPayload(instructions = SESSION_INSTRUCTIONS, silenceDuration = 1200) {
   return {
     session: {
       type: "realtime",
@@ -138,7 +138,7 @@ function buildRealtimeSessionPayload(instructions = SESSION_INSTRUCTIONS) {
             type: "server_vad",
             threshold: 0.5,
             prefix_padding_ms: 300,
-            silence_duration_ms: 1200,
+            silence_duration_ms: silenceDuration,
             create_response: false,
             interrupt_response: false,
           },
@@ -680,13 +680,16 @@ function localApiDevPlugin(env) {
         if (!apiKey) return;
 
         try {
+          const reqBody = await readJsonBody(req).catch(() => ({}));
+          const silenceDuration = Number(reqBody?.silenceDuration) || 1200;
+
           const openaiResponse = await fetch(OPENAI_REALTIME_URL, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${apiKey}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(buildRealtimeSessionPayload()),
+            body: JSON.stringify(buildRealtimeSessionPayload(SESSION_INSTRUCTIONS, silenceDuration)),
           });
 
           const { raw, data } = await readOpenAiJson(openaiResponse);

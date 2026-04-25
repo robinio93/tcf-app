@@ -14,7 +14,7 @@ const SESSION_INSTRUCTIONS = [
   "Reste dans le scenario. Reponds uniquement en francais naturel.",
 ].join(" ");
 
-function buildSessionPayload() {
+function buildSessionPayload(silenceDuration = 1200) {
   return {
     session: {
       type: "realtime",
@@ -31,7 +31,7 @@ function buildSessionPayload() {
             type: "server_vad",
             threshold: 0.5,
             prefix_padding_ms: 300,
-            silence_duration_ms: 1200,
+            silence_duration_ms: silenceDuration,
             create_response: false,
             interrupt_response: false,
           },
@@ -63,13 +63,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    const body = req.body;
+    const silenceDuration = Number(body?.silenceDuration) || 1200;
+
     const openaiResponse = await fetch(OPENAI_REALTIME_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(buildSessionPayload()),
+      body: JSON.stringify(buildSessionPayload(silenceDuration)),
     });
 
     const data = await openaiResponse.json();
