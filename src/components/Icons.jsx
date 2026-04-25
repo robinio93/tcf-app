@@ -106,10 +106,10 @@ export const IconTask2 = ({ size = 40 }) => (
 
 export const IconTask3 = ({ size = 40 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-    <path d="M5 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-    <path d="M19 8a4 4 0 0 1 0 8" />
-    <path d="M22 6a8 8 0 0 1 0 12" />
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <line x1="7" y1="9" x2="17" y2="9" />
+    <line x1="7" y1="13" x2="14" y2="13" />
+    <line x1="7" y1="17" x2="11" y2="17" />
   </svg>
 );
 
