@@ -69,6 +69,11 @@ body {
 }
 
 /* ─── Chooser — task cards cliquables ───────────────────────── */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .task-card {
   appearance: none;
   display: block;
@@ -83,10 +88,18 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 20px;
   padding: 32px;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
+  opacity: 0;
+  animation: card-enter 0.4s ease forwards;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
+
+.task-card:nth-child(1) { animation-delay: 0ms; }
+.task-card:nth-child(2) { animation-delay: 50ms; }
+.task-card:nth-child(3) { animation-delay: 100ms; }
 
 .task-card::before {
   content: '';
@@ -97,15 +110,39 @@ body {
   background: radial-gradient(ellipse at 30% 40%, rgba(59,130,246,0.08) 0%, transparent 60%);
 }
 
-.task-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.32), 0 0 0 1px rgba(59,130,246,0.12);
+/* Desktop hover */
+@media (hover: hover) {
+  .task-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.32), 0 0 0 1px rgba(59,130,246,0.12);
+  }
+  .task-card:hover::before { opacity: 1; }
 }
 
-.task-card:hover::before { opacity: 1; }
+/* Mobile / touch active state */
+.task-card:active {
+  transform: scale(0.97);
+  background: rgba(15, 23, 42, 0.85);
+}
 
-.task-card:active { transform: translateY(-1px); }
+/* Flèche en bas à droite */
+.task-card-arrow {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  transition: transform 0.15s ease;
+  opacity: 0.7;
+}
+.task-card:active .task-card-arrow {
+  transform: translateX(4px);
+}
+@media (hover: hover) {
+  .task-card:hover .task-card-arrow {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}
 
 .task-card:focus-visible {
   outline: 2px solid var(--accent-primary);

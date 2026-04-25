@@ -713,197 +713,65 @@ function App() {
           >
             {/* Tâche 1 */}
             <button className="task-card" onClick={() => setAppMode("task1")}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "22px",
-                }}
-              >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "22px" }}>
                 <span style={{ color: "#10b981", display: "block", lineHeight: 1 }}><IconTask1 /></span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#10b981",
-                    background: "rgba(16,185,129,0.12)",
-                    border: "1px solid rgba(16,185,129,0.25)",
-                    borderRadius: "999px",
-                    padding: "4px 11px",
-                  }}
-                >
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#10b981", background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: "999px", padding: "4px 11px" }}>
                   Tâche 1
                 </span>
               </div>
-
-              <div
-                style={{
-                  fontSize: "clamp(20px, 2.5vw, 24px)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                  marginBottom: "10px",
-                }}
-              >
+              <div style={{ fontSize: "clamp(20px, 2.5vw, 24px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "10px" }}>
                 Entretien dirigé
               </div>
-
-              <div
-                style={{
-                  fontSize: "15px",
-                  color: "#94a3b8",
-                  lineHeight: 1.65,
-                  marginBottom: "28px",
-                }}
-              >
+              <div style={{ fontSize: "15px", color: "#94a3b8", lineHeight: 1.65, paddingBottom: "28px" }}>
                 Présentation personnelle — 2 min
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#10b981",
-                }}
-              >
-                Commencer
-                <span style={{ fontSize: "16px" }}>→</span>
-              </div>
+              <span className="task-card-arrow" style={{ color: "#10b981" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </span>
             </button>
 
             {/* Tâche 2 */}
             <button className="task-card" onClick={() => setAppMode("realtime")}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "22px",
-                }}
-              >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "22px" }}>
                 <span style={{ color: "#3b82f6", display: "block", lineHeight: 1 }}><IconTask2 /></span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#3b82f6",
-                    background: "rgba(59,130,246,0.12)",
-                    border: "1px solid rgba(59,130,246,0.25)",
-                    borderRadius: "999px",
-                    padding: "4px 11px",
-                  }}
-                >
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#3b82f6", background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "999px", padding: "4px 11px" }}>
                   Tâche 2
                 </span>
               </div>
-
-              <div
-                style={{
-                  fontSize: "clamp(20px, 2.5vw, 24px)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                  marginBottom: "10px",
-                }}
-              >
+              <div style={{ fontSize: "clamp(20px, 2.5vw, 24px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "10px" }}>
                 Interaction orale
               </div>
-
-              <div
-                style={{
-                  fontSize: "15px",
-                  color: "#94a3b8",
-                  lineHeight: 1.65,
-                  marginBottom: "28px",
-                }}
-              >
+              <div style={{ fontSize: "15px", color: "#94a3b8", lineHeight: 1.65, paddingBottom: "28px" }}>
                 Conversation en temps réel avec l'IA — 5 min 30
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#3b82f6",
-                }}
-              >
-                Commencer
-                <span style={{ fontSize: "16px" }}>→</span>
-              </div>
+              <span className="task-card-arrow" style={{ color: "#3b82f6" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </span>
             </button>
 
             {/* Tâche 3 */}
             <button className="task-card" onClick={() => setAppMode("legacy")}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: "22px",
-                }}
-              >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "22px" }}>
                 <span style={{ color: "#8b5cf6", display: "block", lineHeight: 1 }}><IconTask3 /></span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#8b5cf6",
-                    background: "rgba(139,92,246,0.12)",
-                    border: "1px solid rgba(139,92,246,0.25)",
-                    borderRadius: "999px",
-                    padding: "4px 11px",
-                  }}
-                >
+                <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8b5cf6", background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: "999px", padding: "4px 11px" }}>
                   Tâche 3
                 </span>
               </div>
-
-              <div
-                style={{
-                  fontSize: "clamp(20px, 2.5vw, 24px)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                  marginBottom: "10px",
-                }}
-              >
+              <div style={{ fontSize: "clamp(20px, 2.5vw, 24px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "10px" }}>
                 Expression d'un point de vue
               </div>
-
-              <div
-                style={{
-                  fontSize: "15px",
-                  color: "#94a3b8",
-                  lineHeight: 1.65,
-                  marginBottom: "28px",
-                }}
-              >
+              <div style={{ fontSize: "15px", color: "#94a3b8", lineHeight: 1.65, paddingBottom: "28px" }}>
                 Monologue argumenté — 4 min 30
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#8b5cf6",
-                }}
-              >
-                Commencer
-                <span style={{ fontSize: "16px" }}>→</span>
-              </div>
+              <span className="task-card-arrow" style={{ color: "#8b5cf6" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </span>
             </button>
           </div>
 
