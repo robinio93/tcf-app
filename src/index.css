@@ -363,7 +363,7 @@ body {
   }
 }
 
-/* ─── Tâche 2 — CTA sticky bottom sur mobile ───────────────── */
+/* ─── Tâche 2 — CTA thumb zone sur mobile ───────────────────── */
 .t2-precall {
   display: flex;
   flex-direction: column;
@@ -371,29 +371,15 @@ body {
 
 @media (max-width: 1023px) {
   .t2-precall {
-    padding-bottom: 120px;
+    min-height: calc(100svh - 200px);
   }
   .t2-precall-cta {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 16px;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    background: linear-gradient(
-      to top,
-      rgba(2, 6, 23, 0.95) 0%,
-      rgba(2, 6, 23, 0.85) 60%,
-      rgba(2, 6, 23, 0) 100%
-    );
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 50;
+    margin-top: auto;
+    padding-top: 20px;
   }
   .t2-precall-cta button {
     width: 100%;
     border-radius: 14px;
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
   }
 }
 
