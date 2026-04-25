@@ -4,7 +4,8 @@ import Task1Interview from "./Task1Interview";
 import DevPanel from "./DevPanel";
 import { supabase } from "./lib/supabase";
 import {
-  IconChoose, IconSpeak, IconChart, IconUser, IconChat, IconWrite,
+  IconChoose, IconSpeak, IconChart,
+  IconTask1, IconTask2, IconTask3,
   IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
   IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart,
   IconHourglass, IconStop,
@@ -722,7 +723,7 @@ function App() {
                   marginBottom: "22px",
                 }}
               >
-                <span style={{ color: "#10b981", display: "block", lineHeight: 1 }}><IconUser /></span>
+                <span style={{ color: "#10b981", display: "block", lineHeight: 1 }}><IconTask1 /></span>
                 <span
                   style={{
                     fontSize: "11px",
@@ -787,7 +788,7 @@ function App() {
                   marginBottom: "22px",
                 }}
               >
-                <span style={{ color: "#3b82f6", display: "block", lineHeight: 1 }}><IconChat /></span>
+                <span style={{ color: "#3b82f6", display: "block", lineHeight: 1 }}><IconTask2 /></span>
                 <span
                   style={{
                     fontSize: "11px",
@@ -852,7 +853,7 @@ function App() {
                   marginBottom: "22px",
                 }}
               >
-                <span style={{ color: "#8b5cf6", display: "block", lineHeight: 1 }}><IconWrite /></span>
+                <span style={{ color: "#8b5cf6", display: "block", lineHeight: 1 }}><IconTask3 /></span>
                 <span
                   style={{
                     fontSize: "11px",
