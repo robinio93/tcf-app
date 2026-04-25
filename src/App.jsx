@@ -657,6 +657,38 @@ function App() {
             </div>
           </div>
 
+          {/* ── Comment ça marche ── */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "12px",
+              marginBottom: "44px",
+            }}
+          >
+            {[
+              { icon: "🎙️", title: "Choisissez une tâche", desc: "Interaction orale, expression d'un point de vue ou entretien dirigé" },
+              { icon: "🗣️", title: "Parlez naturellement", desc: "L'IA joue le rôle de l'examinateur — parlez directement au micro" },
+              { icon: "📊", title: "Recevez votre feedback", desc: "Score /20, niveau CECRL et conseils personnalisés en 30 secondes" },
+            ].map(({ icon, title, desc }) => (
+              <div
+                key={title}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(148,163,184,0.1)",
+                  borderRadius: "16px",
+                  padding: "18px 16px",
+                  textAlign: "center",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <div style={{ fontSize: "26px", marginBottom: "8px", lineHeight: 1 }}>{icon}</div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#e2e8f0", marginBottom: "5px" }}>{title}</div>
+                <div style={{ fontSize: "13px", color: "#64748b", lineHeight: 1.55 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+
           {/* ── Task cards ── */}
           <div
             style={{
