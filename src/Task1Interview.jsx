@@ -803,7 +803,7 @@ function Task1Interview({ onBack = null }) {
 
           {/* ══ VUE PRÉ-APPEL ══ */}
           {!isConnecting && !isConnected && processingStep === null && (
-            <>
+            <div className="t1-precall">
               {/* Top bar */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
                 {typeof onBack === "function" ? (
@@ -928,27 +928,30 @@ function Task1Interview({ onBack = null }) {
               )}
 
               {/* CTA */}
-              <button
-                className="btn-start-call"
-                onClick={startCall}
-                style={{
-                  display: "block", width: "100%", padding: "18px 24px",
-                  fontSize: "17px", fontWeight: 700, letterSpacing: "-0.01em",
-                  cursor: "pointer", background: "linear-gradient(135deg, #0d9488, #0f766e)",
-                  color: "white", border: "none", borderRadius: "16px", marginTop: "8px",
-                }}
-              >
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="2" width="6" height="13" rx="3" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="23" />
-                    <line x1="8" y1="23" x2="16" y2="23" />
-                  </svg>
-                  Commencer l'entretien
-                </span>
-              </button>
-            </>
+              <div className="t1-precall-cta">
+                <button
+                  className="btn-start-call"
+                  onClick={startCall}
+                  style={{
+                    display: "block", width: "100%", padding: "18px 24px",
+                    fontSize: "17px", fontWeight: 700, letterSpacing: "-0.01em",
+                    cursor: "pointer", background: "linear-gradient(135deg, #0d9488, #0f766e)",
+                    color: "white", border: "none", borderRadius: "16px",
+                    touchAction: "manipulation",
+                  }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="2" width="6" height="13" rx="3" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                    Commencer l'entretien
+                  </span>
+                </button>
+              </div>
+            </div>
           )}
 
           {/* ══ VUE EN-APPEL ══ */}
