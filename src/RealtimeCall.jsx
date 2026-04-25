@@ -3,6 +3,7 @@ import { supabase } from "./lib/supabase";
 
 const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
+const WAITING_ACTIVITY = "L'examinateur va vous accueillir...";
 
 const TASK2_MAX_TIME = 330; // 5 min 30 — durée officielle TCF Canada tâche 2
 const TASK2_MIN_TIME = 180; // 3 min — minimum évaluable
@@ -641,7 +642,7 @@ async function createRealtimeSession(silenceDuration = 1200) {
 
 function RealtimeCall({ onBack = null }) {
   const [callState, setCallState] = useState("idle");
-  const [activity, setActivity] = useState(USER_ACTIVITY);
+  const [activity, setActivity] = useState(WAITING_ACTIVITY);
   const [errorMessage, setErrorMessage] = useState("");
   const [scenarios, setScenarios] = useState([]);
   const [scenariosLoaded, setScenariosLoaded] = useState(false);
@@ -1097,7 +1098,7 @@ function RealtimeCall({ onBack = null }) {
     setShowTranscript(false);
     setErrorMessage("");
     setCallState("connecting");
-    setUserTurn();
+    setActivity(WAITING_ACTIVITY);
     setStatusNote("Activation du micro et connexion WebRTC en cours...");
 
     try {
@@ -1831,10 +1832,14 @@ function RealtimeCall({ onBack = null }) {
 
               {/* Indicateur qui parle */}
               <div style={{ textAlign: "center", padding: "20px 0 24px" }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "14px", padding: "16px 28px", borderRadius: "999px", border: `1px solid ${activity === USER_ACTIVITY ? "rgba(34,197,94,0.55)" : "rgba(59,130,246,0.55)"}`, background: activity === USER_ACTIVITY ? "rgba(34,197,94,0.18)" : "rgba(59,130,246,0.18)", transition: "all 0.3s ease" }}>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: "14px", padding: "16px 28px", borderRadius: "999px", transition: "all 0.3s ease",
+                  border: activity === USER_ACTIVITY ? "1px solid rgba(34,197,94,0.55)" : activity === WAITING_ACTIVITY ? "1px solid rgba(245,158,11,0.55)" : "1px solid rgba(59,130,246,0.55)",
+                  background: activity === USER_ACTIVITY ? "rgba(34,197,94,0.18)" : activity === WAITING_ACTIVITY ? "rgba(245,158,11,0.14)" : "rgba(59,130,246,0.18)",
+                }}>
                   <span className={`speaker-dot speaker-dot--${activity === USER_ACTIVITY ? "candidate" : "examiner"}`} />
-                  <span style={{ fontSize: "18px", fontWeight: 700, color: activity === USER_ACTIVITY ? "#4ade80" : "#60a5fa" }}>
-                    {activity}
+                  <span style={{ fontSize: "18px", fontWeight: 700, color: activity === USER_ACTIVITY ? "#4ade80" : activity === WAITING_ACTIVITY ? "#fbbf24" : "#60a5fa" }}>
+                    {activity === WAITING_ACTIVITY ? "⏳ " : activity === EXAMINER_ACTIVITY ? "🔵 " : "🟢 "}{activity}
                   </span>
                 </div>
               </div>
