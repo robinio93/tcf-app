@@ -389,6 +389,28 @@ body {
   }
 }
 
+/* ─── Tâche 3 — CTA thumb zone sur mobile ───────────────────── */
+.t3-precall {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1023px) {
+  .t3-precall {
+    min-height: calc(100svh - 200px);
+  }
+  .t3-precall-cta {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .t3-precall-cta {
+    margin-top: 8px;
+  }
+}
+
 /* ─── Sélecteur de rythme — pulse tant que pas sélectionné ─── */
 @keyframes pace-pulse {
   0%, 100% {

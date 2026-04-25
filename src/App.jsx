@@ -1010,7 +1010,7 @@ function App() {
         ══════════════════════════════════════════ */}
         {!isRecording && !isProcessing && (
           <div style={{ ...getCardStyle(), padding: "clamp(20px, 4vw, 32px)", marginBottom: "20px" }}>
-
+          <div className="t3-precall">
             {/* Sujet focal */}
             <div
               style={{
@@ -1056,38 +1056,6 @@ function App() {
               </div>
             )}
 
-            {/* Boutons principaux */}
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <button
-                className="btn-start-call"
-                onClick={demarrerEnregistrement}
-                disabled={isProcessing}
-                style={{
-                  flex: 1,
-                  minWidth: "160px",
-                  padding: "16px 20px",
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  cursor: isProcessing ? "not-allowed" : "pointer",
-                  background: isProcessing ? "linear-gradient(135deg, #475569, #334155)" : "linear-gradient(135deg, #3b82f6, #2563eb)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "14px",
-                  opacity: isProcessing ? 0.5 : 1,
-                }}
-              >
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={16} /> {time > 0 ? "Réessayer" : "Démarrer"}</span>
-              </button>
-              <button
-                className="btn-ghost"
-                onClick={changerSujet}
-                disabled={isProcessing || !task3Loaded || task3Subjects.length === 0}
-                style={{ flex: "0 0 auto", padding: "16px 20px", fontSize: "15px" }}
-              >
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>{!task3Loaded ? <IconHourglass size={14} /> : <IconRefresh size={14} />} {!task3Loaded ? "Chargement..." : "Changer de sujet"}</span>
-              </button>
-            </div>
-
             {/* Transcript discret */}
             {!!transcription && (
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
@@ -1100,6 +1068,43 @@ function App() {
                 </button>
               </div>
             )}
+
+            {/* CTA — thumb zone */}
+            <div className="t3-precall-cta">
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <button
+                  className="btn-start-call"
+                  onClick={demarrerEnregistrement}
+                  disabled={isProcessing}
+                  touchAction="manipulation"
+                  style={{
+                    flex: 1,
+                    minWidth: "160px",
+                    padding: "16px 20px",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    cursor: isProcessing ? "not-allowed" : "pointer",
+                    background: isProcessing ? "linear-gradient(135deg, #475569, #334155)" : "linear-gradient(135deg, #3b82f6, #2563eb)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "14px",
+                    opacity: isProcessing ? 0.5 : 1,
+                    touchAction: "manipulation",
+                  }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={16} /> {time > 0 ? "Réessayer" : "Démarrer"}</span>
+                </button>
+                <button
+                  className="btn-ghost"
+                  onClick={changerSujet}
+                  disabled={isProcessing || !task3Loaded || task3Subjects.length === 0}
+                  style={{ flex: "0 0 auto", padding: "16px 20px", fontSize: "15px" }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>{!task3Loaded ? <IconHourglass size={14} /> : <IconRefresh size={14} />} {!task3Loaded ? "Chargement..." : "Changer de sujet"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
           </div>
         )}
 
