@@ -657,6 +657,7 @@ function RealtimeCall({ onBack = null }) {
   const currentSpeechChunksRef = useRef([]);
   const speechBlobsRef = useRef([]);
   const callTimerRef = useRef(null);
+  const callTimeAtHangUpRef = useRef(0);
 
   const [callTime, setCallTime] = useState(0);
   const [debriefState, setDebriefState] = useState("idle");
