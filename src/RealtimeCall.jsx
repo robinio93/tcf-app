@@ -26,6 +26,19 @@ function buildOpening(roleDesc) {
   );
 }
 
+function buildOpeningWithPhrases(roleDesc, phrases) {
+  if (!Array.isArray(phrases) || phrases.length === 0) return buildOpening(roleDesc);
+  const list = phrases.map((p) => `"${p}"`).join(", ");
+  return (
+    `Tu joues ${roleDesc}. ` +
+    `REGLE STRICTE — PREMIERE PHRASE OBLIGATOIRE : Tu DOIS commencer la conversation par EXACTEMENT l'une de ces phrases, choisie au hasard parmi la liste suivante : ${list}. ` +
+    `Tu n'as PAS le droit d'improviser, de reformuler ou de modifier cette premiere phrase. C'est l'introduction obligatoire qui pose le contexte. ` +
+    `Apres cette premiere phrase, tu attends que le candidat parle et expose sa demande. ` +
+    `Tu ne poses JAMAIS de question sur l'organisation personnelle du candidat. ` +
+    `Tu joues uniquement le role defini dans le scenario. Reponds uniquement en francais naturel.`
+  );
+}
+
 // Converts a Supabase scenario_references row to the shape the UI expects.
 function adaptScenario(row) {
   const roleMatch = row.role_examinateur.match(
@@ -47,7 +60,7 @@ function adaptScenario(row) {
       ? row.points_a_penser.join(". ") + "."
       : row.consigne,
     prompts: Array.isArray(row.points_a_penser) ? row.points_a_penser : [],
-    openingInstruction: buildOpening(roleDesc),
+    openingInstruction: buildOpeningWithPhrases(roleDesc, row.phrases_accueil_examinateur),
     followupInstruction:
       `Tu joues ${roleDesc}. Scenario : ${row.consigne} ` +
       pointsCles +
