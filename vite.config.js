@@ -293,6 +293,20 @@ REGLES STRICTES DE NOTATION SELON LA DUREE :
 - Moins de 90 secondes de parole candidat → total plafonne a 9/20
 - Une seule phrase du candidat dans toute la transcription → niveau maximum A2, jamais B1
 \${durationBlock}
+REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
+1. SEVERITE : Tu as tendance a surnoter de 3 a 5 points. Corrige ce biais en etant plus strict.
+2. BAREME STRICT par critere :
+   - 0/4 = absence totale ou incomprehensible
+   - 1/4 = tres basique, phrases minimales, vocabulaire tres limite, beaucoup d'erreurs
+   - 2/4 = correct mais simple, quelques erreurs, vocabulaire suffisant sans plus
+   - 3/4 = bon niveau, phrases complexes, peu d'erreurs, vocabulaire varie
+   - 4/4 = excellent, quasi-natif, aucune erreur significative
+3. TOTAUX DE REFERENCE STRICTS : A1=0-4 | A2=5-7 | B1=8-11 | B2=12-15 | C1=16-18 | C2=19-20
+4. "C'est combien ?" au lieu de "Pourriez-vous me preciser le tarif ?" = lexique 1/4, pas 2/4.
+5. 2-3 points cles couverts sur 6 = realisation 1/4, pas 2/4.
+6. Phrases courtes sans connecteurs = grammaire 1/4, pas 2/4.
+7. Compare TOUJOURS avec les exemples de reference A2/B1/B2. Si le dialogue ressemble au A2, le total doit etre proche de 5/20.
+
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.
 - Commence par identifier le critere le PLUS FAIBLE et le critere le PLUS FORT du candidat. Note-les en premier, puis note les 3 autres entre ces deux extremes.
@@ -541,6 +555,20 @@ IMPORTANT :
 - STYLE DU FEEDBACK : Tutoie le candidat (tu, ton, tes) dans tous les champs texte — resume_niveau, points_positifs, points_ameliorer, correction_simple, version_amelioree, conseil_prioritaire, objectif_prochain_essai.
 - CITATIONS OBLIGATOIRES : Dans chaque point_ameliorer, cite les mots ou phrases EXACTES de la transcription entre guillemets, puis donne la version corrigee directement. Ex : Tu as dit 'je veux un voiture' -> dis plutot 'je voudrais une voiture'.
 - CONSEIL PRIORITAIRE ULTRA CONCRET : Pas de generalites ('enrichir le vocabulaire'). Donne des formules de remplacement specifiques. Ex : 'Au lieu de repeter je voudrais, utilise : j'aurais aime, je souhaiterais, serait-il possible de...'
+
+REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
+1. SEVERITE : Tu as tendance a surnoter de 3 a 5 points. Corrige ce biais en etant plus strict.
+2. BAREME STRICT par critere :
+   - 0/4 = absence totale ou incomprehensible
+   - 1/4 = tres basique, phrases minimales, vocabulaire tres limite, beaucoup d'erreurs
+   - 2/4 = correct mais simple, quelques erreurs, vocabulaire suffisant sans plus
+   - 3/4 = bon niveau, phrases complexes, peu d'erreurs, vocabulaire varie
+   - 4/4 = excellent, quasi-natif, aucune erreur significative
+3. TOTAUX DE REFERENCE STRICTS : A1=0-4 | A2=5-7 | B1=8-11 | B2=12-15 | C1=16-18 | C2=19-20
+4. Un monologue sans connecteurs varies = coherence 1/4, pas 2/4.
+5. Un seul argument developpe = realisation 1/4, pas 2/4.
+6. Pas de nuance, pas de conclusion = coherence 1/4.
+7. Compare TOUJOURS avec les exemples de reference A2/B1/B2. Si le monologue ressemble au A2, le total doit etre proche de 5/20.
 
 REGLE ABSOLUE DE NOTATION :
 - Tu DOIS avoir au moins 2 notes DIFFERENTES parmi les 5 criteres. Si tu mets la meme note partout, ton evaluation est REJETEE.

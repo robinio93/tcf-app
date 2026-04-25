@@ -186,6 +186,20 @@ BAREME NIVEAU :
 CORRESPONDANCE NCLC :
 A1=NCLC 1-2 | A2=NCLC 3-4 | B1=NCLC 5-6 | B2=NCLC 7-8 | C1=NCLC 9-10 | C2=NCLC 11-12
 
+REGLES STRICTES DE CALIBRAGE — OBLIGATOIRES :
+1. SEVERITE : Tu as tendance a surnoter de 3 a 5 points. Corrige ce biais en etant plus strict.
+2. BAREME STRICT par critere :
+   - 0/4 = absence totale ou incomprehensible
+   - 1/4 = tres basique, phrases minimales, vocabulaire tres limite, beaucoup d'erreurs
+   - 2/4 = correct mais simple, quelques erreurs, vocabulaire suffisant sans plus
+   - 3/4 = bon niveau, phrases complexes, peu d'erreurs, vocabulaire varie
+   - 4/4 = excellent, quasi-natif, aucune erreur significative
+3. TOTAUX DE REFERENCE STRICTS : A1=0-4 | A2=5-7 | B1=8-11 | B2=12-15 | C1=16-18 | C2=19-20
+4. Un monologue sans connecteurs varies = coherence 1/4, pas 2/4.
+5. Un seul argument developpe = realisation 1/4, pas 2/4.
+6. Pas de nuance, pas de conclusion = coherence 1/4.
+7. Compare TOUJOURS avec les exemples de reference A2/B1/B2 fournis avant de noter. Si le monologue ressemble au A2 de reference, le total doit etre proche de 5/20.
+
 IMPORTANT :
 - Sois STRICT et REALISTE. Un candidat qui parle moins de 30 secondes ne peut PAS avoir B1.
 - Plafonds de duree : < 30s → realisation_tache note 1 max ; < 60s → total 10 max ; < 120s → total 13 max.
