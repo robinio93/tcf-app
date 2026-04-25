@@ -1561,7 +1561,7 @@ function RealtimeCall({ onBack = null }) {
               VUE PRÉ-APPEL (idle / error)
           ══════════════════════════════════════════ */}
           {!isConnecting && !isConnected && processingStep === null && (
-            <>
+            <div className="t2-precall">
               {/* Top bar */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
                 {typeof onBack === "function" ? (
@@ -1792,31 +1792,33 @@ function RealtimeCall({ onBack = null }) {
               </div>
 
               {/* CTA principal — bloqué tant qu'aucun rythme choisi */}
-              <button
-                className="btn-start-call"
-                onClick={startCall}
-                disabled={!speechRate}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "18px 24px",
-                  fontSize: "17px",
-                  fontWeight: 700,
-                  letterSpacing: "-0.01em",
-                  cursor: speechRate ? "pointer" : "not-allowed",
-                  background: speechRate
-                    ? "linear-gradient(135deg, #3b82f6, #2563eb)"
-                    : "rgba(59,130,246,0.15)",
-                  color: speechRate ? "white" : "rgba(255,255,255,0.3)",
-                  border: "none",
-                  borderRadius: "16px",
-                  marginTop: "12px",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={18} /> Commencer l'appel</span>
-              </button>
-            </>
+              <div className="t2-precall-cta">
+                <button
+                  className="btn-start-call"
+                  onClick={startCall}
+                  disabled={!speechRate}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "18px 24px",
+                    fontSize: "17px",
+                    fontWeight: 700,
+                    letterSpacing: "-0.01em",
+                    cursor: speechRate ? "pointer" : "not-allowed",
+                    background: speechRate
+                      ? "linear-gradient(135deg, #3b82f6, #2563eb)"
+                      : "rgba(59,130,246,0.15)",
+                    color: speechRate ? "white" : "rgba(255,255,255,0.3)",
+                    border: "none",
+                    borderRadius: "16px",
+                    transition: "all 0.3s ease",
+                    touchAction: "manipulation",
+                  }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={18} /> Commencer l'appel</span>
+                </button>
+              </div>
+            </div>
           )}
 
           {/* ══════════════════════════════════════════

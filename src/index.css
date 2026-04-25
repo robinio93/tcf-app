@@ -363,6 +363,32 @@ body {
   }
 }
 
+/* ─── Tâche 2 — CTA thumb zone sur mobile ───────────────────── */
+.t2-precall {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1023px) {
+  .t2-precall {
+    min-height: calc(100svh - 200px);
+  }
+  .t2-precall-cta {
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .t2-precall-cta button {
+    width: 100%;
+    border-radius: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .t2-precall-cta {
+    margin-top: 8px;
+  }
+}
+
 /* ─── Task cards grid — responsive ──────────────────────────── */
 /* Desktop ≥ 1024px : 3 colonnes égales (défaut inline) */
 /* Tablet 768-1023px : 2 colonnes, Tâche 3 centrée seule */
