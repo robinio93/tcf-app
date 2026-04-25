@@ -1108,7 +1108,7 @@ function RealtimeCall({ onBack = null }) {
         throw new Error("Ce navigateur ne prend pas en charge l'acces micro.");
       }
 
-      const silenceDuration = speechRate === "fast" ? 1000 : 1800;
+      const silenceDuration = speechRate === "fast" ? 1200 : 1800;
       const clientSecret = await createRealtimeSession(silenceDuration);
 
       if (connectAttemptRef.current !== attemptId) {
