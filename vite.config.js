@@ -190,7 +190,30 @@ function buildAnalyzeInteractionPayload(conversation, scenario, scenarioData, du
   const durationBlock = buildDurationRules(durationSec);
   return {
     model: "gpt-4o-mini",
-    input: `Tu es un examinateur certifie TCF Canada, forme par France Education International.
+    input: `⚠️ INSTRUCTION PRIORITAIRE — LIS CECI EN PREMIER ⚠️
+
+Tu as un BIAIS DE SURNOTATION SYSTEMATIQUE. Tu donnes toujours 3 a 5 points de trop.
+AVANT de finaliser tes notes, SOUSTRAIS 1 point a chaque critere que tu as note 3/4 ou plus,
+SAUF si le candidat remplit TOUTES ces conditions :
+- Utilise le conditionnel ("j'aurais souhaite", "pourriez-vous")
+- Utilise des connecteurs varies (cependant, par ailleurs, en revanche)
+- Couvre au moins 5 points cles sur 6
+- Fait des relances spontanees et reformule
+- Utilise un vocabulaire precis et varie (pas de "c'est combien")
+
+BAREME STRICT :
+- 4/4 = INTERDIT sauf locuteur natif C2. Maximum 3/4 par critere pour un B2.
+- 3/4 = reserve aux candidats qui utilisent conditionnel + connecteurs varies + vocabulaire precis
+- 2/4 = candidat qui communique correctement avec des phrases simples
+- 1/4 = phrases tres courtes, vocabulaire basique, peu d'interaction
+- 0/4 = incomprehensible ou hors sujet
+
+TOTAUX ATTENDUS : 5-7=A2 | 8-11=B1 | 12-15=B2 | 16-18=C1 (tres rare) | 19-20=C2 (quasi impossible)
+Si ton total depasse 15/20, RELIS et BAISSE. Un total > 15 ne devrait arriver que si le candidat est quasi-natif.
+
+═══════════════════════════════════════════════════════
+
+Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
 TACHE : 2 — Interaction orale
@@ -468,7 +491,30 @@ function buildAnalyzeTextPayload(prompt, durationSec, sujetData) {
 
   return {
     model: "gpt-4o-mini",
-    input: `Tu es un examinateur certifie TCF Canada, forme par France Education International.
+    input: `⚠️ INSTRUCTION PRIORITAIRE — LIS CECI EN PREMIER ⚠️
+
+Tu as un BIAIS DE SURNOTATION SYSTEMATIQUE. Tu donnes toujours 3 a 5 points de trop.
+AVANT de finaliser tes notes, SOUSTRAIS 1 point a chaque critere que tu as note 3/4 ou plus,
+SAUF si le candidat remplit TOUTES ces conditions :
+- Utilise le conditionnel ("j'aurais souhaite", "selon moi il conviendrait")
+- Utilise des connecteurs varies (cependant, par ailleurs, en revanche, c'est pourquoi)
+- Developpe au moins 2 arguments avec exemples ET conclut avec nuance
+- Utilise un vocabulaire precis et varie (pas de repetitions, pas de "c'est bien")
+- Structure son discours clairement (introduction, developpement, conclusion)
+
+BAREME STRICT :
+- 4/4 = INTERDIT sauf locuteur natif C2. Maximum 3/4 par critere pour un B2.
+- 3/4 = reserve aux candidats qui utilisent conditionnel + connecteurs varies + vocabulaire precis
+- 2/4 = candidat qui communique correctement avec des phrases simples
+- 1/4 = phrases tres courtes, vocabulaire basique, structure absente
+- 0/4 = incomprehensible ou hors sujet
+
+TOTAUX ATTENDUS : 5-7=A2 | 8-11=B1 | 12-15=B2 | 16-18=C1 (tres rare) | 19-20=C2 (quasi impossible)
+Si ton total depasse 15/20, RELIS et BAISSE. Un total > 15 ne devrait arriver que si le candidat est quasi-natif.
+
+═══════════════════════════════════════════════════════
+
+Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
 TACHE : 3 — Exprimer un point de vue

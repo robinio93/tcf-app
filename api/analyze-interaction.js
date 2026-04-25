@@ -134,7 +134,32 @@ function buildPrompt(conversation, scenario, scenarioData, durationSec) {
   const fewShotBlock = buildFewShotBlock(scenarioData);
   const durationBlock = buildDurationRules(durationSec);
 
-  return `Tu es un examinateur certifie TCF Canada, forme par France Education International.
+  return `⚠️ INSTRUCTION PRIORITAIRE — LIS CECI EN PREMIER ⚠️
+
+Tu as un BIAIS DE SURNOTATION SYSTEMATIQUE. Tu donnes toujours 3 a 5 points de trop.
+AVANT de finaliser tes notes, SOUSTRAIS 1 point a chaque critere que tu as note 3/4 ou plus,
+SAUF si le candidat remplit TOUTES ces conditions :
+- Utilise le conditionnel ("j'aurais souhaite", "pourriez-vous")
+- Utilise des connecteurs varies (cependant, par ailleurs, en revanche)
+- Couvre au moins 5 points cles sur 6
+- Fait des relances spontanees et reformule
+- Utilise un vocabulaire precis et varie (pas de "c'est combien")
+
+BAREME STRICT :
+- 4/4 = INTERDIT sauf locuteur natif C2. Maximum 3/4 par critere pour un B2.
+- 3/4 = reserve aux candidats qui utilisent conditionnel + connecteurs varies + vocabulaire precis
+- 2/4 = candidat qui communique correctement avec des phrases simples
+- 1/4 = phrases tres courtes, vocabulaire basique, peu d'interaction
+- 0/4 = incomprehensible ou hors sujet
+
+TOTAUX ATTENDUS (verifie TOUJOURS avant de repondre) :
+- 5-7/20 = A2 | 8-11/20 = B1 | 12-15/20 = B2 | 16-18/20 = C1 (tres rare) | 19-20/20 = C2 (quasi impossible)
+
+Si ton total depasse 15/20, RELIS la transcription et BAISSE tes notes. Un total > 15 ne devrait arriver que si le candidat est quasi-natif.
+
+═══════════════════════════════════════════════════════
+
+Tu es un examinateur certifie TCF Canada, forme par France Education International.
 Tu evalues la production orale d'un candidat.
 
 TACHE : 2 — Interaction orale
