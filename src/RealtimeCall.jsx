@@ -1570,7 +1570,10 @@ function RealtimeCall({ onBack = null }) {
                   </button>
                 ) : <div />}
                 <button className="btn-ghost" onClick={changeScenario} disabled={!scenariosLoaded || scenarios.length === 0}>
-                  {!scenariosLoaded ? "⏳ Chargement..." : "Nouveau sujet"}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    {!scenariosLoaded ? <IconHourglass size={14} /> : <IconRefresh size={14} />}
+                    {!scenariosLoaded ? "Chargement..." : "Changer de scénario"}
+                  </span>
                 </button>
               </div>
 

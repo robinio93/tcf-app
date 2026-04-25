@@ -1217,7 +1217,7 @@ function App() {
                 disabled={isProcessing || !task3Loaded || task3Subjects.length === 0}
                 style={{ flex: "0 0 auto", padding: "16px 20px", fontSize: "15px" }}
               >
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>{!task3Loaded ? <IconHourglass size={14} /> : <IconRefresh size={14} />} Nouveau sujet</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>{!task3Loaded ? <IconHourglass size={14} /> : <IconRefresh size={14} />} {!task3Loaded ? "Chargement..." : "Changer de sujet"}</span>
               </button>
             </div>
 
