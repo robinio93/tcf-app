@@ -12,6 +12,33 @@ function extractJson(rawText) {
   return text;
 }
 
+function correctUniformScores(parsed) {
+  if (!parsed || !parsed.scores) return parsed;
+  const keys = ["realisation_tache", "lexique", "grammaire", "fluidite", "interaction_coherence"];
+  const notes = keys.map((k) => parsed.scores[k]?.note).filter((n) => typeof n === "number");
+  if (notes.length !== 5) return parsed;
+  const allIdentical = notes.every((n) => n === notes[0]);
+  if (!allIdentical) return parsed;
+
+  // Notes uniformes — baisser le critère dont la justification est la plus courte
+  let targetKey = "lexique";
+  let minLength = parsed.scores.lexique?.justification?.length ?? 999999;
+  for (const k of keys) {
+    const len = parsed.scores[k]?.justification?.length ?? 999999;
+    if (len < minLength) { minLength = len; targetKey = k; }
+  }
+
+  const oldNote = parsed.scores[targetKey].note;
+  const newNote = Math.max(0, oldNote - 1);
+  parsed.scores[targetKey].note = newNote;
+  console.warn(`[analyze-text] Notes uniformes (${notes[0]}/4 partout). Correction : ${targetKey} ${oldNote} → ${newNote}`);
+
+  if (parsed.scores.fluidite_prononciation && targetKey === "fluidite") {
+    parsed.scores.fluidite_prononciation.note = newNote;
+  }
+  return parsed;
+}
+
 function totalToCecrlNclc(total) {
   if (total < 4)   return { cecrl: "A1",    nclc: 2  };
   if (total <= 5)  return { cecrl: "A2",    nclc: 4  };
@@ -43,7 +70,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         max_output_tokens: 3500,
         temperature: 0.2,
         input: buildPrompt(prompt, durationSec, sujetData),
@@ -73,7 +100,10 @@ export default async function handler(req, res) {
     // ── Validation et correction serveur ──────────────────────────
     let analysis = rawAnalysis;
     try {
-      const parsed = JSON.parse(rawAnalysis);
+      let parsed = JSON.parse(rawAnalysis);
+
+      // 0) Correction anti-uniformité (avant le clamping)
+      parsed = correctUniformScores(parsed);
 
       // a) Clamp notes /4 dans scores
       const scoreKeys = ["realisation_tache", "lexique", "grammaire", "fluidite", "interaction_coherence"];
