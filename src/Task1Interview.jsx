@@ -9,9 +9,10 @@ const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
 
 const TASK1_MAX_TIME = 120;
+const TASK1_SOFT_END_TIME = 135; // conclusion naturelle tolérée jusqu'à 2:15
 const TASK1_MIN_TIME = 90;
-const TASK1_WARN_TIME = 90;
-const TASK1_DANGER_TIME = 105;
+const TASK1_WARN_TIME = 105;    // orange doux à 1:45
+const TASK1_DANGER_TIME = 150;  // rouge uniquement après 2:30 (très rare)
 
 const OPENING_INSTRUCTION =
   "Tu es un examinateur officiel du TCF Canada. Ouvre l'entretien par une salutation courte et chaleureuse, puis pose immediatement cette premiere question : 'Pouvez-vous vous presenter en quelques mots ?' Une seule question. Attends la reponse. Vouvoiement obligatoire. Parle lentement et clairement.";
@@ -120,6 +121,8 @@ function Task1Interview({ onBack = null }) {
   const [expandedScore, setExpandedScore] = useState(null);
   const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const loadingMsgTimerRef = useRef(null);
 
   const isConnecting = callState === "connecting";
   const isConnected = callState === "connected";
@@ -134,14 +137,16 @@ function Task1Interview({ onBack = null }) {
   function getCallTimerColor() {
     if (callTime >= TASK1_DANGER_TIME) return "#fb7185";
     if (callTime >= TASK1_WARN_TIME) return "#f59e0b";
+    if (callTime >= TASK1_MAX_TIME) return "#f59e0b";
     return "#7dd3fc";
   }
 
   function getCallTimerLabel() {
-    if (callTime >= TASK1_MAX_TIME) return "Temps écoulé";
-    const remaining = TASK1_MAX_TIME - callTime;
-    if (callTime >= TASK1_DANGER_TIME) return `⚠️ ${remaining}s restantes`;
-    if (callTime >= TASK1_WARN_TIME) return "⚠️ 30s restantes — minimum atteint ✓";
+    if (callTime >= TASK1_DANGER_TIME) return "Entretien très long — conclure";
+    if (callTime >= TASK1_SOFT_END_TIME) return "Bientôt terminé...";
+    if (callTime >= TASK1_MAX_TIME) return "L'examinateur va conclure...";
+    if (callTime >= TASK1_WARN_TIME) return "Bientôt terminé...";
+    if (callTime >= TASK1_MIN_TIME) return "Minimum atteint ✓";
     return "Minimum conseillé non atteint (1:30)";
   }
 
@@ -694,6 +699,24 @@ function Task1Interview({ onBack = null }) {
     }
   }, [processingStep]);
 
+  // Rotation des messages de chargement toutes les 2 secondes
+  useEffect(() => {
+    if (processingStep !== null) {
+      setLoadingMsgIndex(0);
+      loadingMsgTimerRef.current = setInterval(() => {
+        setLoadingMsgIndex((prev) => prev + 1);
+      }, 2000);
+    } else {
+      if (loadingMsgTimerRef.current) {
+        clearInterval(loadingMsgTimerRef.current);
+        loadingMsgTimerRef.current = null;
+      }
+    }
+    return () => {
+      if (loadingMsgTimerRef.current) clearInterval(loadingMsgTimerRef.current);
+    };
+  }, [processingStep]);
+
   useEffect(() => {
     if (debriefState === "done" && debriefSectionRef.current) {
       setTimeout(() => {
@@ -769,60 +792,57 @@ function Task1Interview({ onBack = null }) {
           }}
         >
           {/* ══ VUE TRAITEMENT POST-APPEL ══ */}
-          {!isConnecting && !isConnected && processingStep !== null && (
-            <div ref={processingSectionRef} style={{ textAlign: "center", padding: "36px 16px" }}>
-              <div style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
-                ⏳ Traitement de votre entretien...
+          {!isConnecting && !isConnected && processingStep !== null && (() => {
+            const msgPools = {
+              transcribing: [
+                "📝 Transcription en cours...",
+                "🎙️ Conversion de votre voix en texte...",
+                "📋 On note tout ce que vous avez dit...",
+              ],
+              analyzing: [
+                "🍁 Chargement du sirop d'érable...",
+                "🦫 Le castor analyse votre français...",
+                "🏒 Notre correcteur consulte le barème FEI...",
+                "📚 Comparaison avec les descripteurs CECRL...",
+                "🇨🇦 Évaluation rigoureuse en cours...",
+                "✍️ Rédaction de tes axes prioritaires...",
+                "💡 Préparation de tes conseils personnalisés...",
+                "🎯 Calcul de ton NCLC officiel...",
+                "📊 Mise en forme de ton plan d'action...",
+              ],
+            };
+            const pool = msgPools[processingStep] || msgPools.analyzing;
+            const currentMsg = pool[loadingMsgIndex % pool.length];
+            return (
+              <div ref={processingSectionRef} style={{ textAlign: "center", padding: "36px 16px" }}>
+                <div style={{ fontSize: "32px", marginBottom: "12px", animation: "spin-slow 3s linear infinite", display: "inline-block" }}>
+                  🍁
+                </div>
+                <div style={{ fontSize: "clamp(18px, 4vw, 24px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
+                  Traitement de votre entretien...
+                </div>
+                <div style={{ fontSize: "14px", color: "#10b981", marginBottom: "32px", minHeight: "22px", transition: "opacity 0.3s ease" }}>
+                  {currentMsg}
+                </div>
+                <div style={{ maxWidth: "300px", marginInline: "auto", textAlign: "left" }}>
+                  {[
+                    { label: "Transcription du dialogue", done: processingStep === "analyzing", active: processingStep === "transcribing" },
+                    { label: "Évaluation de votre performance", done: false, active: processingStep === "analyzing" },
+                    { label: "Génération du feedback personnalisé", done: false, active: processingStep === "analyzing" },
+                  ].map(({ label, done, active }, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "14px", padding: "11px 0", borderBottom: i < 2 ? "1px solid rgba(148,163,184,0.08)" : "none", opacity: active || done ? 1 : 0.28, transition: "opacity 0.4s ease" }}>
+                      <span style={{ width: "24px", flexShrink: 0, display: "inline-flex", justifyContent: "center", color: done ? "#4ade80" : active ? "#93c5fd" : "#334155" }}>
+                        {done ? <IconCheck size={18} /> : active ? <IconHourglass size={18} /> : <span style={{ opacity: 0.3 }}>○</span>}
+                      </span>
+                      <span style={{ fontSize: "14px", fontWeight: active ? 700 : 400, color: done ? "#4ade80" : active ? "#f1f5f9" : "#64748b", transition: "color 0.3s ease" }}>
+                        {label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ fontSize: "14px", color: "#475569", marginBottom: "36px" }}>
-                Cela prend généralement 5 à 10 secondes
-              </div>
-              <div style={{ maxWidth: "300px", marginInline: "auto", textAlign: "left" }}>
-                {[
-                  {
-                    label: "Transcription du dialogue",
-                    done: processingStep === "analyzing",
-                    active: processingStep === "transcribing",
-                  },
-                  {
-                    label: "Évaluation de votre performance",
-                    done: false,
-                    active: processingStep === "analyzing",
-                  },
-                  {
-                    label: "Génération du feedback personnalisé",
-                    done: false,
-                    active: processingStep === "analyzing",
-                  },
-                ].map(({ label, done, active }, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "14px",
-                      padding: "11px 0",
-                      borderBottom: i < 2 ? "1px solid rgba(148,163,184,0.08)" : "none",
-                      opacity: active || done ? 1 : 0.28,
-                      transition: "opacity 0.4s ease",
-                    }}
-                  >
-                    <span style={{ width: "24px", flexShrink: 0, display: "inline-flex", justifyContent: "center", color: done ? "#4ade80" : active ? "#93c5fd" : "#334155" }}>
-                      {done ? <IconCheck size={18} /> : active ? <IconHourglass size={18} /> : <span style={{ opacity: 0.3 }}>○</span>}
-                    </span>
-                    <span style={{
-                      fontSize: "14px",
-                      fontWeight: active ? 700 : 400,
-                      color: done ? "#4ade80" : active ? "#f1f5f9" : "#64748b",
-                      transition: "color 0.3s ease",
-                    }}>
-                      {label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ══ VUE PRÉ-APPEL ══ */}
           {!isConnecting && !isConnected && processingStep === null && (
