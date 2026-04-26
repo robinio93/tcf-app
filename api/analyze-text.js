@@ -12,6 +12,18 @@ function extractJson(rawText) {
   return text;
 }
 
+function totalToCecrlNclc(total) {
+  if (total < 4)   return { cecrl: "A1",    nclc: 2  };
+  if (total <= 5)  return { cecrl: "A2",    nclc: 4  };
+  if (total === 6) return { cecrl: "B1",    nclc: 5  };
+  if (total <= 9)  return { cecrl: "B1",    nclc: 6  };
+  if (total <= 11) return { cecrl: "B2",    nclc: 7  };
+  if (total <= 13) return { cecrl: "B2",    nclc: 8  };
+  if (total <= 15) return { cecrl: "C1",    nclc: 9  };
+  if (total <= 17) return { cecrl: "C1-C2", nclc: 10 };
+  return             { cecrl: "C2",    nclc: 11 };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -33,6 +45,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         max_output_tokens: 3500,
+        temperature: 0.2,
         input: buildPrompt(prompt, durationSec, sujetData),
       }),
     });
@@ -55,7 +68,61 @@ export default async function handler(req, res) {
       data.output?.map((item) => item.content?.map((c) => c.text || "").join("")).join("") ||
       "";
 
-    const analysis = extractJson(rawText);
+    const rawAnalysis = extractJson(rawText);
+
+    // ── Validation et correction serveur ──────────────────────────
+    let analysis = rawAnalysis;
+    try {
+      const parsed = JSON.parse(rawAnalysis);
+
+      // a) Clamp notes /4 dans scores
+      const scoreKeys = ["realisation_tache", "lexique", "grammaire", "fluidite", "interaction_coherence"];
+      scoreKeys.forEach((key) => {
+        if (parsed.scores?.[key] && parsed.scores[key].note !== null && parsed.scores[key].note !== undefined) {
+          parsed.scores[key].note = Math.min(4, Math.max(0, Math.round(Number(parsed.scores[key].note))));
+        }
+      });
+
+      // Clamp notes /4 dans scores_8_officiels (sauf prononciation_aisance)
+      ["linguistique", "pragmatique", "sociolinguistique"].forEach((dim) => {
+        if (!parsed.scores_8_officiels?.[dim]) return;
+        Object.keys(parsed.scores_8_officiels[dim]).forEach((sub) => {
+          const entry = parsed.scores_8_officiels[dim][sub];
+          if (entry && !entry.a_venir && entry.note !== null && entry.note !== undefined) {
+            entry.note = Math.min(4, Math.max(0, Math.round(Number(entry.note))));
+          }
+        });
+      });
+
+      // b) Recalculer total côté serveur (ne jamais faire confiance au total GPT)
+      const originalTotal = parsed.total;
+      parsed.total = scoreKeys.reduce((sum, k) => sum + (parsed.scores?.[k]?.note || 0), 0);
+
+      // c) Forcer CECRL/NCLC selon barème officiel FEI
+      const originalCecrl = parsed.niveau_cecrl;
+      const { cecrl, nclc } = totalToCecrlNclc(parsed.total);
+      parsed.niveau_cecrl = cecrl;
+      parsed.niveau_nclc = nclc;
+      parsed.seuil_entree_express_atteint = nclc >= 7;
+
+      // d) Mettre à jour l'alias rétro-compat fluidite_prononciation
+      if (parsed.scores?.fluidite_prononciation && parsed.scores?.fluidite) {
+        parsed.scores.fluidite_prononciation.note = parsed.scores.fluidite.note;
+      }
+
+      // e) Warnings si corrections appliquées
+      if (originalTotal !== parsed.total) {
+        console.warn("[analyze-text] GPT total corrigé :", originalTotal, "→", parsed.total);
+      }
+      if (originalCecrl !== parsed.niveau_cecrl) {
+        console.warn("[analyze-text] GPT CECRL corrigé :", originalCecrl, "→", parsed.niveau_cecrl);
+      }
+
+      analysis = JSON.stringify(parsed);
+    } catch {
+      // Si parsing échoue, on renvoie tel quel — le front gère gracieusement
+    }
+    // ─────────────────────────────────────────────────────────────
 
     return res.status(200).json({ analysis });
   } catch (error) {
@@ -332,5 +399,16 @@ FORMAT JSON — Reponds UNIQUEMENT en JSON valide, sans markdown, sans backticks
   "objectif_prochain_essai": ""
 }
 
-IMPORTANT : dans "scores", le champ "fluidite_prononciation" doit avoir la MEME valeur que "fluidite" (alias pour compatibilite avec l'affichage actuel).`.trim();
+IMPORTANT : dans "scores", le champ "fluidite_prononciation" doit avoir la MEME valeur que "fluidite" (alias pour compatibilite avec l'affichage actuel).
+
+⚠️ CONTRAINTE ABSOLUE — RESPECT DU FORMAT (1re verification) :
+- CHAQUE "note" dans "scores" doit etre un ENTIER entre 0 et 4 INCLUS. JAMAIS de note > 4 ou < 0.
+- CHAQUE "note" dans "scores_8_officiels" doit etre un ENTIER entre 0 et 4 INCLUS, OU null pour "prononciation_aisance".
+- Le champ "total" doit etre STRICTEMENT EGAL a la somme des 5 notes de "scores" : realisation_tache + lexique + grammaire + fluidite + interaction_coherence.
+- Avant de renvoyer ta reponse, VERIFIE TOI-MEME que la somme des 5 notes = "total". Si ce n'est pas le cas, corrige.
+
+⚠️ CONTRAINTE ABSOLUE — VERIFICATION FINALE (2e et derniere verif avant de repondre) :
+- Somme scores[realisation_tache + lexique + grammaire + fluidite + interaction_coherence] = total ? OUI → valide. NON → corrige avant de repondre.
+- Toutes les notes de "scores" sont entre 0 et 4 ? OUI → valide. NON → clamp et corrige.
+- Toutes les notes de "scores_8_officiels" (sauf prononciation_aisance) sont entre 0 et 4 ? OUI → valide. NON → clamp et corrige.`.trim();
 }
