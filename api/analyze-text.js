@@ -295,52 +295,51 @@ TRANSCRIPTION DU MONOLOGUE :
 ${transcript}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DESCRIPTEURS PRECIS PAR NOTE — REGLES STRICTES DE NOTATION
+GRILLE D'EVALUATION OFFICIELLE — DESCRIPTEURS PAR CRITERE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Avant de noter, tu dois associer la performance du candidat a un descripteur precis. Tu ne peux PAS hesiter et mettre 2/4 par defaut. Choisis le descripteur qui correspond le mieux, meme si c'est inconfortable.
+Cette grille reproduit fidelement les descripteurs utilises par les correcteurs France Education International. Pour chaque critere, identifie le descripteur qui correspond le mieux a la performance observee et attribue la note associee.
 
 CRITERE 1 — REALISATION DE LA TACHE
 0/4 : la tache n'est pas accomplie. Le candidat ne donne pas de point de vue, ou repond hors sujet.
-1/4 : le candidat exprime un point de vue mais sans aucun argument developpe. Discours tres court (moins de 60 secondes ou moins de 80 mots utiles).
-2/4 : le candidat exprime un point de vue avec 1-2 arguments tres simples, sans exemples concrets. Le developpement reste superficiel.
+1/4 : le candidat exprime un point de vue sans argument developpe. Discours tres court (moins de 60 secondes ou moins de 80 mots utiles).
+2/4 : le candidat exprime un point de vue avec 1-2 arguments simples, sans exemples concrets. Le developpement reste superficiel.
 3/4 : le candidat developpe son point de vue avec 2-3 arguments structures et au moins 1 exemple concret. Discours nuance.
-4/4 : le candidat argumente de maniere convaincante avec plusieurs exemples concrets, contre-arguments, et nuances. Reserve aux performances exceptionnelles.
+4/4 : le candidat argumente de maniere convaincante avec plusieurs exemples concrets, contre-arguments, et nuances. Performance correspondant au niveau C2.
 
 CRITERE 2 — LEXIQUE
 0/4 : vocabulaire indigent, le candidat cherche ses mots en permanence.
-1/4 : vocabulaire ultra-basique. Repetitions visibles ("c'est bien", "c'est pas bien", "il y a"). Moins de 40 mots distincts. Aucun synonyme employe.
-2/4 : vocabulaire correct pour decrire des choses simples mais limite. Quelques synonymes. Pas de mots precis ou rares. Lexique de la vie courante uniquement.
-3/4 : vocabulaire varie et precis. Plusieurs synonymes employes. Quelques mots precis lies au sujet. Vocabulaire qui depasse la vie courante.
-4/4 : vocabulaire riche, precis, avec expressions idiomatiques, mots rares maitrises, nuances lexicales. Reserve C1-C2.
+1/4 : vocabulaire ultra-basique. Repetitions visibles ("c'est bien", "il y a"). Moins de 40 mots distincts. Aucun synonyme employe.
+2/4 : vocabulaire correct pour decrire des choses simples mais limite. Quelques synonymes. Lexique de la vie courante uniquement.
+3/4 : vocabulaire varie et precis. Plusieurs synonymes employes. Quelques mots precis lies au sujet.
+4/4 : vocabulaire riche, precis, avec expressions idiomatiques et nuances lexicales. Performance correspondant aux niveaux C1-C2.
 
 CRITERE 3 — GRAMMAIRE
 0/4 : grammaire incomprehensible, sens des phrases perdu.
 1/4 : phrases ultra-simples uniquement (sujet-verbe-complement). Erreurs frequentes sur les accords et les temps. Pas de subordonnees.
-2/4 : phrases simples globalement correctes. Present + passe compose maitrises. Quelques subordonnees avec "que" ou "parce que". Erreurs occasionnelles.
+2/4 : phrases simples globalement correctes. Present et passe compose maitrises. Quelques subordonnees avec "que" ou "parce que". Erreurs occasionnelles.
 3/4 : structures variees (subjonctif, conditionnel, passif). Subordonnees multiples. Erreurs rares.
-4/4 : grammaire quasi-parfaite, structures complexes maîtrisees (concordance des temps, modes), aucune erreur. Reserve C1-C2.
+4/4 : grammaire quasi-parfaite, structures complexes maîtrisees. Performance correspondant aux niveaux C1-C2.
 
 CRITERE 4 — FLUIDITE DU DISCOURS
 0/4 : le candidat s'arrete en permanence, le discours est incomprehensible.
-1/4 : nombreuses pauses et hesitations ("euh...", "je sais pas comment dire..."). Faux departs frequents. Debit tres lent.
-2/4 : debit acceptable mais hesitations regulieres. Quelques faux departs. Discours par a-coups.
-3/4 : debit fluide avec quelques pauses naturelles. Hesitations rares. Discours globalement continu.
-4/4 : debit fluide naturel, comme un locuteur natif. Aucune hesitation. Reserve C1-C2.
+1/4 : nombreuses pauses et hesitations. Faux departs frequents. Debit tres lent.
+2/4 : debit acceptable mais hesitations regulieres. Quelques faux departs.
+3/4 : debit fluide avec quelques pauses naturelles. Hesitations rares.
+4/4 : debit fluide naturel. Aucune hesitation. Performance correspondant aux niveaux C1-C2.
 
-CRITERE 5 — INTERACTION ET COHERENCE (pour T3 = structuration et cohesion du monologue)
+CRITERE 5 — COHERENCE ET STRUCTURATION
 0/4 : aucune structure, idees jetees en vrac.
-1/4 : pas d'introduction, pas de conclusion claire. Aucun connecteur logique au-dela de "et", "mais", "aussi". Idees pas liees entre elles.
-2/4 : structure visible (intro / corps / conclusion implicite). Connecteurs basiques uniquement ("d'abord", "ensuite", "en conclusion"). Pas plus de 3 connecteurs differents.
-3/4 : structure claire avec introduction et conclusion explicites. 4-6 connecteurs varies ("d'une part / d'autre part", "en revanche", "par ailleurs", "neanmoins"). Idees bien enchainees.
-4/4 : structure parfaitement maîtrisee, transitions fluides, connecteurs sophistiques ("force est de constater", "en definitive", "il convient de souligner"). Reserve C1-C2.
+1/4 : pas d'introduction, pas de conclusion claire. Connecteurs limites a "et", "mais", "aussi". Idees peu liees entre elles.
+2/4 : structure visible (intro / corps / conclusion implicite). Connecteurs basiques uniquement ("d'abord", "ensuite"). Pas plus de 3 connecteurs differents.
+3/4 : structure claire avec introduction et conclusion explicites. 4-6 connecteurs varies ("d'une part / d'autre part", "en revanche", "neanmoins"). Idees bien enchainees.
+4/4 : structure parfaitement maîtrisee, transitions fluides, connecteurs sophistiques. Performance correspondant aux niveaux C1-C2.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-EXEMPLES DE NOTATIONS REALISTES — VERIFIES MATHEMATIQUEMENT
+EXEMPLES DE CALIBRAGE — REPARTITIONS TYPIQUES PAR NIVEAU
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Format : R = Realisation, L = Lexique, G = Grammaire, F = Fluidite, C = Coherence
-Total = R + L + G + F + C (sur 20)
+Voici comment les correcteurs FEI repartissent generalement les notes selon le profil du candidat. Format : R = Realisation, L = Lexique, G = Grammaire, F = Fluidite, C = Coherence.
 
 Profil candidat                | R | L | G | F | C | Total | CECRL  | NCLC
 A2 limite                      | 1 | 1 | 1 | 1 | 1 |   5   | A2     |  4
@@ -348,7 +347,7 @@ A2 solide / B1 limite          | 2 | 1 | 1 | 1 | 1 |   6   | B1     |  5
 B1 faible                      | 2 | 1 | 2 | 1 | 1 |   7   | B1     |  6
 B1 moyen                       | 2 | 1 | 2 | 2 | 1 |   8   | B1     |  6
 B1 solide                      | 2 | 2 | 2 | 2 | 1 |   9   | B1     |  6
-B2 limite (seuil Entree Exp.)  | 2 | 2 | 2 | 2 | 2 |  10   | B2     |  7
+B2 limite                      | 2 | 2 | 2 | 2 | 2 |  10   | B2     |  7
 B2 moyen                       | 3 | 2 | 2 | 2 | 2 |  11   | B2     |  7
 B2 solide                      | 3 | 2 | 3 | 2 | 2 |  12   | B2     |  8
 B2 fort                        | 3 | 3 | 3 | 2 | 2 |  13   | B2     |  8
@@ -356,62 +355,41 @@ C1 limite                      | 3 | 3 | 3 | 3 | 2 |  14   | C1     |  9
 C1                             | 3 | 3 | 3 | 3 | 3 |  15   | C1     |  9
 C1-C2                          | 4 | 3 | 3 | 3 | 3 |  16   | C1-C2  |  10
 
-OBSERVATION CRITIQUE :
-Pour qu'un candidat soit en B1, il faut OBLIGATOIREMENT au moins UN critere a 1/4.
-Si tous les criteres sont a 2/4 ou plus (= 10/20 minimum), le candidat est AUTOMATIQUEMENT en B2.
-Donc si tu identifies un B1, tu DOIS trouver au moins un critere faible et le noter 1/4.
+Observation importante : un candidat de niveau B1 a generalement au moins un critere note 1/4. Si tu identifies un B1, verifie qu'au moins un de ses criteres correspond bien au descripteur 1/4 de cette grille.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGLE ANTI-UNIFORMITE — ABSOLUE
+PRINCIPE DE DIFFERENCIATION DES NOTES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Tu ne peux JAMAIS donner la meme note aux 5 criteres. Au moins UN critere doit etre different des autres. Cette regle est ABSOLUE, sans exception.
+Dans la pratique des correcteurs FEI, il est tres rare qu'un candidat obtienne la meme note sur les 5 criteres. Chaque candidat a generalement des points forts et des points faibles distincts.
 
-Exemple INTERDIT : 2/2/2/2/2 ou 3/3/3/3/3 (uniforme = sur-notation par defaut).
-Exemple AUTORISE : 2/2/2/2/1 ou 3/3/3/2/3 (au moins un critere differe).
+Lors de ton evaluation, examine chaque critere separement en te demandant : le lexique du candidat est-il vraiment au meme niveau que sa grammaire ? Sa fluidite est-elle vraiment au meme niveau que sa coherence ? La reponse est presque toujours non.
 
-Avant de donner ta reponse, VERIFIE que tes 5 notes ne sont pas toutes identiques. Si elles le sont, identifie le critere le plus faible et baisse-le d'un point.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REGLES PLAFOND — SIGNAUX D'ALARME ANTI-SUR-NOTATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Si tu detectes ces signaux dans le discours du candidat, applique les plafonds suivants. Ces plafonds sont absolus, ils ne peuvent pas etre depasses meme si d'autres aspects sont bons.
-
-SIGNAUX SUR LE LEXIQUE :
-- Le candidat repete 3+ fois la meme structure simple ("c'est bien... c'est pas bien", "il y a... il y a...") → lexique PLAFONNE a 1/4
-- Le candidat utilise uniquement des mots de la vie courante, aucun terme precis ou rare → lexique PLAFONNE a 2/4
-
-SIGNAUX SUR LA GRAMMAIRE :
-- Le candidat utilise UNIQUEMENT des phrases simples (sujet-verbe-complement), aucune subordonnee → grammaire PLAFONNEE a 1/4
-- Le candidat utilise uniquement le present et le passe compose, aucun temps complexe (subjonctif, conditionnel, plus-que-parfait) → grammaire PLAFONNEE a 2/4
-
-SIGNAUX SUR LA COHERENCE :
-- Le candidat utilise UNIQUEMENT "et", "mais", "aussi" comme connecteurs → coherence PLAFONNEE a 1/4
-- Le candidat utilise des connecteurs basiques uniquement ("d'abord", "ensuite", "en conclusion"), pas plus de 3 connecteurs differents → coherence PLAFONNEE a 2/4
-
-SIGNAUX SUR LA FLUIDITE :
-- Presence de "euh...", "ben...", "comment dire..." (3+ occurrences) → fluidite PLAFONNEE a 2/4
-- Discours tres court (moins de 100 mots utiles) → fluidite PLAFONNEE a 2/4
-
-SIGNAUX SUR LA REALISATION :
-- Aucun exemple concret cite → realisation PLAFONNEE a 2/4
-- Discours de moins de 60 secondes ou moins de 80 mots utiles → realisation PLAFONNEE a 1/4
-
-REGLES SUR LE 3/4 — IMPORTANT :
-Le 3/4 n'est JAMAIS une note par defaut. Pour donner 3/4 a un critere, tu dois pouvoir citer une PREUVE PRECISE dans le texte (un mot precis, une structure complexe, un connecteur sophistique que le candidat a EFFECTIVEMENT utilise).
-Si tu ne peux pas citer la preuve, tu ne meritas pas le 3/4. Tu mets 2/4.
-
-Exemple :
-- Tu veux mettre 3/4 en lexique ? Cite 2-3 mots precis ou rares utilises par le candidat. Sinon, c'est 2/4.
-- Tu veux mettre 3/4 en grammaire ? Cite une subordonnee complexe ou un temps compose utilise. Sinon, c'est 2/4.
-- Tu veux mettre 3/4 en coherence ? Cite 4+ connecteurs varies utilises. Sinon, c'est 2/4.
+Si apres reflexion tes 5 notes sont identiques, identifie le critere le plus faible et abaisse-le d'un point pour refleter la differenciation reelle.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DERNIER GARDE-FOU
+REPERES POUR UNE EVALUATION JUSTE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Si tu hesites entre 2 notes, prends TOUJOURS la note la plus basse. Le biais que tu dois corriger est celui de la sur-notation. Mieux vaut sous-noter legerement que sur-noter (c'est ce que les vrais examinateurs FEI font).
+Les correcteurs FEI suivent quelques principes de bon sens pour rester fideles au niveau reel du candidat :
+
+Sur le lexique :
+- Si le candidat repete 3 fois ou plus la meme structure simple ("c'est bien... c'est pas bien", "il y a... il y a..."), le descripteur 1/4 s'applique generalement.
+- Si le candidat utilise uniquement des mots de la vie courante, le descripteur 2/4 s'applique le plus souvent.
+
+Sur la grammaire :
+- Si le candidat n'utilise que des phrases simples (sujet-verbe-complement) sans subordonnees, le descripteur 1/4 s'applique generalement.
+- Si seuls le present et le passe compose sont utilises (sans subjonctif, conditionnel, plus-que-parfait), le descripteur 2/4 s'applique le plus souvent.
+
+Sur la coherence :
+- Si les seuls connecteurs employes sont "et", "mais", "aussi", le descripteur 1/4 s'applique generalement.
+- Si le candidat utilise des connecteurs basiques ("d'abord", "ensuite", "en conclusion") sans en varier davantage, le descripteur 2/4 s'applique le plus souvent.
+
+A propos de la note 3/4 :
+Le 3/4 correspond a un niveau B2 fort a C1. Pour l'attribuer a un critere, identifie une preuve concrete dans le discours du candidat : un mot precis, une structure complexe, un connecteur sophistique effectivement utilise. Si tu ne peux pas citer cette preuve dans ta justification, le descripteur 2/4 est probablement plus juste.
+
+En cas de doute entre deux notes :
+Si tu hesites entre deux notes, applique le principe de prudence des correcteurs FEI : choisis la note inferieure. Cette pratique evite la sur-evaluation et reflete la rigueur reelle de l'examen officiel.
 
 ═══════════════════════════════════════════════════════
 METHODE D'EVALUATION EN 3 ETAPES
