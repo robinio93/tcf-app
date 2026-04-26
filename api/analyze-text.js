@@ -264,6 +264,69 @@ ${contextBlock}${fewShotBlock}
 TRANSCRIPTION DU MONOLOGUE :
 ${transcript}
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESCRIPTEURS PRECIS PAR NOTE — REGLES STRICTES DE NOTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Avant de noter, tu dois associer la performance du candidat a un descripteur precis. Tu ne peux PAS hesiter et mettre 2/4 par defaut. Choisis le descripteur qui correspond le mieux, meme si c'est inconfortable.
+
+CRITERE 1 — REALISATION DE LA TACHE
+0/4 : la tache n'est pas accomplie. Le candidat ne donne pas de point de vue, ou repond hors sujet.
+1/4 : le candidat exprime un point de vue mais sans aucun argument developpe. Discours tres court (moins de 60 secondes ou moins de 80 mots utiles).
+2/4 : le candidat exprime un point de vue avec 1-2 arguments tres simples, sans exemples concrets. Le developpement reste superficiel.
+3/4 : le candidat developpe son point de vue avec 2-3 arguments structures et au moins 1 exemple concret. Discours nuance.
+4/4 : le candidat argumente de maniere convaincante avec plusieurs exemples concrets, contre-arguments, et nuances. Reserve aux performances exceptionnelles.
+
+CRITERE 2 — LEXIQUE
+0/4 : vocabulaire indigent, le candidat cherche ses mots en permanence.
+1/4 : vocabulaire ultra-basique. Repetitions visibles ("c'est bien", "c'est pas bien", "il y a"). Moins de 40 mots distincts. Aucun synonyme employe.
+2/4 : vocabulaire correct pour decrire des choses simples mais limite. Quelques synonymes. Pas de mots precis ou rares. Lexique de la vie courante uniquement.
+3/4 : vocabulaire varie et precis. Plusieurs synonymes employes. Quelques mots precis lies au sujet. Vocabulaire qui depasse la vie courante.
+4/4 : vocabulaire riche, precis, avec expressions idiomatiques, mots rares maitrises, nuances lexicales. Reserve C1-C2.
+
+CRITERE 3 — GRAMMAIRE
+0/4 : grammaire incomprehensible, sens des phrases perdu.
+1/4 : phrases ultra-simples uniquement (sujet-verbe-complement). Erreurs frequentes sur les accords et les temps. Pas de subordonnees.
+2/4 : phrases simples globalement correctes. Present + passe compose maitrises. Quelques subordonnees avec "que" ou "parce que". Erreurs occasionnelles.
+3/4 : structures variees (subjonctif, conditionnel, passif). Subordonnees multiples. Erreurs rares.
+4/4 : grammaire quasi-parfaite, structures complexes maîtrisees (concordance des temps, modes), aucune erreur. Reserve C1-C2.
+
+CRITERE 4 — FLUIDITE DU DISCOURS
+0/4 : le candidat s'arrete en permanence, le discours est incomprehensible.
+1/4 : nombreuses pauses et hesitations ("euh...", "je sais pas comment dire..."). Faux departs frequents. Debit tres lent.
+2/4 : debit acceptable mais hesitations regulieres. Quelques faux departs. Discours par a-coups.
+3/4 : debit fluide avec quelques pauses naturelles. Hesitations rares. Discours globalement continu.
+4/4 : debit fluide naturel, comme un locuteur natif. Aucune hesitation. Reserve C1-C2.
+
+CRITERE 5 — INTERACTION ET COHERENCE (pour T3 = structuration et cohesion du monologue)
+0/4 : aucune structure, idees jetees en vrac.
+1/4 : pas d'introduction, pas de conclusion claire. Aucun connecteur logique au-dela de "et", "mais", "aussi". Idees pas liees entre elles.
+2/4 : structure visible (intro / corps / conclusion implicite). Connecteurs basiques uniquement ("d'abord", "ensuite", "en conclusion"). Pas plus de 3 connecteurs differents.
+3/4 : structure claire avec introduction et conclusion explicites. 4-6 connecteurs varies ("d'une part / d'autre part", "en revanche", "par ailleurs", "neanmoins"). Idees bien enchainees.
+4/4 : structure parfaitement maîtrisee, transitions fluides, connecteurs sophistiques ("force est de constater", "en definitive", "il convient de souligner"). Reserve C1-C2.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLE ANTI-UNIFORMITE — TRES IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tu ne peux PAS donner la meme note a tous les 5 criteres. Au moins 2 criteres doivent avoir une note differente du critere median.
+
+Si tu hesites a mettre 2/4 partout : POSE-TOI LA QUESTION sur chaque critere separement. Le lexique est-il vraiment au meme niveau que la grammaire ? La fluidite est-elle vraiment au meme niveau que la coherence ? La reponse est presque toujours NON.
+
+EXEMPLES DE NOTATIONS REALISTES (a imiter) :
+- Monologue A2 limite (5/20) : Realisation 2 / Lexique 1 / Grammaire 1 / Fluidite 1 / Coherence 0
+- Monologue B1 faible (8/20) : Realisation 2 / Lexique 1 / Grammaire 2 / Fluidite 2 / Coherence 1
+- Monologue B1 solide (10/20) : Realisation 2 / Lexique 2 / Grammaire 2 / Fluidite 2 / Coherence 2 (rare, a n'utiliser que si vraiment equilibre)
+- Monologue B2 limite (12/20) : Realisation 3 / Lexique 2 / Grammaire 3 / Fluidite 2 / Coherence 2
+- Monologue B2 solide (13/20) : Realisation 3 / Lexique 3 / Grammaire 3 / Fluidite 2 / Coherence 2
+- Monologue C1 (15/20) : Realisation 3 / Lexique 3 / Grammaire 3 / Fluidite 3 / Coherence 3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DERNIER GARDE-FOU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si tu hesites entre 2 notes, prends TOUJOURS la note la plus basse. Le biais que tu dois corriger est celui de la sur-notation. Mieux vaut sous-noter legerement que sur-noter (c'est ce que les vrais examinateurs FEI font).
+
 ═══════════════════════════════════════════════════════
 METHODE D'EVALUATION EN 3 ETAPES
 ═══════════════════════════════════════════════════════
