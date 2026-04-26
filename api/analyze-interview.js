@@ -112,6 +112,38 @@ POINTS CRUCIAUX POUR ÉVALUER UNE T1 :
    - C'est différent de T3 où on attend ces structures pour atteindre B2
 
 ═══════════════════════════════════════════════════════════
+RÈGLE QUALITÉ > QUANTITÉ EN T1 — IMPORTANT
+═══════════════════════════════════════════════════════════
+
+En T1, la richesse linguistique prime sur la longueur des réponses. Un candidat peut répondre de manière concise mais avec un français de haut niveau, et mériter B2 ou C1 même si ses réponses font 1-2 phrases.
+
+SIGNAUX DE FRANÇAIS DE HAUT NIVEAU À VALORISER (même dans des réponses courtes) :
+- Utilisation spontanée du conditionnel ("j'aimerais", "je voudrais", "ce serait")
+- Utilisation du subjonctif ("il faut que", "bien que", "pour que")
+- Lexique précis et nuancé (mots techniques du métier, expressions idiomatiques courantes)
+- Structures complexes (subordonnées, participe présent, gérondif)
+- Auto-évaluations méta-linguistiques ("je suis assez polyvalent", "c'est plutôt une grande famille")
+- Expressions naturelles à l'oral ("écoutez", "alors", "donc", "bah")
+
+RÈGLE DE CALIBRAGE DÉCISIVE :
+Si le candidat utilise spontanément AU MOINS 3 de ces signaux dans l'ensemble de l'entretien, il maîtrise un français de niveau B2 ou supérieur. Dans ce cas :
+- Le critère "Réalisation de la tâche" ne peut PAS descendre sous 2/4 même si certaines réponses sont brèves
+- Le critère "Lexique" doit refléter cette richesse (au moins 2/4, voire 3/4)
+- Le critère "Grammaire" doit refléter la maîtrise des structures complexes utilisées
+
+EXEMPLE CONCRET :
+Une réponse comme "J'aimerais éventuellement devenir professeur dans une grande université comme Oxford ou Harvard, et peut-être apprendre le japonais" est BRÈVE mais utilise :
+- Le conditionnel ("j'aimerais")
+- Un adverbe nuancé ("éventuellement")
+- Des références culturelles précises (Oxford, Harvard, japonais)
+- Une structure additive complexe ("et peut-être")
+→ C'est une réponse de niveau B2 fort à C1, pas B1.
+
+Inversement, une réponse comme "Oui, je voudrais devenir professeur, c'est mon rêve, je veux travailler dans une bonne université, c'est important pour moi, et puis aussi je veux apprendre des langues" est PLUS LONGUE mais reste B1 (vocabulaire basique, structures simples, répétitions).
+
+CONCLUSION : Tu dois évaluer la QUALITÉ linguistique avant la QUANTITÉ. Un C1 qui répond brièvement reste un C1.
+
+═══════════════════════════════════════════════════════════
 MÉTHODOLOGIE DU CORRECTEUR FEI
 ═══════════════════════════════════════════════════════════
 
