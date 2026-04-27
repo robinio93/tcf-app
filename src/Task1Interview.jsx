@@ -123,6 +123,13 @@ function Task1Interview({ onBack = null }) {
   const [showTranscript, setShowTranscript] = useState(false);
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const loadingMsgTimerRef = useRef(null);
+  const tempsDebutRef = useRef(null);
+  const phaseEntretienRef = useRef('idle');
+
+  const [phaseEntretien, setPhaseEntretien] = useState('idle');
+  const [candidatEnTrainDeParler, setCandidatEnTrainDeParler] = useState(false);
+  const [examinateurEnTrainDeParler, setExaminateurEnTrainDeParler] = useState(false);
+  const [dernierMomentParole, setDernierMomentParole] = useState(null);
 
   const isConnecting = callState === "connecting";
   const isConnected = callState === "connected";
@@ -135,6 +142,7 @@ function Task1Interview({ onBack = null }) {
   }
 
   function getCallTimerColor() {
+    if (phaseEntretien === 'cloture' || phaseEntretien === 'finition') return "#60a5fa";
     if (callTime >= TASK1_DANGER_TIME) return "#fb7185";
     if (callTime >= TASK1_WARN_TIME) return "#f59e0b";
     if (callTime >= TASK1_MAX_TIME) return "#f59e0b";
@@ -142,6 +150,8 @@ function Task1Interview({ onBack = null }) {
   }
 
   function getCallTimerLabel() {
+    if (phaseEntretien === 'cloture') return "Conclusion en cours...";
+    if (phaseEntretien === 'finition') return "L'entretien va se terminer...";
     if (callTime >= TASK1_DANGER_TIME) return "Entretien très long — conclure";
     if (callTime >= TASK1_SOFT_END_TIME) return "Bientôt terminé...";
     if (callTime >= TASK1_MAX_TIME) return "L'examinateur va conclure...";
@@ -220,6 +230,12 @@ function Task1Interview({ onBack = null }) {
     }
     speechRecorderRef.current = null;
     currentSpeechChunksRef.current = [];
+    phaseEntretienRef.current = 'idle';
+    setPhaseEntretien('idle');
+    setCandidatEnTrainDeParler(false);
+    setExaminateurEnTrainDeParler(false);
+    setDernierMomentParole(null);
+    tempsDebutRef.current = null;
   }
 
   function closeRealtimeResources() {
@@ -249,6 +265,15 @@ function Task1Interview({ onBack = null }) {
     const channel = dataChannelRef.current;
     if (!channel || channel.readyState !== "open") return;
     channel.send(JSON.stringify(event));
+  }
+
+  function declencherPhraseCloture() {
+    sendClientEvent({
+      type: 'response.create',
+      response: {
+        instructions: "Conclus maintenant l'entretien naturellement. Dis quelque chose comme : \"Très bien, je vous remercie pour cet entretien. Bonne continuation à vous.\" Ne pose plus de question. Sois bref et chaleureux.",
+      },
+    });
   }
 
   function setMicrophoneEnabled(enabled) {
@@ -286,6 +311,8 @@ function Task1Interview({ onBack = null }) {
     }
 
     if (event.type === "input_audio_buffer.speech_started") {
+      setCandidatEnTrainDeParler(true);
+      setDernierMomentParole(Date.now());
       if (!localStreamRef.current?.getAudioTracks()?.some((track) => track.enabled)) return;
       if (pendingExaminerTurnRef.current || Date.now() < examinerAudioLockUntilRef.current) return;
 
@@ -314,6 +341,8 @@ function Task1Interview({ onBack = null }) {
     }
 
     if (event.type === "input_audio_buffer.speech_stopped") {
+      setCandidatEnTrainDeParler(false);
+      setDernierMomentParole(Date.now());
       const rec = speechRecorderRef.current;
       if (rec && rec.state !== "inactive") {
         const slot = speechBlobsRef.current.length;
@@ -329,14 +358,25 @@ function Task1Interview({ onBack = null }) {
       }
 
       setMicrophoneEnabled(false);
-      markExaminerPending("Vous avez termine. L'examinateur enchaine avec sa question.");
-      sendClientEvent({
-        type: "response.create",
-        response: {
-          output_modalities: ["audio"],
-          instructions: FOLLOWUP_INSTRUCTION,
-        },
-      });
+      if (phaseEntretienRef.current === 'actif') {
+        markExaminerPending("Vous avez termine. L'examinateur enchaine avec sa question.");
+        sendClientEvent({
+          type: "response.create",
+          response: {
+            output_modalities: ["audio"],
+            instructions: FOLLOWUP_INSTRUCTION,
+          },
+        });
+      } else {
+        phaseEntretienRef.current = 'cloture';
+        setPhaseEntretien('cloture');
+        sendClientEvent({
+          type: 'response.create',
+          response: {
+            instructions: "Conclus maintenant l'entretien naturellement. Dis quelque chose comme : \"Très bien, je vous remercie pour cet entretien. Bonne continuation à vous.\" Ne pose plus de question. Sois bref et chaleureux.",
+          },
+        });
+      }
       return;
     }
 
@@ -347,6 +387,8 @@ function Task1Interview({ onBack = null }) {
     }
 
     if (event.type === "output_audio_buffer.started") {
+      setExaminateurEnTrainDeParler(true);
+      setDernierMomentParole(Date.now());
       activeResponseRef.current = true;
       pendingExaminerTurnRef.current = false;
       clearReturnToUserTimer();
@@ -376,18 +418,26 @@ function Task1Interview({ onBack = null }) {
     }
 
     if (event.type === "output_audio_buffer.stopped") {
+      setExaminateurEnTrainDeParler(false);
+      setDernierMomentParole(Date.now());
       activeResponseRef.current = false;
       pendingExaminerTurnRef.current = false;
-      setMicrophoneEnabled(true);
-      scheduleUserTurn("Votre tour. Repondez a la question.");
+      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'finition') {
+        setMicrophoneEnabled(true);
+        scheduleUserTurn("Votre tour. Repondez a la question.");
+      }
       return;
     }
 
     if (event.type === "output_audio_buffer.cleared") {
+      setExaminateurEnTrainDeParler(false);
+      setDernierMomentParole(Date.now());
       activeResponseRef.current = false;
       pendingExaminerTurnRef.current = false;
-      setMicrophoneEnabled(true);
-      scheduleUserTurn("Votre tour. Repondez a la question.");
+      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'finition') {
+        setMicrophoneEnabled(true);
+        scheduleUserTurn("Votre tour. Repondez a la question.");
+      }
       return;
     }
 
@@ -473,17 +523,11 @@ function Task1Interview({ onBack = null }) {
           setCallState("connected");
           setStatusNote("Connexion active. L'entretien est en cours.");
 
-          stopCallTimer();
           setCallTime(0);
-          let elapsed = 0;
-          callTimerRef.current = setInterval(() => {
-            elapsed += 1;
-            setCallTime(elapsed);
-            if (elapsed >= TASK1_MAX_TIME) {
-              stopCallTimer();
-              hangUp();
-            }
-          }, 1000);
+          tempsDebutRef.current = Date.now();
+          phaseEntretienRef.current = 'actif';
+          setPhaseEntretien('actif');
+          setDernierMomentParole(Date.now());
           return;
         }
 
@@ -558,7 +602,9 @@ function Task1Interview({ onBack = null }) {
   async function hangUp() {
     connectAttemptRef.current += 1;
     const hangUpAttemptId = connectAttemptRef.current;
-    callTimeAtHangUpRef.current = callTime;
+    callTimeAtHangUpRef.current = tempsDebutRef.current
+      ? Math.floor((Date.now() - tempsDebutRef.current) / 1000)
+      : callTime;
 
     setProcessingStep("transcribing");
     setCallState("idle");
@@ -732,6 +778,62 @@ function Task1Interview({ onBack = null }) {
       closeRealtimeResources();
     };
   }, []);
+
+  useEffect(() => {
+    if (phaseEntretien === 'idle' || phaseEntretien === 'termine') return;
+    if (!tempsDebutRef.current) return;
+
+    const intervalle = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - tempsDebutRef.current) / 1000);
+
+      if (phaseEntretien === 'actif') {
+        setCallTime(Math.min(elapsed, TASK1_MAX_TIME));
+        if (elapsed >= TASK1_MAX_TIME) {
+          phaseEntretienRef.current = 'finition';
+          setPhaseEntretien('finition');
+          setCallTime(TASK1_MAX_TIME);
+        }
+        return;
+      }
+
+      if (phaseEntretien === 'finition') {
+        const personneNeparle = !candidatEnTrainDeParler && !examinateurEnTrainDeParler;
+        const silenceDepuis = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
+        if (personneNeparle && silenceDepuis >= 2) {
+          phaseEntretienRef.current = 'cloture';
+          setPhaseEntretien('cloture');
+          declencherPhraseCloture();
+          return;
+        }
+        if (elapsed >= 150) {
+          phaseEntretienRef.current = 'cloture';
+          setPhaseEntretien('cloture');
+          declencherPhraseCloture();
+          return;
+        }
+      }
+
+      if (phaseEntretien === 'cloture') {
+        if (!examinateurEnTrainDeParler) {
+          const silenceApresCloture = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
+          if (silenceApresCloture >= 1) {
+            phaseEntretienRef.current = 'termine';
+            setPhaseEntretien('termine');
+            hangUp();
+            return;
+          }
+        }
+        if (elapsed >= 180) {
+          phaseEntretienRef.current = 'termine';
+          setPhaseEntretien('termine');
+          hangUp();
+          return;
+        }
+      }
+    }, 200);
+
+    return () => clearInterval(intervalle);
+  }, [phaseEntretien, candidatEnTrainDeParler, examinateurEnTrainDeParler, dernierMomentParole]);
 
   const card = {
     borderRadius: "20px",
