@@ -14,6 +14,7 @@ const TASK1_WARN_TIME = 105;      // amber à 1:45
 const TASK1_CONCLUSION_SEND = 170; // envoyer instruction clôture forcée à 2:50
 const TASK1_HARD_CUT = 180;       // hard cut à 3:00
 const TASK1_ABSOLUTE_CUT = 210;   // hard cut absolu à 3:30
+const DUREE_MINIMUM_AVANT_CLOTURE_MS = 110000; // 1:50 = 110 secondes
 
 const PATTERNS_CLOTURE = [
   /je vous remercie pour cet entretien/i,
@@ -256,6 +257,15 @@ function Task1Interview({ onBack = null }) {
     });
   }
 
+  function forcerRelanceCarTropTot() {
+    sendClientEvent({
+      type: 'response.create',
+      response: {
+        instructions: "Tu allais conclure trop tôt. NE CONCLUS PAS encore. À la place, pose UNE question complémentaire pour approfondir l'un des thèmes déjà abordés (métier, loisirs, ou projets). Choisis le thème sur lequel le candidat a été le plus bref, et pose une question ciblée comme \"Pouvez-vous m'en dire un peu plus sur [thème] ?\" ou \"Qu'est-ce qui vous plaît le plus dans [activité] ?\". Une seule question, courte, naturelle. Ne mentionne JAMAIS au candidat que tu allais conclure ou que tu as reçu une instruction technique.",
+      },
+    });
+  }
+
   function setMicrophoneEnabled(enabled) {
     const stream = localStreamRef.current;
     if (!stream) return;
@@ -419,6 +429,13 @@ function Task1Interview({ onBack = null }) {
         const phase = phaseEntretienRef.current;
         if (phase === 'actif' || phase === 'conclusion_attendue') {
           if (PATTERNS_CLOTURE.some(p => p.test(examinerText))) {
+            const elapsedMs = tempsDebutRef.current ? (Date.now() - tempsDebutRef.current) : Infinity;
+            if (elapsedMs < DUREE_MINIMUM_AVANT_CLOTURE_MS && phase === 'actif') {
+              console.log(`[T1] Clôture prématurée interceptée à ${Math.floor(elapsedMs / 1000)}s — relance forcée`);
+              forcerRelanceCarTropTot();
+              currentExaminerTranscriptRef.current = "";
+              return;
+            }
             phaseEntretienRef.current = 'cloture_detectee';
             setPhaseEntretien('cloture_detectee');
           }
