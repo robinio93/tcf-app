@@ -17,16 +17,21 @@ const TASK1_ABSOLUTE_CUT = 210;   // hard cut absolu à 3:30
 const DUREE_MINIMUM_AVANT_CLOTURE_MS = 110000; // 1:50 = 110 secondes
 
 const PATTERNS_CLOTURE = [
-  // Variante 1 : "Très bien, je vous remercie pour cet entretien. Bonne continuation à vous."
+  // Phrases de remerciement final
   /je vous remercie pour cet entretien/i,
-  // Variante 2 : "Parfait, c'est noté. Je vous souhaite bonne chance pour votre projet d'immigration. Au revoir."
-  /je vous souhaite bonne chance pour votre projet/i,
-  // Variante 3 : "Très bien, on va s'arrêter là. Merci pour cet entretien et bonne continuation."
-  /on va s'arrêter là/i,
   /merci pour cet entretien/i,
-  // Filet de sécurité — phrases de clôture évidentes
+  /merci beaucoup pour cet entretien/i,
+  // Phrases de souhaits de fin
+  /je vous souhaite bonne chance pour votre projet/i,
+  /je vous souhaite bonne chance/i,
+  // Phrases de fin explicite
+  /on va s'arrêter là/i,
+  /nous allons (en )?rester là/i,
   /entretien (est )?terminé/i,
   /nous (avons )?terminé/i,
+  // Au revoir final et formule variante 1
+  /au revoir.{0,40}$/i,
+  /bonne continuation à vous/i,
 ];
 
 
@@ -889,32 +894,21 @@ function Task1Interview({ onBack = null }) {
       if (phaseEntretien === 'cloture_detectee') {
         setCallTime(elapsed);
 
-        // Timeout absolu après détection de clôture : 5 secondes max
-        // Gère les cas où l'examinateur fait plusieurs bursts audio
-        // qui empêcheraient le silence 1.5s de s'accumuler
+        // FERMETURE NETTE — 500ms après détection, on ferme.
+        // Fidèle à l'examen TCF réel : l'examinateur conclut une fois, basta.
+        // Pas d'attente de silence (l'IA peut enchaîner d'autres phrases qu'on ignore).
         const tempsDepuisCloture = momentClotureDetecteeRef.current
           ? (Date.now() - momentClotureDetecteeRef.current) / 1000
           : 0;
-        if (tempsDepuisCloture >= 5) {
-          console.log(`[T1] Timeout absolu après détection clôture (${Math.floor(tempsDepuisCloture)}s) — fermeture forcée`);
+        if (tempsDepuisCloture >= 0.5) {
+          console.log(`[T1] Fermeture nette ${Math.floor(tempsDepuisCloture * 1000)}ms après détection clôture`);
           phaseEntretienRef.current = 'termine';
           setPhaseEntretien('termine');
           hangUp();
           return;
         }
 
-        // Comportement normal : ferme après 1.5s de silence
-        if (!examinateurEnTrainDeParler) {
-          const silence = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
-          if (silence >= 1.5) {
-            phaseEntretienRef.current = 'termine';
-            setPhaseEntretien('termine');
-            hangUp();
-            return;
-          }
-        }
-
-        // Hard cut absolu (filet ultime)
+        // Hard cut absolu (filet ultime si la ref momentClotureDetectee est null)
         if (elapsed >= TASK1_ABSOLUTE_CUT) {
           phaseEntretienRef.current = 'termine';
           setPhaseEntretien('termine');
