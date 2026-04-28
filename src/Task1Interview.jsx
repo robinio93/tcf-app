@@ -996,7 +996,7 @@ function Task1Interview({ onBack = null }) {
                 <div style={{
                   borderRadius: "14px", padding: "16px 18px",
                   background: "rgba(255,255,255,0.03)",
-                  border: `1px solid ${callTime >= TASK1_DANGER_TIME ? "rgba(248,113,113,0.22)" : callTime >= TASK1_WARN_TIME ? "rgba(245,158,11,0.22)" : "rgba(148,163,184,0.1)"}`,
+                  border: `1px solid ${callTime >= TASK1_WARN_TIME ? "rgba(245,158,11,0.22)" : "rgba(148,163,184,0.1)"}`,
                   marginBottom: "12px",
                 }}>
                   <span style={{ fontSize: "18px", fontWeight: 700, color: getCallTimerColor() }}>
