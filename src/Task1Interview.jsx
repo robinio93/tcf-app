@@ -1312,7 +1312,10 @@ function Task1Interview({ onBack = null }) {
                       </div>
                       {conversationTranscript.map((turn, index) => {
                         const prev = index > 0 ? conversationTranscript[index - 1] : null;
-                        const pauseSec = prev?.timestampSec != null && turn.timestampSec != null ? turn.timestampSec - prev.timestampSec : 0;
+                        const prevAnchor = prev?.role === "examiner" && prev.timestampEndSec != null
+                          ? prev.timestampEndSec
+                          : prev?.timestampSec ?? null;
+                        const pauseSec = prevAnchor != null && turn.timestampSec != null ? turn.timestampSec - prevAnchor : 0;
                         return (
                           <div key={index}>
                             {pauseSec >= 8 && (
