@@ -26,8 +26,6 @@ const PATTERNS_CLOTURE = [
   /entretien (est )?terminé/i,
 ];
 
-const OPENING_INSTRUCTION =
-  "Ouvre l'entretien par une salutation chaleureuse et pose ta premiere question selon tes instructions. Vouvoiement obligatoire.";
 
 function extractClientSecret(payload) {
   if (!payload || typeof payload !== "object") return "";
@@ -278,7 +276,6 @@ function Task1Interview({ onBack = null }) {
       type: "response.create",
       response: {
         output_modalities: ["audio"],
-        instructions: OPENING_INSTRUCTION,
       },
     });
   }
