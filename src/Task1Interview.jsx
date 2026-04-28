@@ -415,7 +415,8 @@ function Task1Interview({ onBack = null }) {
       if (rec && rec.state !== "inactive") {
         const slot = speechBlobsRef.current.length;
         speechBlobsRef.current.push(null);
-        conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot });
+        const tsCandidate = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
+        conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot, timestampSec: tsCandidate });
         rec.onstop = () => {
           const mime = rec.mimeType || "audio/webm";
           const blob = new Blob(currentSpeechChunksRef.current, { type: mime });
@@ -504,7 +505,8 @@ function Task1Interview({ onBack = null }) {
       activeResponseRef.current = false;
       const examinerText = currentExaminerTranscriptRef.current.trim();
       if (examinerText) {
-        conversationLogRef.current.push({ role: "examiner", text: examinerText });
+        const tsExaminer = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
+        conversationLogRef.current.push({ role: "examiner", text: examinerText, timestampSec: tsExaminer });
         const phase = phaseEntretienRef.current;
         if (phase === 'actif' || phase === 'conclusion_attendue') {
           if (PATTERNS_CLOTURE.some(p => p.test(examinerText))) {
@@ -681,7 +683,8 @@ function Task1Interview({ onBack = null }) {
       const rec = speechRecorderRef.current;
       const slot = speechBlobsRef.current.length;
       speechBlobsRef.current.push(null);
-      conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot });
+      const tsHangUp = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
+      conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot, timestampSec: tsHangUp });
       rec.onstop = () => {
         const mime = rec.mimeType || "audio/webm";
         const blob = new Blob(currentSpeechChunksRef.current, { type: mime });
@@ -1286,14 +1289,41 @@ function Task1Interview({ onBack = null }) {
                 borderRadius: "24px", border: "1px solid rgba(148,163,184,0.12)",
                 background: "rgba(15,23,42,0.72)", backdropFilter: "blur(12px)", padding: "28px",
               }}>
-                {conversationTranscript.map((turn, index) => (
-                  <div key={index} style={{ marginBottom: index < conversationTranscript.length - 1 ? "18px" : 0, lineHeight: 1.7 }}>
-                    <span style={{ fontWeight: 800, fontSize: "14px", color: turn.role === "candidate" ? "#86efac" : "#7dd3fc" }}>
-                      {turn.role === "candidate" ? "🎓 Candidat" : "🎙️ Examinateur"}{" "}:
-                    </span>
-                    <span style={{ color: "#e2e8f0", marginLeft: "8px" }}>{turn.text}</span>
-                  </div>
-                ))}
+                {(() => {
+                  const fmtTs = (sec) => { const m = Math.floor(sec / 60); const s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; };
+                  const last = conversationTranscript[conversationTranscript.length - 1];
+                  return (
+                    <>
+                      <div style={{ padding: "8px 12px", background: "rgba(99,102,241,0.08)", borderRadius: "8px", fontSize: "12px", color: "#a5b4fc", marginBottom: "16px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                        <span>⏱️ Durée : {last?.timestampSec != null ? fmtTs(last.timestampSec) : "—"}</span>
+                        <span>🎙️ Examinateur : {conversationTranscript.filter(e => e.role === "examiner").length} interventions</span>
+                        <span>🎓 Candidat : {conversationTranscript.filter(e => e.role === "candidate").length} réponses</span>
+                      </div>
+                      {conversationTranscript.map((turn, index) => {
+                        const prev = index > 0 ? conversationTranscript[index - 1] : null;
+                        const pauseSec = prev?.timestampSec != null && turn.timestampSec != null ? turn.timestampSec - prev.timestampSec : 0;
+                        return (
+                          <div key={index}>
+                            {pauseSec >= 8 && (
+                              <div style={{ margin: "8px 0", padding: "5px 12px", background: "rgba(245,158,11,0.1)", border: "1px dashed rgba(245,158,11,0.4)", borderRadius: "8px", fontSize: "12px", color: "#fbbf24", textAlign: "center", fontStyle: "italic" }}>
+                                ⏸️ Pause de {pauseSec}s
+                              </div>
+                            )}
+                            <div style={{ marginBottom: index < conversationTranscript.length - 1 ? "18px" : 0, lineHeight: 1.7 }}>
+                              <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#64748b", marginRight: "6px" }}>
+                                [{turn.timestampSec != null ? fmtTs(turn.timestampSec) : "?:??"}]
+                              </span>
+                              <span style={{ fontWeight: 800, fontSize: "14px", color: turn.role === "candidate" ? "#86efac" : "#7dd3fc" }}>
+                                {turn.role === "candidate" ? "🎓 Candidat" : "🎙️ Examinateur"}{" "}:
+                              </span>
+                              <span style={{ color: "#e2e8f0", marginLeft: "8px" }}>{turn.text}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>
