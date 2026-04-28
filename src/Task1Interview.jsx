@@ -971,6 +971,30 @@ function Task1Interview({ onBack = null }) {
                 </div>
               </div>
 
+              {/* Encart pédagogique gestion du temps */}
+              <div style={{
+                background: "rgba(245,158,11,0.08)",
+                border: "1px solid rgba(245,158,11,0.28)",
+                borderRadius: "12px",
+                padding: "14px 16px",
+                marginBottom: "12px",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "12px",
+              }}>
+                <span style={{ fontSize: "20px", flexShrink: 0, lineHeight: 1.4 }}>⏱️</span>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#fbbf24", marginBottom: "5px" }}>
+                    L'épreuve dure 2 minutes — apprends à occuper le temps
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#cbd5e1", lineHeight: 1.6 }}>
+                    À l'examen réel, l'entretien T1 est cadré à exactement 2 minutes. C'est à toi de gérer ton temps de parole.{" "}
+                    <strong style={{ color: "#e2e8f0" }}>Plus tu développes tes réponses (3-4 phrases riches par question), plus tu démontres ton niveau.</strong>{" "}
+                    Si tes réponses sont trop courtes, l'examinateur conclura plus vite — ce qui te coûtera des points.
+                  </div>
+                </div>
+              </div>
+
               {/* Conseils dépliables */}
               <button
                 className="btn-ghost"
