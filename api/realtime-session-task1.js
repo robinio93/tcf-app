@@ -325,13 +325,14 @@ function buildSessionPayload() {
           noise_reduction: {
             type: "far_field",
           },
-          // T1 = semantic_vad avec eagerness "low" : le modèle attend que le
-          // candidat ait sémantiquement fini sa phrase avant de répondre,
-          // tolère les pauses respiratoires longues et les hésitations
-          // (vs server_vad qui coupait après 1200ms de silence brut)
+          // T1 = server_vad avec silence_duration_ms fixe à 4000ms :
+          // timing prévisible (4 sec de silence = examinateur intervient),
+          // vs semantic_vad qui donnait des pauses imprévisibles (10-26 sec)
           turn_detection: {
-            type: "semantic_vad",
-            eagerness: "low",
+            type: "server_vad",
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 4000,
             create_response: false,
             interrupt_response: false,
           },
