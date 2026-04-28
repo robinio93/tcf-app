@@ -1327,6 +1327,104 @@ function Task1Interview({ onBack = null }) {
                           <span style={{ color: "#e2e8f0", marginLeft: "8px" }}>{turn.text}</span>
                         </div>
                       ))}
+
+                      {/* PANNEAU STATS AVANCÉES — debug interne et préparation Phase B */}
+                      {conversationTranscript.length > 0 && (
+                        <details style={{ marginTop: "16px", padding: "12px", background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "8px", fontSize: "13px" }}>
+                          <summary style={{ cursor: "pointer", fontWeight: 600, color: "#a5b4fc", userSelect: "none" }}>
+                            📊 Stats avancées (debug)
+                          </summary>
+                          <div style={{ marginTop: "12px", color: "#cbd5e1", display: "flex", flexDirection: "column", gap: "12px" }}>
+                            {(() => {
+                              const turns = conversationTranscript;
+                              const examinerTurns = turns.filter(t => t.role === "examiner");
+                              const candidateTurns = turns.filter(t => t.role === "candidate");
+                              const turnsWithDuration = turns.map((turn, i) => {
+                                const next = turns[i + 1];
+                                const duration = next ? (next.timestampSec - turn.timestampSec) :
+                                  (turn.timestampEndSec ? turn.timestampEndSec - turn.timestampSec : 0);
+                                return { ...turn, calculatedDuration: duration };
+                              });
+                              const pauses = turns.slice(1).map((turn, i) => {
+                                const prev = turns[i];
+                                const prevEnd = prev.timestampEndSec || prev.timestampSec;
+                                return { from_role: prev.role, to_role: turn.role, pause_sec: turn.timestampSec - prevEnd, position: i + 1 };
+                              });
+                              const anomalies = [];
+                              pauses.forEach(p => {
+                                if (p.pause_sec >= 8) anomalies.push({ type: "silence_long", severity: p.pause_sec >= 15 ? "warning" : "info", detail: `Pause ${p.pause_sec}s ${p.from_role}→${p.to_role} (tour ${p.position})` });
+                                if (p.pause_sec < 2 && p.from_role === "candidate") anomalies.push({ type: "coupure_potentielle", severity: "warning", detail: `Examinateur a réagi en ${p.pause_sec}s après le candidat (tour ${p.position}) — coupure ?` });
+                              });
+                              const totalDuration = turns.length > 0 ? (turns[turns.length - 1].timestampEndSec || turns[turns.length - 1].timestampSec) : 0;
+                              const candidateSpeakingTime = turnsWithDuration.filter(t => t.role === "candidate").reduce((s, t) => s + t.calculatedDuration, 0);
+                              const examinerSpeakingTime = turnsWithDuration.filter(t => t.role === "examiner").reduce((s, t) => s + t.calculatedDuration, 0);
+                              const candidateRatio = totalDuration > 0 ? Math.round((candidateSpeakingTime / totalDuration) * 100) : 0;
+                              const examinerRatio = totalDuration > 0 ? Math.round((examinerSpeakingTime / totalDuration) * 100) : 0;
+                              const pausesExamToCand = pauses.filter(p => p.from_role === "examiner" && p.to_role === "candidate");
+                              const pausesCandToExam = pauses.filter(p => p.from_role === "candidate" && p.to_role === "examiner");
+                              const avgExamToCand = pausesExamToCand.reduce((s, p) => s + p.pause_sec, 0) / Math.max(1, pausesExamToCand.length);
+                              const avgCandToExam = pausesCandToExam.reduce((s, p) => s + p.pause_sec, 0) / Math.max(1, pausesCandToExam.length);
+                              const maxPause = pauses.length > 0 ? Math.max(...pauses.map(p => p.pause_sec)) : 0;
+                              const sessionStatsForDB = {
+                                session_metadata: { duration_sec: totalDuration, turns_count: turns.length, examiner_turns: examinerTurns.length, candidate_turns: candidateTurns.length },
+                                speaking_time: { candidate_sec: candidateSpeakingTime, examiner_sec: examinerSpeakingTime, candidate_ratio_percent: candidateRatio, examiner_ratio_percent: examinerRatio },
+                                pauses: { avg_examiner_to_candidate_sec: Math.round(avgExamToCand * 10) / 10, avg_candidate_to_examiner_sec: Math.round(avgCandToExam * 10) / 10, longest_pause_sec: maxPause, all_pauses: pauses },
+                                anomalies,
+                                turns_detail: turnsWithDuration.map((t, i) => ({ order: i + 1, role: t.role, start_sec: t.timestampSec, end_sec: t.timestampEndSec || (t.timestampSec + t.calculatedDuration), duration_sec: t.calculatedDuration, text_preview: t.text ? t.text.substring(0, 80) + (t.text.length > 80 ? "..." : "") : "" })),
+                              };
+                              return (
+                                <>
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "6px" }}>📈 Vue d'ensemble</div>
+                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px", fontSize: "12px" }}>
+                                      <div>⏱️ Durée totale : <strong>{totalDuration}s</strong></div>
+                                      <div>🎤 Tours total : <strong>{turns.length}</strong></div>
+                                      <div>🎓 Candidat : <strong>{candidateSpeakingTime}s ({candidateRatio}%)</strong></div>
+                                      <div>🎙️ Examinateur : <strong>{examinerSpeakingTime}s ({examinerRatio}%)</strong></div>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "6px" }}>⏸️ Pauses moyennes</div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px" }}>
+                                      <div>Examinateur → Candidat : <strong>{avgExamToCand.toFixed(1)}s</strong></div>
+                                      <div>Candidat → Examinateur : <strong>{avgCandToExam.toFixed(1)}s</strong></div>
+                                      <div>Pause la plus longue : <strong>{maxPause}s</strong></div>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "6px" }}>🚨 Anomalies détectées ({anomalies.length})</div>
+                                    {anomalies.length === 0 ? (
+                                      <div style={{ fontSize: "12px", color: "#86efac" }}>✅ Aucune anomalie — session propre</div>
+                                    ) : (
+                                      <div style={{ fontSize: "12px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        {anomalies.map((a, i) => (
+                                          <div key={i} style={{ color: a.severity === "warning" ? "#fbbf24" : "#a5b4fc", padding: "4px 8px", background: "rgba(255,255,255,0.03)", borderRadius: "4px" }}>
+                                            [{a.severity}] {a.detail}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "6px" }}>📋 Détail des tours</div>
+                                    <div style={{ fontSize: "11px", fontFamily: "monospace", background: "rgba(0,0,0,0.2)", padding: "8px", borderRadius: "4px" }}>
+                                      {turnsWithDuration.map((t, i) => (
+                                        <div key={i}>[{i + 1}] {t.role === "examiner" ? "🎙️" : "🎓"} {t.timestampSec}s → durée ~{t.calculatedDuration}s</div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <details style={{ fontSize: "11px" }}>
+                                    <summary style={{ cursor: "pointer", color: "#94a3b8" }}>🗄️ Données prêtes pour Phase B (Supabase)</summary>
+                                    <pre style={{ marginTop: "8px", padding: "8px", background: "rgba(0,0,0,0.3)", borderRadius: "4px", color: "#cbd5e1", fontSize: "10px", overflowX: "auto", maxHeight: "300px", overflowY: "auto" }}>
+                                      {JSON.stringify(sessionStatsForDB, null, 2)}
+                                    </pre>
+                                  </details>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </details>
+                      )}
                     </>
                   );
                 })()}
