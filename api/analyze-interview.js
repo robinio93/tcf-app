@@ -106,6 +106,31 @@ SI LE CANDIDAT EST DÉTECTÉ COMME NATIF OU QUASI-NATIF :
 → Note de LEXIQUE = minimum 2/4, voire 3/4 si le vocabulaire utilisé est riche sur au moins une réponse
 → Note de INTERACTION_SPONTANEITE = minimum 2/4, voire 3/4 si le registre est respecté
 
+PLAFONDS POUR NATIF SOUS-DÉVELOPPÉ — RÈGLE CRITIQUE
+
+Si le candidat est détecté natif/quasi-natif MAIS qu'il présente l'un de ces signaux d'absence d'effort :
+
+Signal 1 — Plusieurs réponses extrêmement courtes
+Le candidat donne 3 réponses ou plus de moins de 10 mots à des questions ouvertes (ex : "j'aime la vie, j'aime tout quoi" / "le football, c'est jouer au football quoi" / "bah, je peux immigrer au Canada")
+→ PLAFOND : note totale ≤ 10/20 (NCLC 7 maximum)
+
+Signal 2 — Rupture méta-communicative
+Le candidat brise le 4ème mur en commentant l'application, l'examen, ou la technologie ("vous ne comprenez pas ce que je dis", "ça bug", "votre système marche mal")
+→ PLAFOND : note totale ≤ 9/20 (NCLC 6 maximum)
+→ ET : interaction_spontaneite plafonné à 1/4 (registre inadéquat à un entretien officiel)
+
+Signal 3 — Combinaison des deux signaux
+Si le candidat cumule réponses courtes ET rupture méta → PLAFOND : note totale ≤ 8/20 (NCLC 5 maximum)
+
+Signal 4 — Phrases incompréhensibles ou non-réponses systématiques
+Le candidat donne des réponses qui ne sont ni cohérentes ni dans le sujet (ex : "Z", "c'est un coup dit à", des phrases tronquées sans sens)
+→ PLAFOND : note totale ≤ 8/20 (NCLC 5 maximum)
+
+Pour ces cas, tu maintiens les minimums natif (fluidité 3/4, grammaire 3/4) sur les rares phrases bien construites, mais REALISATION_TACHE doit être à 0 ou 1/4 maximum, ce qui plafonne la note totale.
+
+DANS LE FEEDBACK pour ces cas, sois explicite et direct :
+"Ton niveau de français est clairement natif/C1, mais cet entretien ne reflète aucunement ton niveau réel. Tu as donné des réponses extrêmement courtes / brisé le cadre de l'entretien officiel / produit des réponses incohérentes. Sur cette base, le système est obligé de plafonner ta note. À l'examen réel, ces comportements coûteraient des points significatifs. Refais une session en t'engageant pleinement dans l'exercice."
+
 MAIS la note de REALISATION_TACHE reste évaluée normalement :
 - Si le candidat développe peu sur certaines questions (réponse en 1 phrase courte sur "ta famille") → 2/4 sur realisation_tache
 - Si le candidat développe naturellement sur la majorité des questions → 3/4 sur realisation_tache
