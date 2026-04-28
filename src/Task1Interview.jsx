@@ -1310,31 +1310,17 @@ function Task1Interview({ onBack = null }) {
                         <span>🎙️ Examinateur : {conversationTranscript.filter(e => e.role === "examiner").length} interventions</span>
                         <span>🎓 Candidat : {conversationTranscript.filter(e => e.role === "candidate").length} réponses</span>
                       </div>
-                      {conversationTranscript.map((turn, index) => {
-                        const prev = index > 0 ? conversationTranscript[index - 1] : null;
-                        const prevAnchor = prev?.role === "examiner" && prev.timestampEndSec != null
-                          ? prev.timestampEndSec
-                          : prev?.timestampSec ?? null;
-                        const pauseSec = prevAnchor != null && turn.timestampSec != null ? turn.timestampSec - prevAnchor : 0;
-                        return (
-                          <div key={index}>
-                            {pauseSec >= 8 && (
-                              <div style={{ margin: "8px 0", padding: "5px 12px", background: "rgba(245,158,11,0.1)", border: "1px dashed rgba(245,158,11,0.4)", borderRadius: "8px", fontSize: "12px", color: "#fbbf24", textAlign: "center", fontStyle: "italic" }}>
-                                ⏸️ Pause de {pauseSec}s
-                              </div>
-                            )}
-                            <div style={{ marginBottom: index < conversationTranscript.length - 1 ? "18px" : 0, lineHeight: 1.7 }}>
-                              <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#64748b", marginRight: "6px" }}>
-                                [{turn.timestampSec != null ? fmtTs(turn.timestampSec) : "?:??"}]
-                              </span>
-                              <span style={{ fontWeight: 800, fontSize: "14px", color: turn.role === "candidate" ? "#86efac" : "#7dd3fc" }}>
-                                {turn.role === "candidate" ? "🎓 Candidat" : "🎙️ Examinateur"}{" "}:
-                              </span>
-                              <span style={{ color: "#e2e8f0", marginLeft: "8px" }}>{turn.text}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {conversationTranscript.map((turn, index) => (
+                        <div key={index} style={{ marginBottom: index < conversationTranscript.length - 1 ? "18px" : 0, lineHeight: 1.7 }}>
+                          <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#64748b", marginRight: "6px" }}>
+                            [{turn.timestampSec != null ? fmtTs(turn.timestampSec) : "?:??"}]
+                          </span>
+                          <span style={{ fontWeight: 800, fontSize: "14px", color: turn.role === "candidate" ? "#86efac" : "#7dd3fc" }}>
+                            {turn.role === "candidate" ? "🎓 Candidat" : "🎙️ Examinateur"}{" "}:
+                          </span>
+                          <span style={{ color: "#e2e8f0", marginLeft: "8px" }}>{turn.text}</span>
+                        </div>
+                      ))}
                     </>
                   );
                 })()}
