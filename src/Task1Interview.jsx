@@ -17,14 +17,16 @@ const TASK1_ABSOLUTE_CUT = 210;   // hard cut absolu à 3:30
 const DUREE_MINIMUM_AVANT_CLOTURE_MS = 110000; // 1:50 = 110 secondes
 
 const PATTERNS_CLOTURE = [
+  // Variante 1 : "Très bien, je vous remercie pour cet entretien. Bonne continuation à vous."
   /je vous remercie pour cet entretien/i,
-  /merci pour cet entretien/i,
-  /bonne continuation/i,
-  /c'est noté/i,
+  // Variante 2 : "Parfait, c'est noté. Je vous souhaite bonne chance pour votre projet d'immigration. Au revoir."
+  /je vous souhaite bonne chance pour votre projet/i,
+  // Variante 3 : "Très bien, on va s'arrêter là. Merci pour cet entretien et bonne continuation."
   /on va s'arrêter là/i,
-  /au revoir/i,
-  /je vous souhaite bonne chance/i,
+  /merci pour cet entretien/i,
+  // Filet de sécurité — phrases de clôture évidentes
   /entretien (est )?terminé/i,
+  /nous (avons )?terminé/i,
 ];
 
 
@@ -192,6 +194,7 @@ function Task1Interview({ onBack = null }) {
   const loadingMsgTimerRef = useRef(null);
   const tempsDebutRef = useRef(null);
   const phaseEntretienRef = useRef('idle');
+  const momentClotureDetecteeRef = useRef(null);
 
   const [phaseEntretien, setPhaseEntretien] = useState('idle');
   const [candidatEnTrainDeParler, setCandidatEnTrainDeParler] = useState(false);
@@ -298,6 +301,7 @@ function Task1Interview({ onBack = null }) {
     setExaminateurEnTrainDeParler(false);
     setDernierMomentParole(null);
     tempsDebutRef.current = null;
+    momentClotureDetecteeRef.current = null;
   }
 
   function closeRealtimeResources() {
@@ -517,6 +521,7 @@ function Task1Interview({ onBack = null }) {
               currentExaminerTranscriptRef.current = "";
               return;
             }
+            momentClotureDetecteeRef.current = Date.now();
             phaseEntretienRef.current = 'cloture_detectee';
             setPhaseEntretien('cloture_detectee');
           }
@@ -883,6 +888,22 @@ function Task1Interview({ onBack = null }) {
 
       if (phaseEntretien === 'cloture_detectee') {
         setCallTime(elapsed);
+
+        // Timeout absolu après détection de clôture : 5 secondes max
+        // Gère les cas où l'examinateur fait plusieurs bursts audio
+        // qui empêcheraient le silence 1.5s de s'accumuler
+        const tempsDepuisCloture = momentClotureDetecteeRef.current
+          ? (Date.now() - momentClotureDetecteeRef.current) / 1000
+          : 0;
+        if (tempsDepuisCloture >= 5) {
+          console.log(`[T1] Timeout absolu après détection clôture (${Math.floor(tempsDepuisCloture)}s) — fermeture forcée`);
+          phaseEntretienRef.current = 'termine';
+          setPhaseEntretien('termine');
+          hangUp();
+          return;
+        }
+
+        // Comportement normal : ferme après 1.5s de silence
         if (!examinateurEnTrainDeParler) {
           const silence = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
           if (silence >= 1.5) {
@@ -892,6 +913,8 @@ function Task1Interview({ onBack = null }) {
             return;
           }
         }
+
+        // Hard cut absolu (filet ultime)
         if (elapsed >= TASK1_ABSOLUTE_CUT) {
           phaseEntretienRef.current = 'termine';
           setPhaseEntretien('termine');
