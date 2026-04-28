@@ -882,7 +882,7 @@ function Task1Interview({ onBack = null }) {
         const tempsDepuisCloture = momentClotureDetecteeRef.current
           ? (Date.now() - momentClotureDetecteeRef.current) / 1000
           : 0;
-        if (tempsDepuisCloture >= 0.5) {
+        if (tempsDepuisCloture >= 2) {
           console.log(`[T1] Fermeture nette ${Math.floor(tempsDepuisCloture * 1000)}ms après détection clôture`);
           phaseEntretienRef.current = 'termine';
           setPhaseEntretien('termine');
