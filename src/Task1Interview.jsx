@@ -8,39 +8,26 @@ import {
 const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
 
-const TASK1_MAX_TIME = 120;
-const TASK1_SOFT_END_TIME = 135; // conclusion naturelle tolérée jusqu'à 2:15
+const TASK1_MAX_TIME = 120;       // cible affichée (2:00)
 const TASK1_MIN_TIME = 90;
-const TASK1_WARN_TIME = 105;    // orange doux à 1:45
-const TASK1_DANGER_TIME = 150;  // rouge uniquement après 2:30 (très rare)
+const TASK1_WARN_TIME = 105;      // amber à 1:45
+const TASK1_CONCLUSION_SEND = 170; // envoyer instruction clôture forcée à 2:50
+const TASK1_HARD_CUT = 180;       // hard cut à 3:00
+const TASK1_ABSOLUTE_CUT = 210;   // hard cut absolu à 3:30
+
+const PATTERNS_CLOTURE = [
+  /je vous remercie pour cet entretien/i,
+  /merci pour cet entretien/i,
+  /bonne continuation/i,
+  /c'est noté/i,
+  /on va s'arrêter là/i,
+  /au revoir/i,
+  /je vous souhaite bonne chance/i,
+  /entretien (est )?terminé/i,
+];
 
 const OPENING_INSTRUCTION =
-  "Tu es un examinateur officiel du TCF Canada. Ouvre l'entretien par une salutation courte et chaleureuse, puis pose immediatement cette premiere question : 'Pouvez-vous vous presenter en quelques mots ?' Une seule question. Attends la reponse. Vouvoiement obligatoire. Parle lentement et clairement.";
-
-const FOLLOWUP_INSTRUCTION =
-  "Tu es un examinateur TCF Canada. Tu conduis la Tache 1 : entretien dirige de 2 minutes sur des sujets PERSONNELS et SIMPLES. " +
-
-  "PROGRESSION OBLIGATOIRE DES THEMES — Tu dois couvrir AU MOINS 4 themes differents en 2 minutes : " +
-  "THEME A : travail ou etudes — 'Quel est votre metier ?' / 'Dans quel domaine travaillez-vous ?' / 'Vous etes etudiant(e) en quoi ?' " +
-  "THEME B : famille — 'Parlez-moi de votre famille.' / 'Vous avez des enfants ?' / 'Vous etes marie(e) ?' " +
-  "THEME C : loisirs — 'Qu'est-ce que vous aimez faire pendant votre temps libre ?' / 'Vous faites du sport ?' / 'Vous avez des hobbies ?' " +
-  "THEME D : projets d'immigration ou avenir — 'Pourquoi voulez-vous immigrer au Canada ?' / 'Quels sont vos projets pour l'avenir ?' / 'Pourquoi apprenez-vous le francais ?' " +
-  "THEME E (optionnel) : vie quotidienne — 'Decrivez une journee typique pour vous.' / 'Vous habitez en ville ou a la campagne ?' " +
-
-  "REGLE ABSOLUE SUR LES THEMES : Apres MAXIMUM 1 question de relance sur un theme, tu DOIS passer au theme suivant pas encore aborde. " +
-  "INTERDIT de rester plus de 2 questions consecutives sur le meme sujet (ex : pas 3 questions sur les livres, pas 3 questions sur le travail). " +
-  "Si tu viens de parler de loisirs, passe a la famille ou aux projets. Varie systematiquement. " +
-
-  "NIVEAU DES QUESTIONS — TCF Tache 1 = questions SIMPLES et DIRECTES : " +
-  "BON : 'Quel est votre metier ?' / 'Vous avez des enfants ?' / 'Pourquoi le Canada ?' / 'Vous aimez le sport ?' " +
-  "INTERDIT : questions philosophiques ou analytiques comme 'Qu'est-ce qui vous fascine dans...' / 'Comment analysez-vous...' / 'Quelle est votre vision de...' " +
-
-  "REGLES GENERALES : " +
-  "1. Une seule question courte par tour. Jamais deux questions en meme temps. " +
-  "2. Si la reponse est tres courte (un mot), UNE SEULE relance simple : 'Pouvez-vous m'en dire un peu plus ?' — puis change de theme. " +
-  "3. Vouvoiement obligatoire. Bienveillant et professionnel. " +
-  "4. NE CORRIGE JAMAIS les erreurs. NE DONNE PAS ton avis. " +
-  "5. 1 a 2 phrases maximum par tour. Laisse le candidat parler.";
+  "Ouvre l'entretien par une salutation chaleureuse et pose ta premiere question selon tes instructions. Vouvoiement obligatoire.";
 
 function extractClientSecret(payload) {
   if (!payload || typeof payload !== "object") return "";
@@ -142,22 +129,17 @@ function Task1Interview({ onBack = null }) {
   }
 
   function getCallTimerColor() {
-    if (phaseEntretien === 'cloture' || phaseEntretien === 'finition') return "#60a5fa";
-    if (callTime >= TASK1_DANGER_TIME) return "#fb7185";
-    if (callTime >= TASK1_WARN_TIME) return "#f59e0b";
-    if (callTime >= TASK1_MAX_TIME) return "#f59e0b";
+    if (phaseEntretien === 'cloture_detectee') return "#4ade80";
+    if (phaseEntretien === 'conclusion_attendue' || callTime >= TASK1_WARN_TIME) return "#f59e0b";
     return "#7dd3fc";
   }
 
   function getCallTimerLabel() {
-    if (phaseEntretien === 'cloture') return "Conclusion en cours...";
-    if (phaseEntretien === 'finition') return "L'entretien va se terminer...";
-    if (callTime >= TASK1_DANGER_TIME) return "Entretien très long — conclure";
-    if (callTime >= TASK1_SOFT_END_TIME) return "Bientôt terminé...";
-    if (callTime >= TASK1_MAX_TIME) return "L'examinateur va conclure...";
+    if (phaseEntretien === 'cloture_detectee') return "Conclusion en cours...";
+    if (phaseEntretien === 'conclusion_attendue') return "Bientôt terminé...";
     if (callTime >= TASK1_WARN_TIME) return "Bientôt terminé...";
     if (callTime >= TASK1_MIN_TIME) return "Minimum atteint ✓";
-    return "Minimum conseillé non atteint (1:30)";
+    return "";
   }
 
   function getCallTimerProgress() {
@@ -267,11 +249,11 @@ function Task1Interview({ onBack = null }) {
     channel.send(JSON.stringify(event));
   }
 
-  function declencherPhraseCloture() {
+  function envoyerInstructionCloture() {
     sendClientEvent({
       type: 'response.create',
       response: {
-        instructions: "Conclus maintenant l'entretien naturellement. Dis quelque chose comme : \"Très bien, je vous remercie pour cet entretien. Bonne continuation à vous.\" Ne pose plus de question. Sois bref et chaleureux.",
+        instructions: "Conclus maintenant l'entretien immédiatement. Dis exactement : \"Très bien, je vous remercie pour cet entretien. Bonne continuation à vous.\" Ne pose plus aucune question.",
       },
     });
   }
@@ -359,24 +341,15 @@ function Task1Interview({ onBack = null }) {
 
       setMicrophoneEnabled(false);
       if (phaseEntretienRef.current === 'actif') {
-        markExaminerPending("Vous avez termine. L'examinateur enchaine avec sa question.");
+        markExaminerPending("Vous avez termine. L'examinateur enchaine.");
         sendClientEvent({
           type: "response.create",
-          response: {
-            output_modalities: ["audio"],
-            instructions: FOLLOWUP_INSTRUCTION,
-          },
+          response: { output_modalities: ["audio"] },
         });
-      } else {
-        phaseEntretienRef.current = 'cloture';
-        setPhaseEntretien('cloture');
-        sendClientEvent({
-          type: 'response.create',
-          response: {
-            instructions: "Conclus maintenant l'entretien naturellement. Dis quelque chose comme : \"Très bien, je vous remercie pour cet entretien. Bonne continuation à vous.\" Ne pose plus de question. Sois bref et chaleureux.",
-          },
-        });
+      } else if (phaseEntretienRef.current === 'conclusion_attendue') {
+        envoyerInstructionCloture();
       }
+      // cloture_detectee ou termine : ne rien envoyer
       return;
     }
 
@@ -422,7 +395,7 @@ function Task1Interview({ onBack = null }) {
       setDernierMomentParole(Date.now());
       activeResponseRef.current = false;
       pendingExaminerTurnRef.current = false;
-      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'finition') {
+      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'conclusion_attendue') {
         setMicrophoneEnabled(true);
         scheduleUserTurn("Votre tour. Repondez a la question.");
       }
@@ -434,7 +407,7 @@ function Task1Interview({ onBack = null }) {
       setDernierMomentParole(Date.now());
       activeResponseRef.current = false;
       pendingExaminerTurnRef.current = false;
-      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'finition') {
+      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'conclusion_attendue') {
         setMicrophoneEnabled(true);
         scheduleUserTurn("Votre tour. Repondez a la question.");
       }
@@ -446,6 +419,13 @@ function Task1Interview({ onBack = null }) {
       const examinerText = currentExaminerTranscriptRef.current.trim();
       if (examinerText) {
         conversationLogRef.current.push({ role: "examiner", text: examinerText });
+        const phase = phaseEntretienRef.current;
+        if (phase === 'actif' || phase === 'conclusion_attendue') {
+          if (PATTERNS_CLOTURE.some(p => p.test(examinerText))) {
+            phaseEntretienRef.current = 'cloture_detectee';
+            setPhaseEntretien('cloture_detectee');
+          }
+        }
         currentExaminerTranscriptRef.current = "";
       }
       return;
@@ -787,43 +767,37 @@ function Task1Interview({ onBack = null }) {
       const elapsed = Math.floor((Date.now() - tempsDebutRef.current) / 1000);
 
       if (phaseEntretien === 'actif') {
-        setCallTime(Math.min(elapsed, TASK1_MAX_TIME));
-        if (elapsed >= TASK1_MAX_TIME) {
-          phaseEntretienRef.current = 'finition';
-          setPhaseEntretien('finition');
-          setCallTime(TASK1_MAX_TIME);
+        setCallTime(elapsed);
+        if (elapsed >= TASK1_CONCLUSION_SEND) {
+          phaseEntretienRef.current = 'conclusion_attendue';
+          setPhaseEntretien('conclusion_attendue');
+          envoyerInstructionCloture();
         }
         return;
       }
 
-      if (phaseEntretien === 'finition') {
-        const personneNeparle = !candidatEnTrainDeParler && !examinateurEnTrainDeParler;
-        const silenceDepuis = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
-        if (personneNeparle && silenceDepuis >= 2) {
-          phaseEntretienRef.current = 'cloture';
-          setPhaseEntretien('cloture');
-          declencherPhraseCloture();
-          return;
+      if (phaseEntretien === 'conclusion_attendue') {
+        setCallTime(elapsed);
+        if (elapsed >= TASK1_HARD_CUT) {
+          phaseEntretienRef.current = 'termine';
+          setPhaseEntretien('termine');
+          hangUp();
         }
-        if (elapsed >= 150) {
-          phaseEntretienRef.current = 'cloture';
-          setPhaseEntretien('cloture');
-          declencherPhraseCloture();
-          return;
-        }
+        return;
       }
 
-      if (phaseEntretien === 'cloture') {
+      if (phaseEntretien === 'cloture_detectee') {
+        setCallTime(elapsed);
         if (!examinateurEnTrainDeParler) {
-          const silenceApresCloture = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
-          if (silenceApresCloture >= 1) {
+          const silence = dernierMomentParole ? (Date.now() - dernierMomentParole) / 1000 : 999;
+          if (silence >= 1.5) {
             phaseEntretienRef.current = 'termine';
             setPhaseEntretien('termine');
             hangUp();
             return;
           }
         }
-        if (elapsed >= 180) {
+        if (elapsed >= TASK1_ABSOLUTE_CUT) {
           phaseEntretienRef.current = 'termine';
           setPhaseEntretien('termine');
           hangUp();
@@ -1130,7 +1104,7 @@ function Task1Interview({ onBack = null }) {
               <div style={{
                 borderRadius: "16px", padding: "18px 20px",
                 background: "rgba(255,255,255,0.03)",
-                border: `1px solid ${callTime >= TASK1_DANGER_TIME ? "rgba(248,113,113,0.3)" : callTime >= TASK1_WARN_TIME ? "rgba(245,158,11,0.3)" : "rgba(148,163,184,0.1)"}`,
+                border: `1px solid ${callTime >= TASK1_WARN_TIME ? "rgba(245,158,11,0.3)" : "rgba(148,163,184,0.1)"}`,
                 marginBottom: "20px", textAlign: "center",
                 transition: "border-color 0.5s ease",
               }}>
@@ -1140,14 +1114,14 @@ function Task1Interview({ onBack = null }) {
                 }}>
                   {formatCallTime(callTime)} / {formatCallTime(TASK1_MAX_TIME)}
                 </div>
-                <div style={{ color: getCallTimerColor(), fontWeight: 600, fontSize: "14px", marginBottom: "12px", transition: "color 0.5s ease" }}>
+                <div style={{ color: getCallTimerColor(), fontWeight: 600, fontSize: "14px", marginBottom: "12px", minHeight: "20px", transition: "color 0.5s ease" }}>
                   {getCallTimerLabel()}
                 </div>
                 <div style={{ width: "100%", maxWidth: "480px", height: "6px", margin: "0 auto", background: "rgba(255,255,255,0.06)", borderRadius: "999px", overflow: "hidden" }}>
                   <div style={{
                     width: `${getCallTimerProgress()}%`, height: "100%",
-                    background: callTime >= TASK1_DANGER_TIME
-                      ? "linear-gradient(90deg, #fb7185, #ef4444)"
+                    background: phaseEntretien === 'cloture_detectee'
+                      ? "linear-gradient(90deg, #4ade80, #22c55e)"
                       : callTime >= TASK1_WARN_TIME
                       ? "linear-gradient(90deg, #f59e0b, #d97706)"
                       : "linear-gradient(90deg, #60a5fa, #3b82f6)",

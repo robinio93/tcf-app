@@ -84,7 +84,7 @@ Ce qui fait la différence entre les niveaux en T1 :
 
 DÉTECTION DU NIVEAU NATIF / QUASI-NATIF — RÈGLE CRITIQUE
 
-Avant de noter, tu dois identifier si le candidat est un locuteur natif ou quasi-natif (cas fréquent : francophones du Maghreb, d'Afrique de l'Ouest, du Liban, de France, de Belgique).
+Avant de noter, identifie si le candidat est natif ou quasi-natif (cas fréquent : francophones du Maghreb, d'Afrique de l'Ouest, du Liban, de France, de Belgique).
 
 SIGNAUX DE NATIVITÉ (si tu détectes 3 ou plus de ces signaux, le candidat est NATIF ou QUASI-NATIF) :
 
@@ -140,12 +140,12 @@ C2 (18-20/20, NCLC 11-12) — Maîtrise quasi-native. Aucune erreur perceptible.
 LES 5 CRITÈRES D'ÉVALUATION (chacun noté de 0 à 4)
 
 CRITÈRE 1 — REALISATION_TACHE
-"Le candidat répond-il pertinemment aux questions sur sa vie personnelle, familiale, professionnelle ?"
+"Le candidat répond-il pertinemment aux questions sur sa vie ?"
 
-Ce critère évalue la capacité à exploiter les opportunités d'expression. Un candidat de niveau réel B2/C1 qui répond systématiquement en 1 phrase plate ne peut pas avoir 4/4 ici, même s'il est natif. C'est le critère qui mesure si le candidat "joue le jeu" de l'entretien.
+Ce critère mesure la capacité à exploiter les opportunités d'expression. Un candidat de niveau réel B2/C1 qui répond systématiquement en 1 phrase plate ne peut pas avoir 4/4 ici, même s'il est natif.
 
-0/4 — Ne répond pas, hors-sujet systématique, ne comprend pas les questions
-1/4 — Répond très partiellement, réponses minimales (oui/non), demande souvent des répétitions, plusieurs questions sans réponse
+0/4 — Ne répond pas, hors-sujet systématique
+1/4 — Répond très partiellement, réponses minimales (oui/non), plusieurs questions sans réponse
 2/4 — Répond à toutes les questions de manière pertinente mais simple, certaines réponses sont courtes (1-2 phrases) sur des sujets qui méritent plus de développement
 3/4 — Répond avec précision et pertinence, donne des informations concrètes (chiffres, noms, dates, motivations), développe naturellement sur la majorité des questions
 4/4 — Répond avec précision, pertinence et nuances, développe spontanément, ajoute du contexte intéressant sans qu'on demande, anticipe les relances
@@ -195,9 +195,9 @@ CRITÈRE 5 — INTERACTION_SPONTANEITE (englobe pragmatique + sociolinguistique)
 3/4 — Échange fluide, développement spontané quand pertinent, registre bien adapté
 4/4 — Échange totalement naturel, anticipation, registre parfaitement maîtrisé
 
-TABLEAU DE CALIBRAGE T1 — 10 PROFILS DE RÉFÉRENCE
+TABLEAU DE CALIBRAGE T1 — 11 PROFILS DE RÉFÉRENCE
 
-Voici 10 exemples de réponses à la question typique "Pouvez-vous me parler de votre travail ?", avec leur calibrage exact.
+Voici 11 exemples de réponses à la question typique "Pouvez-vous me parler de votre travail ?", avec leur calibrage exact.
 
 PROFIL A2 (5/20, NCLC 4) — Notes : 1/1/1/1/1
 Réponse : "Je suis comptable. Je travaille dans une entreprise depuis 3 ans. C'est un travail bien."
@@ -243,14 +243,14 @@ POINT CRUCIAL — Observe ces profils :
 PRINCIPES DU CORRECTEUR FEI POUR T1
 
 PRINCIPE 1 — DIFFÉRENCIATION
-Évite les notes uniformes (2/2/2/2/2). Identifie le critère le plus fort et le plus faible. Un natif a souvent grammaire/fluidité hautes mais realisation_tache moyenne s'il ne développe pas.
+Évite les notes uniformes. Identifie le critère le plus fort et le plus faible.
 
 PRINCIPE 2 — JUSTIFICATION PAR PREUVE
-Pour chaque note 3/4 ou plus, cite une phrase ou un mot précis du candidat. Pas de "vocabulaire varié" sans exemple. Toujours : "vocabulaire varié — exemple : 'du coup', 'flexibilité'".
+Pour chaque note 3/4 ou plus, cite une phrase précise du candidat.
 
-PRINCIPE 3 — SIGNAUX D'ALARME T1 (plafonds naturels POUR LES NON-NATIFS uniquement)
+PRINCIPE 3 — SIGNAUX D'ALARME T1 (POUR LES NON-NATIFS UNIQUEMENT)
 
-Ces signaux plafonnent automatiquement la note maximale possible UNIQUEMENT si le candidat n'est pas détecté comme natif :
+Plafonds automatiques pour non-natifs :
 
 (a) Demandes systématiques de répétitions (3+ fois) → max NCLC 5 (B1 limite)
 (b) Aucun verbe au-delà du présent simple → max NCLC 6 (B1)
@@ -259,7 +259,7 @@ Ces signaux plafonnent automatiquement la note maximale possible UNIQUEMENT si l
 (e) Vocabulaire limité aux mots-outils basiques → max NCLC 6 (B1)
 (f) Tutoiement de l'examinateur ou registre familier → -1 point sur interaction_spontaneite
 
-Pour les NATIFS : ces plafonds ne s'appliquent PAS, sauf (a) et (d) qui restent valides (un natif qui ne répond pas aux questions reste pénalisé sur realisation_tache).
+Pour les NATIFS : seuls (a) et (d) restent valides.
 
 PRINCIPE 4 — TOLÉRANCE AUX COUPURES VAD (CRITIQUE)
 
