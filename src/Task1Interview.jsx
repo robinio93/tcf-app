@@ -198,6 +198,7 @@ function Task1Interview({ onBack = null }) {
   const tempsDebutRef = useRef(null);
   const phaseEntretienRef = useRef('idle');
   const momentClotureDetecteeRef = useRef(null);
+  const examinerStartTimestampRef = useRef(null);
 
   const [phaseEntretien, setPhaseEntretien] = useState('idle');
   const [candidatEnTrainDeParler, setCandidatEnTrainDeParler] = useState(false);
@@ -305,6 +306,7 @@ function Task1Interview({ onBack = null }) {
     setDernierMomentParole(null);
     tempsDebutRef.current = null;
     momentClotureDetecteeRef.current = null;
+    examinerStartTimestampRef.current = null;
   }
 
   function closeRealtimeResources() {
@@ -447,6 +449,9 @@ function Task1Interview({ onBack = null }) {
     }
 
     if (event.type === "output_audio_buffer.started") {
+      examinerStartTimestampRef.current = tempsDebutRef.current
+        ? Math.floor((Date.now() - tempsDebutRef.current) / 1000)
+        : 0;
       setExaminateurEnTrainDeParler(true);
       setDernierMomentParole(Date.now());
       activeResponseRef.current = true;
@@ -505,8 +510,14 @@ function Task1Interview({ onBack = null }) {
       activeResponseRef.current = false;
       const examinerText = currentExaminerTranscriptRef.current.trim();
       if (examinerText) {
-        const tsExaminer = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
-        conversationLogRef.current.push({ role: "examiner", text: examinerText, timestampSec: tsExaminer });
+        const tsExaminerEnd = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
+        conversationLogRef.current.push({
+          role: "examiner",
+          text: examinerText,
+          timestampSec: examinerStartTimestampRef.current ?? tsExaminerEnd,
+          timestampEndSec: tsExaminerEnd,
+        });
+        examinerStartTimestampRef.current = null;
         const phase = phaseEntretienRef.current;
         if (phase === 'actif' || phase === 'conclusion_attendue') {
           if (PATTERNS_CLOTURE.some(p => p.test(examinerText))) {
