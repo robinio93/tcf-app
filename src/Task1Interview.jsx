@@ -69,6 +69,87 @@ async function createRealtimeSession() {
   return clientSecret;
 }
 
+function ConsigneTcfDeroulement() {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div style={{
+      border: "1px solid rgba(245,158,11,0.28)",
+      background: "rgba(245,158,11,0.08)",
+      borderRadius: "12px",
+      overflow: "hidden",
+      marginBottom: "12px",
+    }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((v) => !v)}
+        aria-expanded={isOpen}
+        style={{
+          width: "100%", display: "flex", alignItems: "flex-start",
+          gap: "12px", padding: "14px 16px", textAlign: "left",
+          background: "none", border: "none", cursor: "pointer", color: "inherit",
+        }}
+      >
+        <span style={{ fontSize: "20px", flexShrink: 0, lineHeight: 1.4 }}>⏱️</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: "#fbbf24", marginBottom: "4px" }}>
+            Comment se déroule la Tâche 1
+          </div>
+          <div style={{ fontSize: "13px", color: "#cbd5e1", lineHeight: 1.55 }}>
+            2 minutes — c'est à toi de parler en continu sur ta vie. L'examinateur intervient peu.
+          </div>
+        </div>
+        <span style={{
+          color: "#fbbf24", fontSize: "16px", flexShrink: 0, marginTop: "2px",
+          display: "inline-block",
+          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+          transition: "transform 0.2s ease",
+        }} aria-hidden="true">▾</span>
+      </button>
+
+      {isOpen && (
+        <div style={{ padding: "0 16px 16px", borderTop: "1px solid rgba(245,158,11,0.2)" }}>
+          <div style={{ paddingTop: "12px", display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.65 }}>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>📌 Le format réel de l'examen</div>
+              <p style={{ margin: 0 }}>
+                À l'examen TCF Canada, la Tâche 1 dure <strong>exactement 2 minutes</strong>.
+                L'examinateur pose une question d'ouverture (« Présentez-vous »), puis{" "}
+                <strong>te laisse parler aussi longtemps que tu veux</strong>. Il n'intervient que si tu fais un silence prolongé.
+              </p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>🎯 Ta stratégie gagnante</div>
+              <p style={{ margin: 0 }}>
+                Plus tu parles en continu, mieux c'est. Pendant les 2 minutes, parle de toi naturellement :
+                ton parcours, ta famille, ton métier ou tes études, tes loisirs, tes projets, ton envie
+                d'immigrer au Canada. Tu n'as pas besoin d'attendre les questions — c'est à toi de t'auto-porter.
+              </p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>💡 Quand l'examinateur intervient</div>
+              <p style={{ margin: 0 }}>
+                Si tu t'arrêtes longtemps (5 secondes ou plus) sans avoir tout dit, l'examinateur te posera
+                une relance courte pour te remettre en mouvement. Sinon, il restera silencieux pour te laisser briller.
+              </p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>⚠️ Le piège classique</div>
+              <p style={{ margin: 0 }}>
+                Beaucoup de candidats font des réponses courtes en attendant la prochaine question. C'est
+                l'erreur la plus fréquente. Si tu réponds en 10 secondes et que tu attends qu'on te relance,
+                tu n'auras pas le temps de démontrer ton vrai niveau dans les 2 minutes imparties.
+              </p>
+            </div>
+            <div style={{ paddingTop: "8px", borderTop: "1px solid rgba(245,158,11,0.2)", fontSize: "12px", color: "rgba(253,230,138,0.6)", fontStyle: "italic" }}>
+              Source : France Éducation International, méthodologie TCF Canada officielle.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Task1Interview({ onBack = null }) {
   const [callState, setCallState] = useState("idle");
   const [activity, setActivity] = useState(USER_ACTIVITY);
@@ -971,29 +1052,7 @@ function Task1Interview({ onBack = null }) {
                 </div>
               </div>
 
-              {/* Encart pédagogique gestion du temps */}
-              <div style={{
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.28)",
-                borderRadius: "12px",
-                padding: "14px 16px",
-                marginBottom: "12px",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "12px",
-              }}>
-                <span style={{ fontSize: "20px", flexShrink: 0, lineHeight: 1.4 }}>⏱️</span>
-                <div>
-                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#fbbf24", marginBottom: "5px" }}>
-                    L'épreuve dure 2 minutes — apprends à occuper le temps
-                  </div>
-                  <div style={{ fontSize: "13px", color: "#cbd5e1", lineHeight: 1.6 }}>
-                    À l'examen réel, l'entretien T1 est cadré à exactement 2 minutes. C'est à toi de gérer ton temps de parole.{" "}
-                    <strong style={{ color: "#e2e8f0" }}>Plus tu développes tes réponses (3-4 phrases riches par question), plus tu démontres ton niveau.</strong>{" "}
-                    Si tes réponses sont trop courtes, l'examinateur conclura plus vite — ce qui te coûtera des points.
-                  </div>
-                </div>
-              </div>
+              <ConsigneTcfDeroulement />
 
               {/* Conseils dépliables */}
               <button
