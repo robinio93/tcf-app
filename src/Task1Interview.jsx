@@ -1353,7 +1353,6 @@ function Task1Interview({ onBack = null }) {
                               const anomalies = [];
                               pauses.forEach(p => {
                                 if (p.pause_sec >= 8) anomalies.push({ type: "silence_long", severity: p.pause_sec >= 15 ? "warning" : "info", detail: `Pause ${p.pause_sec}s ${p.from_role}→${p.to_role} (tour ${p.position})` });
-                                if (p.pause_sec < 2 && p.from_role === "candidate") anomalies.push({ type: "coupure_potentielle", severity: "warning", detail: `Examinateur a réagi en ${p.pause_sec}s après le candidat (tour ${p.position}) — coupure ?` });
                               });
                               const totalDuration = turns.length > 0 ? (turns[turns.length - 1].timestampEndSec || turns[turns.length - 1].timestampSec) : 0;
                               const candidateSpeakingTime = turnsWithDuration.filter(t => t.role === "candidate").reduce((s, t) => s + t.calculatedDuration, 0);
