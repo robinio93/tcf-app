@@ -199,6 +199,7 @@ function Task1Interview({ onBack = null }) {
   const phaseEntretienRef = useRef('idle');
   const momentClotureDetecteeRef = useRef(null);
   const examinerStartTimestampRef = useRef(null);
+  const candidateStartTimestampRef = useRef(null);
 
   const [phaseEntretien, setPhaseEntretien] = useState('idle');
   const [candidatEnTrainDeParler, setCandidatEnTrainDeParler] = useState(false);
@@ -307,6 +308,7 @@ function Task1Interview({ onBack = null }) {
     tempsDebutRef.current = null;
     momentClotureDetecteeRef.current = null;
     examinerStartTimestampRef.current = null;
+    candidateStartTimestampRef.current = null;
   }
 
   function closeRealtimeResources() {
@@ -381,6 +383,9 @@ function Task1Interview({ onBack = null }) {
     }
 
     if (event.type === "input_audio_buffer.speech_started") {
+      candidateStartTimestampRef.current = tempsDebutRef.current
+        ? Math.floor((Date.now() - tempsDebutRef.current) / 1000)
+        : 0;
       setCandidatEnTrainDeParler(true);
       setDernierMomentParole(Date.now());
       if (!localStreamRef.current?.getAudioTracks()?.some((track) => track.enabled)) return;
@@ -418,7 +423,8 @@ function Task1Interview({ onBack = null }) {
         const slot = speechBlobsRef.current.length;
         speechBlobsRef.current.push(null);
         const tsCandidate = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
-        conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot, timestampSec: tsCandidate });
+        conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot, timestampSec: candidateStartTimestampRef.current ?? tsCandidate, timestampEndSec: tsCandidate });
+        candidateStartTimestampRef.current = null;
         rec.onstop = () => {
           const mime = rec.mimeType || "audio/webm";
           const blob = new Blob(currentSpeechChunksRef.current, { type: mime });
