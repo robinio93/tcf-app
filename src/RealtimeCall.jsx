@@ -599,9 +599,9 @@ async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ silenceDuration, scenarioRow, examMode }),
     });
-  } catch {
+  } catch (err) {
     throw new Error(
-      "Impossible de joindre /api/realtime-session. En local, redemarrez le serveur npm run dev apres la mise a jour de vite.config.js."
+      "Erreur lors de la création de la session : " + (err?.message || String(err))
     );
   }
 
