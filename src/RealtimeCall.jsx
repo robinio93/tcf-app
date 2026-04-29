@@ -646,6 +646,48 @@ async function createRealtimeSession(silenceDuration = 1200) {
   return clientSecret;
 }
 
+function EncartTcfT2() {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div style={{ border: "1px solid rgba(245,158,11,0.28)", background: "rgba(245,158,11,0.08)", borderRadius: "12px", overflow: "hidden", marginBottom: "16px" }}>
+      <button type="button" onClick={() => setIsOpen(v => !v)} aria-expanded={isOpen}
+        style={{ width: "100%", display: "flex", alignItems: "flex-start", gap: "12px", padding: "14px 16px", textAlign: "left", background: "none", border: "none", cursor: "pointer", color: "inherit" }}>
+        <span style={{ fontSize: "20px", flexShrink: 0, lineHeight: 1.4 }}>📖</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: "#fbbf24", marginBottom: "4px" }}>Comment se déroule la Tâche 2 du TCF Canada</div>
+          <div style={{ fontSize: "13px", color: "#cbd5e1", lineHeight: 1.55 }}>5 minutes 30 — c'est toi qui mènes la conversation pour obtenir des informations.</div>
+        </div>
+        <span style={{ color: "#fbbf24", fontSize: "16px", flexShrink: 0, marginTop: "2px", display: "inline-block", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} aria-hidden="true">▾</span>
+      </button>
+      {isOpen && (
+        <div style={{ padding: "0 16px 16px", borderTop: "1px solid rgba(245,158,11,0.2)" }}>
+          <div style={{ paddingTop: "12px", display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.65 }}>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>📌 Le format réel de l'examen</div>
+              <p style={{ margin: 0 }}>La Tâche 2 dure exactement <strong>5 minutes 30</strong>, dont <strong>2 minutes de préparation</strong> et 3 minutes 30 d'interaction. Tu reçois un scénario où on te dit qui est ton interlocuteur, qui tu es, et sur quel sujet tu dois obtenir des informations.</p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>🎯 Ta stratégie gagnante</div>
+              <p style={{ margin: 0 }}>Pendant les 2 minutes de préparation, tu lis le sujet et tu notes <strong>8 à 12 questions à poser</strong>. Pendant les 3 min 30 d'interaction, tu poses tes questions et tu réagis aux réponses pour montrer que tu comprends. Plus tu poses de questions variées, mieux tu démontres ton niveau.</p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>💡 Comment l'interaction se passe</div>
+              <p style={{ margin: 0 }}>L'examinateur joue le rôle indiqué dans le scénario (agent immobilier, ami, professeur…). Il répond sincèrement à tes questions avec des détails. Tu peux rebondir sur ses réponses pour demander des précisions.</p>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "#fde68a", marginBottom: "4px" }}>⚠️ Le piège classique</div>
+              <p style={{ margin: 0 }}>Beaucoup de candidats préparent 5-6 questions et s'arrêtent. Pour viser un bon score, prépare 8-12 questions différentes et n'hésite pas à demander des clarifications ("Et quels sont les tarifs exactement ?", "Comment ça marche concrètement ?").</p>
+            </div>
+            <div style={{ paddingTop: "8px", borderTop: "1px solid rgba(245,158,11,0.2)", fontSize: "12px", color: "rgba(253,230,138,0.6)", fontStyle: "italic" }}>
+              Source : France Éducation International, méthodologie TCF Canada officielle.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RealtimeCall({ onBack = null }) {
   const [callState, setCallState] = useState("idle");
   const [activity, setActivity] = useState(WAITING_ACTIVITY);
@@ -692,6 +734,10 @@ function RealtimeCall({ onBack = null }) {
   // null | "transcribing" | "analyzing"
   const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [uiPhase, setUiPhase] = useState("intro"); // "intro" | "preparation" | "interaction"
+  const [notesPreparation, setNotesPreparation] = useState("");
+  const [preparationTimerSec, setPreparationTimerSec] = useState(120);
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   const selectedScenario = scenarios[scenarioIndex] ?? LOADING_SCENARIO;
   const isConnecting = callState === "connecting";
@@ -701,6 +747,21 @@ function RealtimeCall({ onBack = null }) {
     if (list.length <= 1) return 0;
     return (currentIndex + 1) % list.length;
   }
+
+  function handleStartInteraction() {
+    setUiPhase("interaction");
+    startCall();
+  }
+
+  useEffect(() => {
+    if (uiPhase !== "preparation") return;
+    if (preparationTimerSec <= 0) {
+      handleStartInteraction();
+      return;
+    }
+    const id = setTimeout(() => setPreparationTimerSec(s => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [uiPhase, preparationTimerSec]);
 
   function formatCallTime(seconds) {
     const safe = Math.max(0, Number(seconds) || 0);
@@ -1558,9 +1619,89 @@ function RealtimeCall({ onBack = null }) {
           )}
 
           {/* ══════════════════════════════════════════
+              VUE PRÉPARATION (2 minutes)
+          ══════════════════════════════════════════ */}
+          {!isConnecting && !isConnected && processingStep === null && uiPhase === "preparation" && (
+            <div>
+              {/* Header : titre + timer */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "12px" }}>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3fc", marginBottom: "4px" }}>Tâche 2 — Préparation</div>
+                  <div style={{ fontSize: "15px", color: "#94a3b8" }}>Prends le temps de lire et de noter tes questions</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "clamp(28px, 6vw, 40px)", fontWeight: 800, color: preparationTimerSec <= 10 ? "#fb7185" : preparationTimerSec <= 30 ? "#f59e0b" : "#7dd3fc", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                    ⏱ {Math.floor(preparationTimerSec / 60)}:{String(preparationTimerSec % 60).padStart(2, "0")}
+                  </div>
+                  {preparationTimerSec <= 10 && (
+                    <div style={{ fontSize: "12px", color: "#fb7185", fontWeight: 600, marginTop: "4px" }}>L'interaction démarre dans {preparationTimerSec}s</div>
+                  )}
+                  {preparationTimerSec > 10 && preparationTimerSec <= 30 && (
+                    <div style={{ fontSize: "12px", color: "#f59e0b", fontWeight: 600, marginTop: "4px" }}>Finis tes notes bientôt</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Scénario */}
+              <div style={{ background: "rgba(125,211,252,0.06)", border: "1px solid rgba(125,211,252,0.18)", borderRadius: "14px", padding: "16px 18px", marginBottom: "16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7dd3fc", marginBottom: "8px" }}>📋 Ton scénario</div>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#f1f5f9", marginBottom: "8px" }}>{selectedScenario.title}</div>
+                <div style={{ fontSize: "14px", color: "#e2e8f0", lineHeight: 1.7, marginBottom: "12px" }}>{selectedScenario.summary}</div>
+                <div style={{ fontSize: "13px", color: "#94a3b8", lineHeight: 1.6 }}>
+                  <span style={{ fontWeight: 600, color: "#7dd3fc" }}>Rôle de l'examinateur : </span>{selectedScenario.examinerRole}
+                </div>
+                {selectedScenario.prompts?.length > 0 && (
+                  <div style={{ marginTop: "10px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#fcd34d", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Pistes à explorer</div>
+                    <ul style={{ margin: 0, padding: "0 0 0 16px", fontSize: "13px", color: "#cbd5e1", lineHeight: 1.8 }}>
+                      {selectedScenario.prompts.map((p, i) => <li key={i}>{p}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Textarea notes */}
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#e2e8f0", marginBottom: "8px" }}>
+                  📝 Prends des notes <span style={{ fontWeight: 400, color: "#64748b" }}>(optionnel)</span>
+                </div>
+                <textarea
+                  value={notesPreparation}
+                  onChange={e => setNotesPreparation(e.target.value)}
+                  placeholder={"Note ici les questions que tu veux poser :\n1. Quels sont les tarifs ?\n2. Comment ça fonctionne ?\n3. Quelles sont les conditions ?\n..."}
+                  style={{
+                    width: "100%", minHeight: "160px", padding: "14px", boxSizing: "border-box",
+                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(148,163,184,0.18)",
+                    borderRadius: "12px", color: "#e2e8f0", fontSize: "14px",
+                    fontFamily: "ui-monospace, monospace", lineHeight: 1.7, resize: "vertical",
+                    outline: "none",
+                  }}
+                />
+                <div style={{ fontSize: "12px", color: "#475569", marginTop: "6px" }}>Conseil : note 8 à 12 questions variées pour maximiser ton score</div>
+              </div>
+
+              {/* CTA */}
+              <button
+                onClick={handleStartInteraction}
+                style={{
+                  display: "block", width: "100%", padding: "16px 24px",
+                  fontSize: "16px", fontWeight: 700, cursor: "pointer",
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  color: "white", border: "none", borderRadius: "16px",
+                  touchAction: "manipulation",
+                }}
+              >
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <IconSpeak size={18} /> Je suis prêt, commencer l'interaction
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════════
               VUE PRÉ-APPEL (idle / error)
           ══════════════════════════════════════════ */}
-          {!isConnecting && !isConnected && processingStep === null && (
+          {!isConnecting && !isConnected && processingStep === null && uiPhase !== "preparation" && (
             <div className="t2-precall">
               {/* Top bar */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
@@ -1639,6 +1780,9 @@ function RealtimeCall({ onBack = null }) {
                   {selectedScenario.candidateGoal}
                 </div>
               </div>
+
+              {/* Encart pédagogique T2 */}
+              <EncartTcfT2 />
 
               {/* Toggle détails */}
               <button
@@ -1797,7 +1941,7 @@ function RealtimeCall({ onBack = null }) {
               <div className="t2-precall-cta">
                 <button
                   className="btn-start-call"
-                  onClick={startCall}
+                  onClick={() => speechRate && setUiPhase("preparation")}
                   disabled={!speechRate}
                   style={{
                     display: "block",
@@ -1818,7 +1962,7 @@ function RealtimeCall({ onBack = null }) {
                   }}
                 >
                   {speechRate ? (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}><IconSpeak size={18} /> Commencer l'appel</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>📋 Commencer la préparation</span>
                   ) : (
                     <span>Choisissez votre rythme ↑</span>
                   )}
@@ -1840,6 +1984,12 @@ function RealtimeCall({ onBack = null }) {
                 <span style={{ fontSize: "15px", fontWeight: 600, color: "#94a3b8", flex: 1, lineHeight: 1.4 }}>
                   {selectedScenario.title}
                 </span>
+                {notesPreparation && (
+                  <button
+                    onClick={() => setShowNotesModal(true)}
+                    style={{ fontSize: "12px", fontWeight: 600, color: "#fbbf24", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "999px", padding: "3px 10px", flexShrink: 0, cursor: "pointer" }}
+                  >📝 Mes notes</button>
+                )}
                 {isConnected && (
                   <span style={{ fontSize: "12px", fontWeight: 600, color: "#22c55e", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: "999px", padding: "3px 10px", flexShrink: 0 }}>
                     ● EN DIRECT
@@ -2208,6 +2358,32 @@ function RealtimeCall({ onBack = null }) {
         playsInline
         style={{ display: "none" }}
       />
+
+      {/* ══ MODALE MES NOTES ══ */}
+      {showNotesModal && (
+        <div
+          onClick={() => setShowNotesModal(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: "rgba(15,23,42,0.97)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "20px", padding: "28px", maxWidth: "560px", width: "100%", maxHeight: "80vh", overflowY: "auto", backdropFilter: "blur(16px)" }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "#fbbf24" }}>📝 Mes notes de préparation</div>
+              <button onClick={() => setShowNotesModal(false)} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            {notesPreparation ? (
+              <pre style={{ margin: 0, fontFamily: "ui-monospace, monospace", fontSize: "14px", color: "#e2e8f0", lineHeight: 1.7, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {notesPreparation}
+              </pre>
+            ) : (
+              <div style={{ fontSize: "14px", color: "#64748b", fontStyle: "italic" }}>Tu n'as pas pris de notes pendant la préparation.</div>
+            )}
+            <div style={{ marginTop: "16px", fontSize: "12px", color: "#475569", textAlign: "center" }}>Lecture seule — tu ne peux pas modifier tes notes pendant l'interaction</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
