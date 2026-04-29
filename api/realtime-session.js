@@ -383,11 +383,33 @@ ${variantes}
 Aucune autre information ne te sera donnée. Tu réponds aux questions du candidat selon ton rôle et ton bon sens.`.trim();
 }
 
-function buildSessionPayload(silenceDuration, systemPrompt) {
+function buildTurnDetection(examMode, silenceDuration = 2500) {
+  if (examMode === "examen_blanc") {
+    // Examen blanc — fidélité TCF réel : détection sémantique, pas de relance automatique
+    return {
+      type: "semantic_vad",
+      eagerness: "low",
+      create_response: false,
+      interrupt_response: false,
+    };
+  }
+  // Mode Entraînement — server_vad + idle_timeout pour relance automatique après 8s de silence
+  return {
+    type: "server_vad",
+    threshold: 0.5,
+    prefix_padding_ms: 300,
+    silence_duration_ms: silenceDuration,
+    idle_timeout_ms: 8000,
+    create_response: false,
+    interrupt_response: false,
+  };
+}
+
+function buildSessionPayload(examMode, silenceDuration, systemPrompt) {
   return {
     session: {
       type: "realtime",
-      model: "gpt-realtime",
+      model: "gpt-realtime-1.5",
       instructions: systemPrompt,
       output_modalities: ["audio"],
       max_output_tokens: "inf",
@@ -396,14 +418,7 @@ function buildSessionPayload(silenceDuration, systemPrompt) {
           noise_reduction: {
             type: "far_field",
           },
-          turn_detection: {
-            type: "server_vad",
-            threshold: 0.5,
-            prefix_padding_ms: 300,
-            silence_duration_ms: silenceDuration,
-            create_response: false,
-            interrupt_response: false,
-          },
+          turn_detection: buildTurnDetection(examMode, silenceDuration),
         },
         output: {
           voice: "marin",
@@ -433,12 +448,12 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body;
-    const silenceDuration = Number(body?.silenceDuration) || 1200;
+    const silenceDuration = Number(body?.silenceDuration) || 2500;
     const scenarioRow = body?.scenarioRow || null;
     const examMode = body?.examMode || "entrainement";
 
     const systemPrompt = buildSystemPrompt(scenarioRow, examMode);
-    const payload = buildSessionPayload(silenceDuration, systemPrompt);
+    const payload = buildSessionPayload(examMode, silenceDuration, systemPrompt);
 
     const openaiResponse = await fetch(OPENAI_REALTIME_URL, {
       method: "POST",

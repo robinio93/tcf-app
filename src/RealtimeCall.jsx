@@ -691,7 +691,7 @@ function RealtimeCall({ onBack = null }) {
   const [scenarios, setScenarios] = useState([]);
   const [scenariosLoaded, setScenariosLoaded] = useState(false);
   const [scenarioIndex, setScenarioIndex] = useState(0);
-  const [speechRate, setSpeechRate] = useState(""); // "" = non choisi | "slow" = 1800ms | "fast" = 1000ms
+  const [speechRate, setSpeechRate] = useState(""); // "" = non choisi | "slow" = 3500ms | "fast" = 2500ms
   const [showScenario, setShowScenario] = useState(
     () => typeof window !== "undefined" ? window.innerWidth >= 640 : true
   );
@@ -1035,6 +1035,16 @@ function RealtimeCall({ onBack = null }) {
       return;
     }
 
+    if (event.type === "input_audio_buffer.timeout_triggered") {
+      // API native : le candidat est silencieux depuis idle_timeout_ms (8s en mode Entraînement)
+      // → déclencher une relance de l'examinatrice via le SYSTEM_PROMPT existant
+      sendClientEvent({
+        type: "response.create",
+        response: { output_modalities: ["audio"] },
+      });
+      return;
+    }
+
     if (event.type === "input_audio_buffer.speech_stopped") {
       // Arrêter l'enregistrement local et réserver un slot dans le log
       const rec = speechRecorderRef.current;
@@ -1197,7 +1207,7 @@ function RealtimeCall({ onBack = null }) {
         throw new Error("Ce navigateur ne prend pas en charge l'acces micro.");
       }
 
-      const silenceDuration = speechRate === "fast" ? 1200 : 1800;
+      const silenceDuration = speechRate === "fast" ? 2500 : 3500;
       const clientSecret = await createRealtimeSession(silenceDuration, selectedScenario._raw ?? null, examMode);
 
       if (connectAttemptRef.current !== attemptId) {
