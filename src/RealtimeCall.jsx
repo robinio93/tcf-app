@@ -718,6 +718,9 @@ function RealtimeCall({ onBack = null }) {
   const speechBlobsRef = useRef([]);
   const callTimerRef = useRef(null);
   const callTimeAtHangUpRef = useRef(0);
+  const tempsDebutRef = useRef(null);
+  const candidateStartTimestampRef = useRef(null);
+  const examinerStartTimestampRef = useRef(null);
 
   const [callTime, setCallTime] = useState(0);
   const [debriefState, setDebriefState] = useState("idle");
@@ -765,20 +768,23 @@ function RealtimeCall({ onBack = null }) {
     return `${min}:${sec.toString().padStart(2, "0")}`;
   }
 
+  function getTimerMessage() {
+    const remaining = TASK2_MAX_TIME - callTime;
+    if (callTime < 60)  return { main: "Continuez à poser des questions", sub: "Visez 8 à 12 questions au total", color: "#7dd3fc" };
+    if (callTime < 120) return { main: "Continuez sur votre lancée", sub: "Couvrez tous les axes du scénario", color: "#7dd3fc" };
+    if (callTime < 180) return { main: "Encore quelques questions", sub: "Vous approchez du minimum conseillé (3 min)", color: "#86efac" };
+    if (callTime < 200) return { main: "Minimum atteint ✓", sub: "Continuez pour maximiser votre score", color: "#22c55e" };
+    if (remaining > 0)  return { main: "Concluez naturellement", sub: `L'examinateur va clôturer dans ${remaining}s`, color: "#f59e0b" };
+    return { main: "Session terminée", sub: "", color: "#94a3b8" };
+  }
+
   function getCallTimerColor() {
-    if (callTime >= TASK2_DANGER_TIME) return "#fb7185";
-    if (callTime >= TASK2_WARN_TIME) return "#f59e0b";
-    if (callTime >= TASK2_MIN_TIME) return "#22c55e";
-    return "#7dd3fc";
+    return getTimerMessage().color;
   }
 
   function getCallTimerLabel() {
-    if (callTime >= TASK2_MAX_TIME) return "Temps écoulé";
-    const remaining = TASK2_MAX_TIME - callTime;
-    if (callTime >= TASK2_DANGER_TIME) return `⚠️ ${remaining}s restantes`;
-    if (callTime >= TASK2_WARN_TIME) return "⚠️ 1 minute restante";
-    if (callTime >= TASK2_MIN_TIME) return "Minimum conseillé atteint ✓";
-    return "Minimum conseillé non atteint (3 min)";
+    const msg = getTimerMessage();
+    return msg.sub ? `${msg.main} — ${msg.sub}` : msg.main;
   }
 
   function getCallTimerProgress() {
@@ -862,6 +868,9 @@ function RealtimeCall({ onBack = null }) {
     }
     speechRecorderRef.current = null;
     currentSpeechChunksRef.current = [];
+    tempsDebutRef.current = null;
+    candidateStartTimestampRef.current = null;
+    examinerStartTimestampRef.current = null;
   }
 
   function closeRealtimeResources() {
@@ -990,6 +999,9 @@ function RealtimeCall({ onBack = null }) {
         return;
       }
 
+      candidateStartTimestampRef.current = tempsDebutRef.current
+        ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
+
       // Démarrer l'enregistrement local de ce tour candidat
       try {
         if (localStreamRef.current && !speechRecorderRef.current) {
@@ -1023,7 +1035,8 @@ function RealtimeCall({ onBack = null }) {
       if (rec && rec.state !== "inactive") {
         const slot = speechBlobsRef.current.length;
         speechBlobsRef.current.push(null); // réserver le slot
-        conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot });
+        conversationLogRef.current.push({ role: "candidate", text: "__pending__", _slot: slot, timestampSec: candidateStartTimestampRef.current ?? 0 });
+        candidateStartTimestampRef.current = null;
         rec.onstop = () => {
           const mime = rec.mimeType || "audio/webm";
           const blob = new Blob(currentSpeechChunksRef.current, { type: mime });
@@ -1060,6 +1073,8 @@ function RealtimeCall({ onBack = null }) {
     }
 
     if (event.type === "output_audio_buffer.started") {
+      examinerStartTimestampRef.current = tempsDebutRef.current
+        ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
       activeResponseRef.current = true;
       pendingExaminerTurnRef.current = false;
       clearReturnToUserTimer();
@@ -1114,7 +1129,9 @@ function RealtimeCall({ onBack = null }) {
       activeResponseRef.current = false;
       const examinerText = currentExaminerTranscriptRef.current.trim();
       if (examinerText) {
-        conversationLogRef.current.push({ role: "examiner", text: examinerText });
+        const tsExamEnd = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
+        conversationLogRef.current.push({ role: "examiner", text: examinerText, timestampSec: examinerStartTimestampRef.current ?? tsExamEnd, timestampEndSec: tsExamEnd });
+        examinerStartTimestampRef.current = null;
         currentExaminerTranscriptRef.current = "";
       }
       if (event.response?.status === "incomplete") {
@@ -1219,6 +1236,7 @@ function RealtimeCall({ onBack = null }) {
           // Démarrer le timer TCF tâche 2
           stopCallTimer();
           setCallTime(0);
+          tempsDebutRef.current = Date.now();
           let elapsed = 0;
           callTimerRef.current = setInterval(() => {
             elapsed += 1;
@@ -2137,39 +2155,34 @@ function RealtimeCall({ onBack = null }) {
                 padding: "28px",
               }}
             >
-              {conversationTranscript.map((turn, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom:
-                      index < conversationTranscript.length - 1 ? "18px" : 0,
-                    lineHeight: 1.7,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "14px",
-                      color:
-                        turn.role === "candidate" ? "#86efac" : "#7dd3fc",
-                    }}
-                  >
-                    {turn.role === "candidate"
-                      ? "🎓 Candidat"
-                      : "🎙️ Examinateur"}{" "}
-                    :
-                  </span>
-                  <span
-                    style={{
-                      color: turn._capture_failed || turn._whisper_failed ? "#fca5a5" : "#e2e8f0",
-                      fontStyle: turn._capture_failed || turn._whisper_failed ? "italic" : "normal",
-                      marginLeft: "8px",
-                    }}
-                  >
-                    {turn.text}
-                  </span>
-                </div>
-              ))}
+              {(() => {
+                const fmtTs = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+                const last = conversationTranscript[conversationTranscript.length - 1];
+                return (
+                  <>
+                    <div style={{ display: "flex", gap: "16px", padding: "8px 12px", background: "rgba(99,102,241,0.05)", borderRadius: "6px", marginBottom: "16px", fontSize: "12px", color: "#cbd5e1", flexWrap: "wrap" }}>
+                      <span>⏱️ Durée : {last?.timestampSec != null ? fmtTs(last.timestampSec) : "—"}</span>
+                      <span>🎙️ Examinateur : {conversationTranscript.filter(t => t.role === "examiner").length} interventions</span>
+                      <span>🎓 Candidat : {conversationTranscript.filter(t => t.role === "candidate").length} réponses</span>
+                    </div>
+                    {conversationTranscript.map((turn, index) => (
+                      <div key={index} style={{ marginBottom: index < conversationTranscript.length - 1 ? "18px" : 0, lineHeight: 1.7 }}>
+                        {turn.timestampSec != null && (
+                          <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#64748b", marginRight: "6px" }}>
+                            [{fmtTs(turn.timestampSec)}]
+                          </span>
+                        )}
+                        <span style={{ fontWeight: 800, fontSize: "14px", color: turn.role === "candidate" ? "#86efac" : "#7dd3fc" }}>
+                          {turn.role === "candidate" ? "🎓 Candidat" : "🎙️ Examinateur"}{" "}:
+                        </span>
+                        <span style={{ color: turn._capture_failed || turn._whisper_failed ? "#fca5a5" : "#e2e8f0", fontStyle: turn._capture_failed || turn._whisper_failed ? "italic" : "normal", marginLeft: "8px" }}>
+                          {turn.text}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
@@ -2236,6 +2249,23 @@ function RealtimeCall({ onBack = null }) {
                   </div>
                 )}
               </div>
+
+              {/* Bouton copier */}
+              {(() => {
+                const handleCopy = async () => {
+                  const s = debrief.scores || {};
+                  const lbl = { realisation_tache: "Réalisation de la tâche", lexique: "Lexique", grammaire: "Grammaire", fluidite_prononciation: "Fluidité & Prononciation", interaction_coherence: "Interaction & Cohérence" };
+                  const scoreLines = Object.entries(s).map(([k, v]) => `${lbl[k] || k} : ${v?.note ?? "—"}/4\n${v?.justification || ""}`).join("\n\n");
+                  const text = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${debrief.niveau_cecrl} — NCLC ${debrief.niveau_nclc} — ${debrief.total}/20\n\nRÉSUMÉ :\n${debrief.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(debrief.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(debrief.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== CONSEIL PRIORITAIRE ===\n${debrief.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${debrief.objectif_prochain_essai || ""}`;
+                  try { await navigator.clipboard.writeText(text); alert("Feedback copié dans le presse-papier !"); }
+                  catch { alert("Erreur lors de la copie. Sélectionne manuellement le texte."); }
+                };
+                return (
+                  <button onClick={handleCopy} style={{ padding: "8px 16px", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.4)", borderRadius: "6px", color: "#a5b4fc", fontSize: "13px", cursor: "pointer", marginBottom: "14px" }}>
+                    📋 Copier tout le feedback
+                  </button>
+                );
+              })()}
 
               {/* 2. Barres de score */}
               <div style={{ ...card, padding: "24px", marginBottom: "14px" }}>
