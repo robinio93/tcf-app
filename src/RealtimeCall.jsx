@@ -67,11 +67,6 @@ function adaptScenario(row) {
       ? row.points_a_penser.join(". ") + "."
       : row.consigne,
     prompts: Array.isArray(row.points_a_penser) ? row.points_a_penser : [],
-    openingInstruction: buildOpeningWithPhrases(roleDesc, row.phrases_accueil_examinateur),
-    followupInstruction:
-      `Tu joues ${roleDesc}. Scenario : ${row.consigne} ` +
-      pointsCles +
-      BASE_FOLLOWUP_RULES,
     _raw: row,
   };
 }
@@ -594,14 +589,14 @@ function extractClientSecret(payload) {
   return "";
 }
 
-async function createRealtimeSession(silenceDuration = 1200) {
+async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null) {
   let response;
 
   try {
     response = await fetch("/api/realtime-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ silenceDuration }),
+      body: JSON.stringify({ silenceDuration, scenarioRow }),
     });
   } catch {
     throw new Error(
@@ -970,10 +965,7 @@ function RealtimeCall({ onBack = null }) {
 
     sendClientEvent({
       type: "response.create",
-      response: {
-        output_modalities: ["audio"],
-        instructions: selectedScenario.openingInstruction,
-      },
+      response: { output_modalities: ["audio"] },
     });
   }
 
@@ -1056,10 +1048,7 @@ function RealtimeCall({ onBack = null }) {
       );
       sendClientEvent({
         type: "response.create",
-        response: {
-          output_modalities: ["audio"],
-          instructions: selectedScenario.followupInstruction,
-        },
+        response: { output_modalities: ["audio"] },
       });
       return;
     }
@@ -1186,7 +1175,7 @@ function RealtimeCall({ onBack = null }) {
       }
 
       const silenceDuration = speechRate === "fast" ? 1200 : 1800;
-      const clientSecret = await createRealtimeSession(silenceDuration);
+      const clientSecret = await createRealtimeSession(silenceDuration, selectedScenario._raw ?? null);
 
       if (connectAttemptRef.current !== attemptId) {
         return;
