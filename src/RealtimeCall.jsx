@@ -590,7 +590,7 @@ function extractClientSecret(payload) {
   return "";
 }
 
-async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null) {
+async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null, examMode = "entrainement") {
   let response;
 
   try {
@@ -1198,7 +1198,7 @@ function RealtimeCall({ onBack = null }) {
       }
 
       const silenceDuration = speechRate === "fast" ? 1200 : 1800;
-      const clientSecret = await createRealtimeSession(silenceDuration, selectedScenario._raw ?? null);
+      const clientSecret = await createRealtimeSession(silenceDuration, selectedScenario._raw ?? null, examMode);
 
       if (connectAttemptRef.current !== attemptId) {
         return;
