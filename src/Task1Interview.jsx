@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
+import ScoringLoader from "./components/ScoringLoader";
 import {
   IconArrowLeft, IconChevronUp, IconChevronDown, IconPhone,
   IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart, IconHourglass,
@@ -982,26 +983,18 @@ function Task1Interview({ onBack = null }) {
           }}
         >
           {/* ══ VUE TRAITEMENT POST-APPEL ══ */}
-          {!isConnecting && !isConnected && processingStep !== null && (() => {
+          {!isConnecting && !isConnected && processingStep === "analyzing" && (
+            <div ref={processingSectionRef}><ScoringLoader /></div>
+          )}
+          {!isConnecting && !isConnected && processingStep === "transcribing" && (() => {
             const msgPools = {
               transcribing: [
                 "📝 Transcription en cours...",
                 "🎙️ Conversion de votre voix en texte...",
                 "📋 On note tout ce que vous avez dit...",
               ],
-              analyzing: [
-                "🍁 Chargement du sirop d'érable...",
-                "🦫 Le castor analyse votre français...",
-                "🏒 Notre correcteur consulte le barème FEI...",
-                "📚 Comparaison avec les descripteurs CECRL...",
-                "🇨🇦 Évaluation rigoureuse en cours...",
-                "✍️ Rédaction de tes axes prioritaires...",
-                "💡 Préparation de tes conseils personnalisés...",
-                "🎯 Calcul de ton NCLC officiel...",
-                "📊 Mise en forme de ton plan d'action...",
-              ],
             };
-            const pool = msgPools[processingStep] || msgPools.analyzing;
+            const pool = msgPools[processingStep] || msgPools.transcribing;
             const currentMsg = pool[loadingMsgIndex % pool.length];
             return (
               <div ref={processingSectionRef} style={{ textAlign: "center", padding: "36px 16px" }}>

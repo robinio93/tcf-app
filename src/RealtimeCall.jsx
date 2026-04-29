@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
+import ScoringLoader from "./components/ScoringLoader";
 import {
   IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
   IconPhone, IconCheck, IconAlert, IconLightbulb, IconTarget,
@@ -596,7 +597,7 @@ async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null)
     response = await fetch("/api/realtime-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ silenceDuration, scenarioRow }),
+      body: JSON.stringify({ silenceDuration, scenarioRow, examMode }),
     });
   } catch {
     throw new Error(
@@ -733,6 +734,11 @@ function RealtimeCall({ onBack = null }) {
   const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [uiPhase, setUiPhase] = useState("intro"); // "intro" | "preparation" | "interaction"
+  const [examMode, setExamMode] = useState(() => {
+    const saved = typeof window !== "undefined" && localStorage.getItem("tcf_exam_mode");
+    return saved === "examen_blanc" ? "examen_blanc" : "entrainement";
+  });
+  const [toast, setToast] = useState(null);
   const [notesPreparation, setNotesPreparation] = useState("");
   const [preparationTimerSec, setPreparationTimerSec] = useState(120);
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -1593,7 +1599,11 @@ function RealtimeCall({ onBack = null }) {
               VUE TRAITEMENT POST-APPEL
           ══════════════════════════════════════════ */}
           {!isConnecting && !isConnected && processingStep !== null && (
-            <div ref={processingSectionRef} style={{ textAlign: "center", padding: "36px 16px" }}>
+            <div ref={processingSectionRef}>
+              {processingStep === "analyzing" ? (
+                <ScoringLoader />
+              ) : (
+              <div style={{ textAlign: "center", padding: "36px 16px" }}>
               <div style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
                 ⏳ Traitement de votre session...
               </div>
@@ -1645,6 +1655,8 @@ function RealtimeCall({ onBack = null }) {
                   </div>
                 ))}
               </div>
+            </div>
+              )}
             </div>
           )}
 
@@ -1915,6 +1927,29 @@ function RealtimeCall({ onBack = null }) {
                 </button>
               )}
 
+              {/* Sélecteur mode Entraînement / Examen blanc */}
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#475569", marginBottom: "10px" }}>Choisis ton mode</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  {[
+                    { key: "entrainement", icon: "🎓", label: "Entraînement", desc: "L'examinateur t'aide si tu te bloques", bullets: ["Relance si tu veux partir trop tôt", "Recommandé pour débuter", "Bienveillant"], border: "#4ade80", bg: "rgba(74,222,128,0.1)" },
+                    { key: "examen_blanc", icon: "🎯", label: "Examen blanc", desc: "Conditions réelles comme à l'examen", bullets: ["Pas de relance pédagogique", "Clôture immédiate si tu dis «merci»", "Calibrage strict"], border: "#fb7185", bg: "rgba(251,113,133,0.1)" },
+                  ].map(({ key, icon, label, desc, bullets, border, bg }) => (
+                    <button key={key} onClick={() => { setExamMode(key); localStorage.setItem("tcf_exam_mode", key); }}
+                      style={{ padding: "14px", borderRadius: "12px", cursor: "pointer", textAlign: "left", color: "#e2e8f0",
+                        border: examMode === key ? `2px solid ${border}` : "1px solid rgba(255,255,255,0.1)",
+                        background: examMode === key ? bg : "rgba(255,255,255,0.03)", transition: "all 0.2s ease" }}>
+                      <div style={{ fontSize: "20px", marginBottom: "6px" }}>{icon}</div>
+                      <div style={{ fontWeight: 700, marginBottom: "3px", fontSize: "14px" }}>{label}</div>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "6px" }}>{desc}</div>
+                      <div style={{ fontSize: "11px", color: "#cbd5e1", lineHeight: 1.6 }}>
+                        {bullets.map((b, i) => <div key={i}>✓ {b}</div>)}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Question rythme — obligatoire avant de démarrer */}
               <div
                 className={`pace-selector${!speechRate ? " pace-selector--needs-attention" : ""}`}
@@ -2013,6 +2048,9 @@ function RealtimeCall({ onBack = null }) {
                 </span>
                 <span style={{ fontSize: "15px", fontWeight: 600, color: "#94a3b8", flex: 1, lineHeight: 1.4 }}>
                   {selectedScenario.title}
+                </span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: examMode === "entrainement" ? "#4ade80" : "#fb7185", background: examMode === "entrainement" ? "rgba(74,222,128,0.1)" : "rgba(251,113,133,0.1)", border: `1px solid ${examMode === "entrainement" ? "rgba(74,222,128,0.3)" : "rgba(251,113,133,0.3)"}`, borderRadius: "999px", padding: "3px 8px", flexShrink: 0 }}>
+                  {examMode === "entrainement" ? "🎓 Entraînement" : "🎯 Examen blanc"}
                 </span>
                 {notesPreparation && (
                   <button
@@ -2250,20 +2288,32 @@ function RealtimeCall({ onBack = null }) {
                 )}
               </div>
 
-              {/* Bouton copier */}
+              {/* Boutons copier */}
               {(() => {
-                const handleCopy = async () => {
+                const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
+                const fmtTs = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+                const handleCopyFeedback = async () => {
                   const s = debrief.scores || {};
                   const lbl = { realisation_tache: "Réalisation de la tâche", lexique: "Lexique", grammaire: "Grammaire", fluidite_prononciation: "Fluidité & Prononciation", interaction_coherence: "Interaction & Cohérence" };
                   const scoreLines = Object.entries(s).map(([k, v]) => `${lbl[k] || k} : ${v?.note ?? "—"}/4\n${v?.justification || ""}`).join("\n\n");
-                  const text = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${debrief.niveau_cecrl} — NCLC ${debrief.niveau_nclc} — ${debrief.total}/20\n\nRÉSUMÉ :\n${debrief.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(debrief.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(debrief.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== CONSEIL PRIORITAIRE ===\n${debrief.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${debrief.objectif_prochain_essai || ""}`;
-                  try { await navigator.clipboard.writeText(text); alert("Feedback copié dans le presse-papier !"); }
-                  catch { alert("Erreur lors de la copie. Sélectionne manuellement le texte."); }
+                  const text = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${debrief.niveau_cecrl} — NCLC ${debrief.niveau_nclc} — ${debrief.total}/20\n\nRÉSUMÉ :\n${debrief.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(debrief.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(debrief.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n${debrief.correction_simple ? `=== RÉPONSE CORRIGÉE ===\n${debrief.correction_simple}\n\n` : ""}${debrief.version_amelioree?.texte ? `=== MODÈLE ${debrief.version_amelioree.niveau_cible || "NIVEAU SUP."} ===\n${debrief.version_amelioree.texte}\n\n` : ""}${debrief.phrases_utiles?.length ? `=== PHRASES UTILES ===\n${debrief.phrases_utiles.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n` : ""}=== CONSEIL PRIORITAIRE ===\n${debrief.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${debrief.objectif_prochain_essai || ""}`;
+                  try { await navigator.clipboard.writeText(text); showToast("✓ Feedback copié"); }
+                  catch { showToast("⚠️ Erreur copie"); }
                 };
+                const handleCopyTranscription = async () => {
+                  const last = conversationTranscript[conversationTranscript.length - 1];
+                  const totalSec = last?.timestampSec ?? 0;
+                  const lines = conversationTranscript.map(t => `${t.timestampSec != null ? `[${fmtTs(t.timestampSec)}] ` : ""}${t.role === "examiner" ? "🎙️ Examinateur" : "🎓 Candidat"} : ${t.text}`).join("\n\n");
+                  const text = `=== TRANSCRIPTION TCF SPEAKING AI ===\n\nTâche : 2\nScénario : ${selectedScenario?.title || ""}\nMode : ${examMode === "entrainement" ? "Entraînement" : "Examen blanc"}\nDurée : ${fmtTs(totalSec)}\n\n=== ÉCHANGE ===\n\n${lines}`;
+                  try { await navigator.clipboard.writeText(text); showToast("✓ Transcription copiée"); }
+                  catch { showToast("⚠️ Erreur copie"); }
+                };
+                const btnStyle = { padding: "8px 14px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", border: "1px solid rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.15)", color: "#a5b4fc", marginBottom: "14px" };
                 return (
-                  <button onClick={handleCopy} style={{ padding: "8px 16px", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.4)", borderRadius: "6px", color: "#a5b4fc", fontSize: "13px", cursor: "pointer", marginBottom: "14px" }}>
-                    📋 Copier tout le feedback
-                  </button>
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <button onClick={handleCopyFeedback} style={btnStyle}>📋 Copier le feedback</button>
+                    {conversationTranscript.length > 0 && <button onClick={handleCopyTranscription} style={btnStyle}>📄 Copier la transcription</button>}
+                  </div>
                 );
               })()}
 
@@ -2401,6 +2451,13 @@ function RealtimeCall({ onBack = null }) {
         playsInline
         style={{ display: "none" }}
       />
+
+      {/* Toast non-bloquant */}
+      {toast && (
+        <div style={{ position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)", padding: "12px 24px", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: "8px", color: "#86efac", fontSize: "14px", fontWeight: 500, zIndex: 1000 }}>
+          {toast}
+        </div>
+      )}
 
       {/* ══ MODALE MES NOTES ══ */}
       {showNotesModal && (

@@ -1,6 +1,6 @@
 const OPENAI_REALTIME_URL = "https://api.openai.com/v1/realtime/client_secrets";
 
-function buildSystemPrompt(scenarioRow) {
+function buildSystemPrompt(scenarioRow, examMode = "entrainement") {
   const role = (scenarioRow?.role_examinateur || "interlocuteur professionnel").trim();
   const consigne = (scenarioRow?.consigne || "").trim();
   const rawPhrases = scenarioRow?.phrases_accueil_examinateur;
@@ -137,7 +137,7 @@ C'est le système qui gère le temps (3 minutes 30 d'interaction). Tu n'anticipe
 
 Tu continues à répondre normalement aux questions tant que le système ne t'envoie pas d'instruction de clôture.
 
-EXCEPTION PÉDAGOGIQUE UNIQUE — RELANCE AVANT CLÔTURE PRÉCOCE :
+${examMode === "entrainement" ? `EXCEPTION PÉDAGOGIQUE UNIQUE — RELANCE AVANT CLÔTURE PRÉCOCE :
 Si le candidat tente de clôturer la conversation AVANT 2 minutes 30 d'échange (signaux : "merci", "au revoir", "j'ai fini", "c'est tout", "à bientôt", "on valide"), tu fais UNE seule relance pédagogique d'encouragement, pas une question.
 
 Formules de relance acceptables (utilise UNE de ces variantes, adaptée à ton rôle) :
@@ -148,7 +148,8 @@ Formules de relance acceptables (utilise UNE de ces variantes, adaptée à ton r
 Cette relance est UNIQUE — si le candidat insiste ("non, c'est bon", "vraiment c'est tout"), tu acceptes et tu prononces une phrase de clôture (Section 9).
 
 APRÈS 2 MINUTES 30 :
-Tu n'as plus à faire de relance. Si le candidat veut clôturer après 2:30, tu acceptes immédiatement avec une phrase de clôture (Section 9). C'est qu'il a fait l'effort, c'est OK.
+Tu n'as plus à faire de relance. Si le candidat veut clôturer après 2:30, tu acceptes immédiatement avec une phrase de clôture (Section 9). C'est qu'il a fait l'effort, c'est OK.` : `MODE EXAMEN BLANC — FIDÉLITÉ STRICTE :
+Si le candidat tente de clôturer (signaux : "merci", "au revoir", "j'ai fini", "c'est tout", "à bientôt", "on valide"), tu acceptes IMMÉDIATEMENT avec une phrase de clôture (Section 9). Aucune relance pédagogique. Aucune invitation à continuer. Tu respectes sa volonté de partir, comme à un vrai examen TCF.`}
 
 CLÔTURE FINALE (à 3:30) :
 Quand le système t'envoie l'instruction de clôture forcée (à 3:30), tu prononces UNE phrase de clôture parmi les 3 variantes verrouillées (Section 9), puis tu te tais.
@@ -302,8 +303,9 @@ export default async function handler(req, res) {
     const body = req.body;
     const silenceDuration = Number(body?.silenceDuration) || 1200;
     const scenarioRow = body?.scenarioRow || null;
+    const examMode = body?.examMode || "entrainement";
 
-    const systemPrompt = buildSystemPrompt(scenarioRow);
+    const systemPrompt = buildSystemPrompt(scenarioRow, examMode);
     const payload = buildSessionPayload(silenceDuration, systemPrompt);
 
     const openaiResponse = await fetch(OPENAI_REALTIME_URL, {
