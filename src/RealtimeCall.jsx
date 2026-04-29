@@ -11,10 +11,10 @@ const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
 const WAITING_ACTIVITY = "L'examinateur va vous accueillir...";
 
-const TASK2_MAX_TIME = 330; // 5 min 30 — durée officielle TCF Canada tâche 2
-const TASK2_MIN_TIME = 180; // 3 min — minimum évaluable
-const TASK2_WARN_TIME = 270; // 4 min 30 — 1 min restante → orange
-const TASK2_DANGER_TIME = 300; // 5 min — 30s restantes → rouge
+const TASK2_MAX_TIME = 210;    // 3 min 30 — interaction effective (la préparation 2 min est en amont)
+const TASK2_MIN_TIME = 120;    // 2 min — minimum évaluable
+const TASK2_WARN_TIME = 150;   // 2 min 30 — 1 min restante → orange
+const TASK2_DANGER_TIME = 180; // 3 min — 30s restantes → rouge
 const BASE_FOLLOWUP_RULES =
   "REGLES ABSOLUES DE L'EXAMINATEUR TCF — RESPECTE-LES SANS EXCEPTION : " +
   "1. RELANCES SYSTEMATIQUES : Apres CHAQUE reponse du candidat, pose une question de suivi directement liee a ce qu'il vient de dire. Ne laisse jamais une replique sans reactir ou sans poser une question complementaire. " +
@@ -1035,10 +1035,19 @@ function RealtimeCall({ onBack = null }) {
         rec.onstop = () => {
           const mime = rec.mimeType || "audio/webm";
           const blob = new Blob(currentSpeechChunksRef.current, { type: mime });
-          if (blob.size > 200) speechBlobsRef.current[slot] = blob;
+          // Garde même les blobs courts — Whisper peut transcrire une phrase de 1 mot
+          if (blob.size > 0) speechBlobsRef.current[slot] = blob;
         };
         rec.stop();
         speechRecorderRef.current = null;
+      } else {
+        // Recorder bloqué (micro verrouillé au moment de speech_started) :
+        // on garde trace de l'intervention pour ne pas fausser le scoring silencieusement
+        conversationLogRef.current.push({
+          role: "candidate",
+          text: "[intervention non capturée — micro bloqué]",
+          _capture_failed: true,
+        });
       }
 
       setMicrophoneEnabled(false);
@@ -1365,20 +1374,34 @@ function RealtimeCall({ onBack = null }) {
           const res = await fetch("/api/transcribe", { method: "POST", body: formData });
           if (res.ok) {
             const data = await res.json();
-            entry.text = (data.text || "").trim();
+            const transcribed = (data.text || "").trim();
+            if (transcribed) {
+              entry.text = transcribed;
+            } else {
+              entry.text = "[intervention non transcrite]";
+              entry._whisper_failed = true;
+            }
           }
         } catch {
-          entry.text = "";
+          entry.text = "[intervention non transcrite]";
+          entry._whisper_failed = true;
         }
       }
     }
 
     if (connectAttemptRef.current !== hangUpAttemptId) return;
 
-    // Nettoyer les métadonnées et supprimer les tours vides
+    // Nettoyer les métadonnées — conserver les placeholders, éliminer uniquement les vrais "__pending__"
     const cleanLog = rawLog
       .map(({ _slot, ...rest }) => rest)
       .filter((e) => e.text && e.text !== "__pending__");
+
+    // Avertissement si beaucoup d'interventions candidat n'ont pas été transcrites
+    const candidateTurns = cleanLog.filter(t => t.role === "candidate");
+    const failedTurns = candidateTurns.filter(t => t._capture_failed || t._whisper_failed);
+    if (candidateTurns.length > 0 && failedTurns.length / candidateTurns.length >= 0.3) {
+      console.warn(`[T2] ${failedTurns.length}/${candidateTurns.length} interventions candidat non transcrites — scoring basé sur un log partiel`);
+    }
 
     if (cleanLog.length > 0) {
       setConversationTranscript(cleanLog);
@@ -2149,7 +2172,8 @@ function RealtimeCall({ onBack = null }) {
                   </span>
                   <span
                     style={{
-                      color: "#e2e8f0",
+                      color: turn._capture_failed || turn._whisper_failed ? "#fca5a5" : "#e2e8f0",
+                      fontStyle: turn._capture_failed || turn._whisper_failed ? "italic" : "normal",
                       marginLeft: "8px",
                     }}
                   >
