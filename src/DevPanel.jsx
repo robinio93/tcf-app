@@ -319,6 +319,46 @@ export default function DevPanel() {
                   <span style={{ fontSize: "13px", color: "#e2e8f0" }}>{result.conseil_prioritaire}</span>
                 </div>
               )}
+
+              {/* correction_simple + version_amelioree (T2 spécifique) */}
+              {(result.correction_simple || result.version_amelioree?.texte) && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
+                  {result.correction_simple && (
+                    <div style={{ ...card }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#93c5fd", marginBottom: "8px" }}>Réponse corrigée</div>
+                      <div style={{ fontSize: "12px", color: "#e2e8f0", whiteSpace: "pre-wrap", lineHeight: 1.65 }}>{result.correction_simple}</div>
+                    </div>
+                  )}
+                  {result.version_amelioree?.texte && (
+                    <div style={{ ...card, borderColor: "rgba(139,92,246,0.3)" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 700, color: "#c4b5fd", marginBottom: "8px" }}>
+                        Modèle {result.version_amelioree.niveau_cible || "niveau supérieur"}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#ddd6fe", whiteSpace: "pre-wrap", lineHeight: 1.65 }}>{result.version_amelioree.texte}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* phrases_utiles (T2 spécifique) */}
+              {Array.isArray(result.phrases_utiles) && result.phrases_utiles.length > 0 && (
+                <div style={{ ...card }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#f9a8d4", marginBottom: "8px" }}>Phrases utiles</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 14px", color: "#e2e8f0", fontSize: "12px", lineHeight: 1.9, fontStyle: "italic" }}>
+                    {result.phrases_utiles.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {/* profil_detecte + seuil_express_atteint (T2 v4 spécifique) */}
+              {(result.profil_detecte || result.seuil_express_atteint != null) && (
+                <div style={{ fontSize: "12px", color: "#78716c", display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                  {result.profil_detecte && <span>Profil : <strong style={{ color: "#a5b4fc" }}>{result.profil_detecte}</strong></span>}
+                  {result.seuil_express_atteint != null && (
+                    <span>Seuil Entrée Express : <strong style={{ color: result.seuil_express_atteint ? "#4ade80" : "#fb7185" }}>{result.seuil_express_atteint ? "✅ Atteint" : "❌ Non atteint"}</strong></span>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
