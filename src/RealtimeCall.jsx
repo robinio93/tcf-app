@@ -1600,63 +1600,7 @@ function RealtimeCall({ onBack = null }) {
           ══════════════════════════════════════════ */}
           {!isConnecting && !isConnected && processingStep !== null && (
             <div ref={processingSectionRef}>
-              {processingStep === "analyzing" ? (
-                <ScoringLoader />
-              ) : (
-              <div style={{ textAlign: "center", padding: "36px 16px" }}>
-              <div style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, marginBottom: "6px", color: "#f1f5f9" }}>
-                ⏳ Traitement de votre session...
-              </div>
-              <div style={{ fontSize: "14px", color: "#475569", marginBottom: "36px" }}>
-                Cela prend généralement 5 à 10 secondes
-              </div>
-
-              <div style={{ maxWidth: "300px", marginInline: "auto", textAlign: "left" }}>
-                {[
-                  {
-                    label: "Transcription du dialogue",
-                    done: processingStep === "analyzing",
-                    active: processingStep === "transcribing",
-                  },
-                  {
-                    label: "Évaluation de votre performance",
-                    done: false,
-                    active: processingStep === "analyzing",
-                  },
-                  {
-                    label: "Génération du feedback personnalisé",
-                    done: false,
-                    active: processingStep === "analyzing",
-                  },
-                ].map(({ label, done, active }, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "14px",
-                      padding: "11px 0",
-                      borderBottom: i < 2 ? "1px solid rgba(148,163,184,0.08)" : "none",
-                      opacity: active || done ? 1 : 0.28,
-                      transition: "opacity 0.4s ease",
-                    }}
-                  >
-                    <span style={{ width: "24px", flexShrink: 0, display: "inline-flex", justifyContent: "center", color: done ? "#4ade80" : active ? "#93c5fd" : "#334155" }}>
-                      {done ? <IconCheck size={18} /> : active ? <IconHourglass size={18} /> : <span style={{ opacity: 0.3 }}>○</span>}
-                    </span>
-                    <span style={{
-                      fontSize: "14px",
-                      fontWeight: active ? 700 : 400,
-                      color: done ? "#4ade80" : active ? "#f1f5f9" : "#64748b",
-                      transition: "color 0.3s ease",
-                    }}>
-                      {label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-              )}
+              <ScoringLoader />
             </div>
           )}
 
@@ -2308,11 +2252,24 @@ function RealtimeCall({ onBack = null }) {
                   try { await navigator.clipboard.writeText(text); showToast("✓ Transcription copiée"); }
                   catch { showToast("⚠️ Erreur copie"); }
                 };
+                const handleCopyAll = async () => {
+                  const s = debrief.scores || {};
+                  const lbl = { realisation_tache: "Réalisation de la tâche", lexique: "Lexique", grammaire: "Grammaire", fluidite_prononciation: "Fluidité & Prononciation", interaction_coherence: "Interaction & Cohérence" };
+                  const scoreLines = Object.entries(s).map(([k, v]) => `${lbl[k] || k} : ${v?.note ?? "—"}/4\n${v?.justification || ""}`).join("\n\n");
+                  const feedbackText = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${debrief.niveau_cecrl} — NCLC ${debrief.niveau_nclc} — ${debrief.total}/20\n\nRÉSUMÉ :\n${debrief.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(debrief.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(debrief.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n${debrief.correction_simple ? `=== RÉPONSE CORRIGÉE ===\n${debrief.correction_simple}\n\n` : ""}${debrief.version_amelioree?.texte ? `=== MODÈLE ${debrief.version_amelioree.niveau_cible || "NIVEAU SUP."} ===\n${debrief.version_amelioree.texte}\n\n` : ""}${debrief.phrases_utiles?.length ? `=== PHRASES UTILES ===\n${debrief.phrases_utiles.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n` : ""}=== CONSEIL PRIORITAIRE ===\n${debrief.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${debrief.objectif_prochain_essai || ""}`;
+                  const last = conversationTranscript[conversationTranscript.length - 1];
+                  const lines = conversationTranscript.map(t => `${t.timestampSec != null ? `[${fmtTs(t.timestampSec)}] ` : ""}${t.role === "examiner" ? "🎙️ Examinateur" : "🎓 Candidat"} : ${t.text}`).join("\n\n");
+                  const transcriptionText = `\n\n=== TRANSCRIPTION ===\n\nScénario : ${selectedScenario?.title || ""}\nMode : ${examMode === "entrainement" ? "Entraînement" : "Examen blanc"}\nDurée : ${last?.timestampSec != null ? fmtTs(last.timestampSec) : "—"}\n\n${lines}`;
+                  try { await navigator.clipboard.writeText(feedbackText + transcriptionText); showToast("✓ Feedback + transcription copiés"); }
+                  catch { showToast("⚠️ Erreur copie"); }
+                };
                 const btnStyle = { padding: "8px 14px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", border: "1px solid rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.15)", color: "#a5b4fc", marginBottom: "14px" };
+                const btnStyleAll = { ...btnStyle, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.15)", color: "#c4b5fd" };
                 return (
                   <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <button onClick={handleCopyFeedback} style={btnStyle}>📋 Copier le feedback</button>
                     {conversationTranscript.length > 0 && <button onClick={handleCopyTranscription} style={btnStyle}>📄 Copier la transcription</button>}
+                    {conversationTranscript.length > 0 && <button onClick={handleCopyAll} style={btnStyleAll}>📋📋 Copier tout</button>}
                   </div>
                 );
               })()}
