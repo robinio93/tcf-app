@@ -1831,9 +1831,8 @@ function RealtimeCall({ onBack = null }) {
                   <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "999px", overflow: "hidden", marginBottom: "8px" }}>
                     <div style={{ width: `${getCallTimerProgress()}%`, height: "100%", background: callTime >= TASK2_DANGER_TIME ? "linear-gradient(90deg, #fb7185, #ef4444)" : callTime >= TASK2_WARN_TIME ? "linear-gradient(90deg, #f59e0b, #d97706)" : callTime >= TASK2_MIN_TIME ? "linear-gradient(90deg, #4ade80, #22c55e)" : "linear-gradient(90deg, #60a5fa, #3b82f6)", borderRadius: "999px" }} />
                   </div>
-                  {statusNote && debriefState !== "idle" && (
-                    <div style={{ fontSize: "13px", color: "#64748b", display: "flex", alignItems: "center", gap: "6px" }}>
-                      {debriefState === "analyzing" && <span>⏳</span>}
+                  {statusNote && debriefState !== "idle" && debriefState !== "analyzing" && (
+                    <div style={{ fontSize: "13px", color: "#64748b" }}>
                       {statusNote}
                     </div>
                   )}
@@ -2170,24 +2169,14 @@ function RealtimeCall({ onBack = null }) {
         </div>
       )}
 
-      {debriefState === "analyzing" && (
-        <div
-          style={{
-            marginTop: "16px",
-            borderRadius: "20px",
-            border: "1px solid rgba(148, 163, 184, 0.12)",
-            background: "rgba(15, 23, 42, 0.65)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            padding: "28px",
-            textAlign: "center",
-          }}
-        >
-          <div style={{ fontSize: "28px", fontWeight: 800, marginBottom: "8px" }}>
-            ⏳ Génération du débrief...
-          </div>
-          <div style={{ color: "#94a3b8", fontSize: "15px" }}>
-            Analyse de votre interaction en cours.
+      {debriefState === "analyzing" && conversationTranscript.length > 0 && (
+        <div style={{ marginTop: "16px", padding: "14px 20px", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: "12px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "18px" }}>✓</span>
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: 600, color: "#86efac" }}>Transcription disponible</div>
+            <button onClick={() => setShowTranscript(v => !v)} style={{ fontSize: "12px", color: "#86efac", background: "transparent", border: "none", padding: "2px 0", cursor: "pointer", textDecoration: "underline" }}>
+              {showTranscript ? "Masquer la transcription" : "Voir la transcription"}
+            </button>
           </div>
         </div>
       )}

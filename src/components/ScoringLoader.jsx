@@ -15,8 +15,8 @@ const LOADING_PHRASES = [
   "Votre feedback personnalisé est presque prêt...",
 ];
 
-// Path SVG de la feuille d'érable canadienne officielle à 11 pointes
-const MAPLE_PATH = "M50 95 L48 75 L30 78 L33 65 L18 60 L25 50 L15 42 L25 38 L20 25 L35 30 L38 18 L45 25 L50 10 L55 25 L62 18 L65 30 L80 25 L75 38 L85 42 L75 50 L82 60 L67 65 L70 78 L52 75 Z";
+// Path SVG feuille d'érable canadienne 11 pointes + tige centrale
+const MAPLE_PATH = "M 50,90 L 47,72 L 32,75 L 35,62 L 18,58 L 25,50 L 12,42 L 22,38 L 18,25 L 32,28 L 38,18 L 45,28 L 50,12 L 55,28 L 62,18 L 68,28 L 82,25 L 78,38 L 88,42 L 75,50 L 82,58 L 65,62 L 68,75 L 53,72 Z";
 
 function MapleLeafLoader({ progress }) {
   return (
@@ -35,12 +35,12 @@ function MapleLeafLoader({ progress }) {
         />
         <rect
           x="0"
-          y={100 - progress}
+          y="0"
           width="100"
           height={progress}
           fill="#dc2626"
           clipPath="url(#leafClip)"
-          style={{ transition: "y 0.3s ease, height 0.3s ease" }}
+          style={{ transition: "height 0.3s ease" }}
         />
       </svg>
       <div style={{
