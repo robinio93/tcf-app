@@ -325,10 +325,6 @@ function buildSessionPayload() {
           noise_reduction: {
             type: "far_field",
           },
-          input_audio_transcription: {
-            model: "gpt-4o-transcribe",
-            language: "fr",
-          },
           // T1 = server_vad avec silence_duration_ms fixe à 4000ms :
           // timing prévisible (4 sec de silence = examinateur intervient),
           // vs semantic_vad qui donnait des pauses imprévisibles (10-26 sec)

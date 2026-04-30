@@ -390,10 +390,6 @@ function buildSessionPayload(systemPrompt) {
           noise_reduction: {
             type: "far_field",
           },
-          input_audio_transcription: {
-            model: "gpt-4o-transcribe",
-            language: "fr",
-          },
           turn_detection: buildTurnDetection(),
         },
         output: {
