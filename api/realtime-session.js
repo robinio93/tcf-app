@@ -361,8 +361,11 @@ Aucune autre information ne te sera donnée. Tu réponds aux questions du candid
 
 function buildTurnDetection() {
   return {
-    type: "semantic_vad",
-    eagerness: "low",
+    type: "server_vad",
+    threshold: 0.5,
+    prefix_padding_ms: 300,
+    silence_duration_ms: 2500,
+    idle_timeout_ms: 25000,
     create_response: false,
     interrupt_response: false,
   };

@@ -720,6 +720,7 @@ function RealtimeCall({ onBack = null }) {
   const speechBlobsRef = useRef([]);
   const callTimerRef = useRef(null);
   const callTimeAtHangUpRef = useRef(0);
+  const hangupTriggeredRef = useRef(false);
   const tempsDebutRef = useRef(null);
   const candidateStartTimestampRef = useRef(null);
   const examinerStartTimestampRef = useRef(null);
@@ -755,6 +756,7 @@ function RealtimeCall({ onBack = null }) {
   }
 
   function handleStartInteraction() {
+    hangupTriggeredRef.current = false;
     setUiPhase("interaction");
     startCall();
   }
@@ -1038,11 +1040,9 @@ function RealtimeCall({ onBack = null }) {
     }
 
     if (event.type === "input_audio_buffer.timeout_triggered") {
-      // API native : timeout idle déclenché — demander une réponse à l'examinatrice
-      sendClientEvent({
-        type: "response.create",
-        response: { output_modalities: ["audio"] },
-      });
+      // Mode TCF strict : on ne déclenche AUCUNE relance.
+      // L'event est juste un keepalive pour empêcher la fermeture WebRTC.
+      // L'examinatrice reste silencieuse, le candidat doit reprendre seul.
       return;
     }
 
@@ -1267,20 +1267,30 @@ function RealtimeCall({ onBack = null }) {
         }
 
         if (nextState === "failed") {
-          setErrorMessage("La connexion WebRTC a echoue.");
-          setCallState("error");
-          setStatusNote("La connexion a echoue. Vous pouvez relancer un appel.");
-          stopCallTimer();
-          closeRealtimeResources();
+          if (uiPhase === "interaction" && conversationLogRef.current.length > 0 && !hangupTriggeredRef.current) {
+            hangupTriggeredRef.current = true;
+            hangUp();
+          } else {
+            setErrorMessage("La connexion WebRTC a echoue.");
+            setCallState("error");
+            setStatusNote("La connexion a echoue. Vous pouvez relancer un appel.");
+            stopCallTimer();
+            closeRealtimeResources();
+          }
           return;
         }
 
         if (nextState === "disconnected" || nextState === "closed") {
-          setCallState("idle");
-          setUserTurn("Appel termine.");
-          setStatusNote("Appel termine.");
-          stopCallTimer();
-          closeRealtimeResources();
+          if (uiPhase === "interaction" && conversationLogRef.current.length > 0 && !hangupTriggeredRef.current) {
+            hangupTriggeredRef.current = true;
+            hangUp();
+          } else {
+            setCallState("idle");
+            setUserTurn("Appel termine.");
+            setStatusNote("Appel termine.");
+            stopCallTimer();
+            closeRealtimeResources();
+          }
         }
       };
 
