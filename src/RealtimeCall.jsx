@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import ScoringLoader from "./components/ScoringLoader";
+import AxisChecklist from "./components/AxisChecklist";
 import {
   IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
   IconPhone, IconCheck, IconAlert, IconLightbulb, IconTarget,
@@ -590,14 +591,14 @@ function extractClientSecret(payload) {
   return "";
 }
 
-async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null, examMode = "entrainement") {
+async function createRealtimeSession(silenceDuration = 1200, scenarioRow = null) {
   let response;
 
   try {
     response = await fetch("/api/realtime-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ silenceDuration, scenarioRow, examMode }),
+      body: JSON.stringify({ silenceDuration, scenarioRow }),
     });
   } catch (err) {
     throw new Error(
@@ -734,10 +735,11 @@ function RealtimeCall({ onBack = null }) {
   const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [uiPhase, setUiPhase] = useState("intro"); // "intro" | "preparation" | "interaction"
-  const [examMode, setExamMode] = useState(() => {
-    const saved = typeof window !== "undefined" && localStorage.getItem("tcf_exam_mode");
-    return saved === "examen_blanc" ? "examen_blanc" : "entrainement";
+  const [helperMode, setHelperMode] = useState(() => {
+    const saved = typeof window !== "undefined" && localStorage.getItem("tcf_helper_mode");
+    return saved === "demarrer_froid" ? "demarrer_froid" : "voir_axes";
   });
+  const [showAxesPopup, setShowAxesPopup] = useState(false);
   const [toast, setToast] = useState(null);
   const [notesPreparation, setNotesPreparation] = useState("");
   const [preparationTimerSec, setPreparationTimerSec] = useState(120);
@@ -1036,8 +1038,7 @@ function RealtimeCall({ onBack = null }) {
     }
 
     if (event.type === "input_audio_buffer.timeout_triggered") {
-      // API native : le candidat est silencieux depuis idle_timeout_ms (8s en mode Entraînement)
-      // → déclencher une relance de l'examinatrice via le SYSTEM_PROMPT existant
+      // API native : timeout idle déclenché — demander une réponse à l'examinatrice
       sendClientEvent({
         type: "response.create",
         response: { output_modalities: ["audio"] },
@@ -1208,7 +1209,7 @@ function RealtimeCall({ onBack = null }) {
       }
 
       const silenceDuration = speechRate === "fast" ? 2500 : 3500;
-      const clientSecret = await createRealtimeSession(silenceDuration, selectedScenario._raw ?? null, examMode);
+      const clientSecret = await createRealtimeSession(silenceDuration, selectedScenario._raw ?? null);
 
       if (connectAttemptRef.current !== attemptId) {
         return;
@@ -1656,6 +1657,14 @@ function RealtimeCall({ onBack = null }) {
                 )}
               </div>
 
+              {/* Checklist axes — uniquement en mode voir_axes */}
+              {helperMode === "voir_axes" && (
+                <AxisChecklist
+                  axesScoring={selectedScenario?._raw?.points_cles_attendus || []}
+                  axesSuggestions={selectedScenario?.prompts || []}
+                />
+              )}
+
               {/* Textarea notes */}
               <div style={{ marginBottom: "16px" }}>
                 <div style={{ fontSize: "13px", fontWeight: 700, color: "#e2e8f0", marginBottom: "8px" }}>
@@ -1880,18 +1889,18 @@ function RealtimeCall({ onBack = null }) {
                 </button>
               )}
 
-              {/* Sélecteur mode Entraînement / Examen blanc */}
+              {/* Sélecteur Voir les axes / Démarrer à froid */}
               <div style={{ marginBottom: "16px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#475569", marginBottom: "10px" }}>Choisis ton mode</div>
+                <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#475569", marginBottom: "10px" }}>Choisis ton approche</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                   {[
-                    { key: "entrainement", icon: "🎓", label: "Entraînement", desc: "L'examinateur t'aide si tu te bloques", bullets: ["Relance si tu veux partir trop tôt", "Recommandé pour débuter", "Bienveillant"], border: "#4ade80", bg: "rgba(74,222,128,0.1)" },
-                    { key: "examen_blanc", icon: "🎯", label: "Examen blanc", desc: "Conditions réelles comme à l'examen", bullets: ["Pas de relance pédagogique", "Clôture immédiate si tu dis «merci»", "Calibrage strict"], border: "#fb7185", bg: "rgba(251,113,133,0.1)" },
+                    { key: "voir_axes", icon: "🎯", label: "Voir les axes", desc: "Mode pratique avec checklist", bullets: ["Liste des axes à couvrir", "Aide-mémoire pendant l'interaction", "Recommandé pour débuter"], border: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
+                    { key: "demarrer_froid", icon: "🚀", label: "Démarrer à froid", desc: "Mode expert sans aide", bullets: ["Conditions identiques à l'examen", "Pas de checklist", "Pour candidats expérimentés"], border: "#fb7185", bg: "rgba(251,113,133,0.1)" },
                   ].map(({ key, icon, label, desc, bullets, border, bg }) => (
-                    <button key={key} onClick={() => { setExamMode(key); localStorage.setItem("tcf_exam_mode", key); }}
+                    <button key={key} onClick={() => { setHelperMode(key); localStorage.setItem("tcf_helper_mode", key); }}
                       style={{ padding: "14px", borderRadius: "12px", cursor: "pointer", textAlign: "left", color: "#e2e8f0",
-                        border: examMode === key ? `2px solid ${border}` : "1px solid rgba(255,255,255,0.1)",
-                        background: examMode === key ? bg : "rgba(255,255,255,0.03)", transition: "all 0.2s ease" }}>
+                        border: helperMode === key ? `2px solid ${border}` : "1px solid rgba(255,255,255,0.1)",
+                        background: helperMode === key ? bg : "rgba(255,255,255,0.03)", transition: "all 0.2s ease" }}>
                       <div style={{ fontSize: "20px", marginBottom: "6px" }}>{icon}</div>
                       <div style={{ fontWeight: 700, marginBottom: "3px", fontSize: "14px" }}>{label}</div>
                       <div style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "6px" }}>{desc}</div>
@@ -2002,14 +2011,17 @@ function RealtimeCall({ onBack = null }) {
                 <span style={{ fontSize: "15px", fontWeight: 600, color: "#94a3b8", flex: 1, lineHeight: 1.4 }}>
                   {selectedScenario.title}
                 </span>
-                <span style={{ fontSize: "11px", fontWeight: 700, color: examMode === "entrainement" ? "#4ade80" : "#fb7185", background: examMode === "entrainement" ? "rgba(74,222,128,0.1)" : "rgba(251,113,133,0.1)", border: `1px solid ${examMode === "entrainement" ? "rgba(74,222,128,0.3)" : "rgba(251,113,133,0.3)"}`, borderRadius: "999px", padding: "3px 8px", flexShrink: 0 }}>
-                  {examMode === "entrainement" ? "🎓 Entraînement" : "🎯 Examen blanc"}
-                </span>
                 {notesPreparation && (
                   <button
                     onClick={() => setShowNotesModal(true)}
                     style={{ fontSize: "12px", fontWeight: 600, color: "#fbbf24", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "999px", padding: "3px 10px", flexShrink: 0, cursor: "pointer" }}
                   >📝 Mes notes</button>
+                )}
+                {helperMode === "voir_axes" && (
+                  <button
+                    onClick={() => setShowAxesPopup(true)}
+                    style={{ fontSize: "12px", fontWeight: 600, color: "#60a5fa", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.3)", borderRadius: "999px", padding: "3px 10px", flexShrink: 0, cursor: "pointer" }}
+                  >🎯 Mes axes</button>
                 )}
                 {isConnected && (
                   <span style={{ fontSize: "12px", fontWeight: 600, color: "#22c55e", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: "999px", padding: "3px 10px", flexShrink: 0 }}>
@@ -2247,7 +2259,7 @@ function RealtimeCall({ onBack = null }) {
                   const last = conversationTranscript[conversationTranscript.length - 1];
                   const totalSec = last?.timestampSec ?? 0;
                   const lines = conversationTranscript.map(t => `${t.timestampSec != null ? `[${fmtTs(t.timestampSec)}] ` : ""}${t.role === "examiner" ? "🎙️ Examinateur" : "🎓 Candidat"} : ${t.text}`).join("\n\n");
-                  const text = `=== TRANSCRIPTION TCF SPEAKING AI ===\n\nTâche : 2\nScénario : ${selectedScenario?.title || ""}\nMode : ${examMode === "entrainement" ? "Entraînement" : "Examen blanc"}\nDurée : ${fmtTs(totalSec)}\n\n=== ÉCHANGE ===\n\n${lines}`;
+                  const text = `=== TRANSCRIPTION TCF SPEAKING AI ===\n\nTâche : 2\nScénario : ${selectedScenario?.title || ""}\nDurée : ${fmtTs(totalSec)}\n\n=== ÉCHANGE ===\n\n${lines}`;
                   try { await navigator.clipboard.writeText(text); showToast("✓ Transcription copiée"); }
                   catch { showToast("⚠️ Erreur copie"); }
                 };
@@ -2258,7 +2270,7 @@ function RealtimeCall({ onBack = null }) {
                   const feedbackText = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${debrief.niveau_cecrl} — NCLC ${debrief.niveau_nclc} — ${debrief.total}/20\n\nRÉSUMÉ :\n${debrief.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(debrief.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(debrief.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n${debrief.correction_simple ? `=== RÉPONSE CORRIGÉE ===\n${debrief.correction_simple}\n\n` : ""}${debrief.version_amelioree?.texte ? `=== MODÈLE ${debrief.version_amelioree.niveau_cible || "NIVEAU SUP."} ===\n${debrief.version_amelioree.texte}\n\n` : ""}${debrief.phrases_utiles?.length ? `=== PHRASES UTILES ===\n${debrief.phrases_utiles.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n` : ""}=== CONSEIL PRIORITAIRE ===\n${debrief.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${debrief.objectif_prochain_essai || ""}`;
                   const last = conversationTranscript[conversationTranscript.length - 1];
                   const lines = conversationTranscript.map(t => `${t.timestampSec != null ? `[${fmtTs(t.timestampSec)}] ` : ""}${t.role === "examiner" ? "🎙️ Examinateur" : "🎓 Candidat"} : ${t.text}`).join("\n\n");
-                  const transcriptionText = `\n\n=== TRANSCRIPTION ===\n\nScénario : ${selectedScenario?.title || ""}\nMode : ${examMode === "entrainement" ? "Entraînement" : "Examen blanc"}\nDurée : ${last?.timestampSec != null ? fmtTs(last.timestampSec) : "—"}\n\n${lines}`;
+                  const transcriptionText = `\n\n=== TRANSCRIPTION ===\n\nScénario : ${selectedScenario?.title || ""}\nDurée : ${last?.timestampSec != null ? fmtTs(last.timestampSec) : "—"}\n\n${lines}`;
                   try { await navigator.clipboard.writeText(feedbackText + transcriptionText); showToast("✓ Feedback + transcription copiés"); }
                   catch { showToast("⚠️ Erreur copie"); }
                 };
@@ -2437,6 +2449,37 @@ function RealtimeCall({ onBack = null }) {
               <div style={{ fontSize: "14px", color: "#64748b", fontStyle: "italic" }}>Tu n'as pas pris de notes pendant la préparation.</div>
             )}
             <div style={{ marginTop: "16px", fontSize: "12px", color: "#475569", textAlign: "center" }}>Lecture seule — tu ne peux pas modifier tes notes pendant l'interaction</div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODALE MES AXES ══ */}
+      {showAxesPopup && (
+        <div
+          onClick={() => setShowAxesPopup(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "24px", maxWidth: "400px", width: "100%", maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "#e2e8f0" }}>🎯 Axes à couvrir</div>
+              <button onClick={() => setShowAxesPopup(false)} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+              {(selectedScenario?._raw?.points_cles_attendus || []).map((axis, idx) => (
+                <li key={idx} style={{ padding: "10px 12px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", color: "#cbd5e1", fontSize: "14px" }}>
+                  {axis}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setShowAxesPopup(false)}
+              style={{ marginTop: "16px", padding: "8px 16px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "#cbd5e1", cursor: "pointer", width: "100%", fontSize: "13px" }}
+            >
+              Fermer
+            </button>
           </div>
         </div>
       )}
