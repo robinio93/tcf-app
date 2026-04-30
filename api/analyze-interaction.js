@@ -44,14 +44,15 @@ function alignTotal(parsed) {
 }
 
 function totalToCecrlNclc(total) {
-  if (total <= 4)  return { cecrl: "A1",  nclc: 3 };
-  if (total <= 7)  return { cecrl: "A2",  nclc: 4 };
-  if (total <= 9)  return { cecrl: "B1",  nclc: 5 };
-  if (total <= 11) return { cecrl: "B1",  nclc: 6 };
-  if (total <= 13) return { cecrl: "B2",  nclc: 7 };
-  if (total <= 15) return { cecrl: "B2",  nclc: 8 };
-  if (total <= 17) return { cecrl: "C1",  nclc: 9 };
-  return             { cecrl: "C1",  nclc: 10 };
+  // Source : Manuel candidat FEI avril 2026, p.15 — seuil C1 à 14/20
+  if (total >= 16) return { cecrl: "C1", nclc: 10 };
+  if (total >= 14) return { cecrl: "C1", nclc: 9  };
+  if (total >= 12) return { cecrl: "B2", nclc: 8  };
+  if (total >= 10) return { cecrl: "B2", nclc: 7  };  // seuil Entrée Express
+  if (total >= 7)  return { cecrl: "B1", nclc: 6  };
+  if (total === 6) return { cecrl: "B1", nclc: 5  };
+  if (total >= 4)  return { cecrl: "A2", nclc: 4  };
+  return                   { cecrl: "A1", nclc: 3  };
 }
 
 function correctUniformScores(parsed) {
@@ -237,35 +238,35 @@ PROFIL 1 — Natif C1 audacieux
 
 PROFIL 2 — Natif C1 standard
 - Pose 8-10 questions, grammaire native sans erreur, quelques répétitions, relances correctes
-- Note attendue : 14-16/20 (NCLC 9)
+- Note attendue : 14-15/20 (NCLC 9)
 
 PROFIL 3 — Natif sous-développé
 - Pose 4-5 questions courtes, grammaire correcte mais peu varié, pas de relances
-- Note attendue : 10-12/20 (NCLC 7)
+- Note attendue : 10-11/20 (NCLC 7)
 
 PROFIL 4 — B2 standard
 - Pose 7-9 questions, grammaire correcte avec quelques erreurs, vocabulaire varié sauf domaine technique, relances simples
-- Note attendue : 12-14/20 (NCLC 8)
+- Note attendue : 12-13/20 (NCLC 8)
 
 PROFIL 5 — B2 limite
 - Pose 5-7 questions, erreurs grammaticales notables (genre, accord), vocabulaire de base, peu de relances
-- Note attendue : 10-12/20 (NCLC 7)
+- Note attendue : 10-11/20 (NCLC 7)
 
 PROFIL 6 — B1 standard
 - Pose 4-6 questions simples, erreurs récurrentes (conjugaison, accord), vocabulaire limité, hésitations marquées
-- Note attendue : 8-10/20 (NCLC 6)
+- Note attendue : 7-9/20 (NCLC 6)
 
 PROFIL 7 — B1 limite
 - Pose 3-4 questions, affirmations parfois au lieu de questions, erreurs grammaticales nombreuses, pas de relances
-- Note attendue : 7-9/20 (NCLC 5)
+- Note attendue : 6-7/20 (NCLC 5-6)
 
 PROFIL 8 — A2 standard
 - Pose 3-4 questions très simples, erreurs grammaticales systématiques, vocabulaire de survie, anglicismes fréquents
-- Note attendue : 5-7/20 (NCLC 4)
+- Note attendue : 4-5/20 (NCLC 4)
 
 PROFIL 9 — A2 typique (locuteur d'une autre langue)
 - Mélange de langues, erreurs d'accord systématiques (genre, pluriel), vocabulaire restreint, hésitations longues
-- Note attendue : 4-6/20 (NCLC 4)
+- Note attendue : 4-5/20 (NCLC 4)
 
 PROFIL 10 — Natif hors registre / humour absurde
 - Grammaire native parfaite mais réponses absurdes hors registre officiel, brisure possible du 4e mur
@@ -273,7 +274,7 @@ PROFIL 10 — Natif hors registre / humour absurde
 
 PROFIL 11 — Candidat affirmatif au lieu d'interrogatif
 - Niveau de langue B2-C1 mais fait des affirmations, pose moins de 3 vraies questions
-- Note attendue : 8-10/20 (NCLC 6) — pénalisation realisation_tache à 1-2/4
+- Note attendue : 7-9/20 (NCLC 6) — pénalisation realisation_tache à 1-2/4
 
 FORMAT DE SORTIE OBLIGATOIRE
 
