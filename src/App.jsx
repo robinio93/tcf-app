@@ -568,7 +568,7 @@ function App() {
     try {
       const formData = new FormData();
       formData.append("file", audioFile);
-      formData.append("model", "gpt-4o-mini-transcribe");
+      formData.append("model", "gpt-4o-transcribe");
 
       const tRes = await fetch("/api/transcribe", {
         method: "POST",

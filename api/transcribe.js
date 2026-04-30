@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     const file = Array.isArray(uploadedFile) ? uploadedFile[0] : uploadedFile;
     const modelField = Array.isArray(fields.model) ? fields.model[0] : fields.model;
-    const model = modelField || "gpt-4o-mini-transcribe";
+    const model = modelField || "gpt-4o-transcribe";
 
     const fileBuffer = fs.readFileSync(file.filepath);
 

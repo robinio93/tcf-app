@@ -1437,7 +1437,7 @@ function RealtimeCall({ onBack = null }) {
           const file = new File([blob], `tour_${entry._slot}.${ext}`, { type: blob.type });
           const formData = new FormData();
           formData.append("file", file);
-          formData.append("model", "gpt-4o-mini-transcribe");
+          formData.append("model", "gpt-4o-transcribe");
           const res = await fetch("/api/transcribe", { method: "POST", body: formData });
           if (res.ok) {
             const data = await res.json();
