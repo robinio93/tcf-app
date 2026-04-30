@@ -13,10 +13,25 @@ const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
 const WAITING_ACTIVITY = "L'examinateur va vous accueillir...";
 
-const TASK2_MAX_TIME = 210;    // 3 min 30 — interaction effective (la préparation 2 min est en amont)
-const TASK2_MIN_TIME = 120;    // 2 min — minimum évaluable
-const TASK2_WARN_TIME = 150;   // 2 min 30 — 1 min restante → orange
-const TASK2_DANGER_TIME = 180; // 3 min — 30s restantes → rouge
+const TASK2_MAX_TIME = 210;           // 3 min 30 — interaction effective (la préparation 2 min est en amont)
+const TASK2_MIN_TIME = 120;           // 2 min — minimum évaluable
+const TASK2_WARN_TIME = 150;          // 2 min 30 — 1 min restante → orange
+const TASK2_DANGER_TIME = 180;        // 3 min — 30s restantes → rouge
+const TASK2_CONCLUSION_SEND = 210;    // 3:30 — envoi instruction clôture forcée
+const TASK2_HARD_CUT = 225;           // 3:45 — hangUp si instruction ignorée
+const TASK2_ABSOLUTE_CUT = 240;       // 4:00 — filet ultime
+
+const PATTERNS_CLOTURE_T2 = [
+  // Variante A (Section 9 du SYSTEM_PROMPT)
+  /j'espère que ces informations vous aideront/i,
+  /n'hésitez pas à revenir vers nous/i,
+  // Variante B
+  /vous avez tout ce qu'il (vous |te )?faut/i,
+  // Variante C
+  /je vous en prie\.?\s*bonne journée/i,
+  // Filet commun aux 3 variantes
+  /bonne (continuation à vous|chance dans votre démarche)/i,
+];
 const BASE_FOLLOWUP_RULES =
   "REGLES ABSOLUES DE L'EXAMINATEUR TCF — RESPECTE-LES SANS EXCEPTION : " +
   "1. RELANCES SYSTEMATIQUES : Apres CHAQUE reponse du candidat, pose une question de suivi directement liee a ce qu'il vient de dire. Ne laisse jamais une replique sans reactir ou sans poser une question complementaire. " +
@@ -721,6 +736,8 @@ function RealtimeCall({ onBack = null }) {
   const callTimerRef = useRef(null);
   const callTimeAtHangUpRef = useRef(0);
   const hangupTriggeredRef = useRef(false);
+  const phaseT2Ref = useRef('idle');
+  const momentClotureT2Ref = useRef(null);
   const tempsDebutRef = useRef(null);
   const candidateStartTimestampRef = useRef(null);
   const examinerStartTimestampRef = useRef(null);
@@ -736,6 +753,7 @@ function RealtimeCall({ onBack = null }) {
   const [processingStep, setProcessingStep] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [uiPhase, setUiPhase] = useState("intro"); // "intro" | "preparation" | "interaction"
+  const [phaseT2, setPhaseT2] = useState('idle');  // 'idle'|'actif'|'conclusion_attendue'|'cloture_detectee'|'termine'
   const [helperMode, setHelperMode] = useState(() => {
     const saved = typeof window !== "undefined" && localStorage.getItem("tcf_helper_mode");
     return saved === "demarrer_froid" ? "demarrer_froid" : "voir_axes";
@@ -757,6 +775,9 @@ function RealtimeCall({ onBack = null }) {
 
   function handleStartInteraction() {
     hangupTriggeredRef.current = false;
+    phaseT2Ref.current = 'idle';
+    setPhaseT2('idle');
+    momentClotureT2Ref.current = null;
     setUiPhase("interaction");
     startCall();
   }
@@ -881,6 +902,15 @@ function RealtimeCall({ onBack = null }) {
     tempsDebutRef.current = null;
     candidateStartTimestampRef.current = null;
     examinerStartTimestampRef.current = null;
+  }
+
+  function envoyerInstructionClotureT2() {
+    sendClientEvent({
+      type: 'response.create',
+      response: {
+        instructions: "Le temps imparti pour cette interaction est écoulé. Conclus IMMÉDIATEMENT en prononçant UNE des 3 variantes de la Section 9 (A, B ou C) adaptée à ton rôle. Une seule phrase courte. Puis tu ne génères plus aucun audio.",
+      },
+    });
   }
 
   function closeRealtimeResources() {
@@ -1149,6 +1179,17 @@ function RealtimeCall({ onBack = null }) {
         const tsExamEnd = tempsDebutRef.current ? Math.floor((Date.now() - tempsDebutRef.current) / 1000) : 0;
         conversationLogRef.current.push({ role: "examiner", text: examinerText, timestampSec: examinerStartTimestampRef.current ?? tsExamEnd, timestampEndSec: tsExamEnd });
         examinerStartTimestampRef.current = null;
+
+        // ── Détection clôture T2 ──
+        const phase = phaseT2Ref.current;
+        if (phase === 'actif' || phase === 'conclusion_attendue') {
+          if (PATTERNS_CLOTURE_T2.some(p => p.test(examinerText))) {
+            momentClotureT2Ref.current = Date.now();
+            phaseT2Ref.current = 'cloture_detectee';
+            setPhaseT2('cloture_detectee');
+          }
+        }
+
         currentExaminerTranscriptRef.current = "";
       }
       if (event.response?.status === "incomplete") {
@@ -1250,19 +1291,11 @@ function RealtimeCall({ onBack = null }) {
           setCallState("connected");
           setStatusNote("Connexion active. La conversation vocale est en cours.");
 
-          // Démarrer le timer TCF tâche 2
           stopCallTimer();
           setCallTime(0);
           tempsDebutRef.current = Date.now();
-          let elapsed = 0;
-          callTimerRef.current = setInterval(() => {
-            elapsed += 1;
-            setCallTime(elapsed);
-            if (elapsed >= TASK2_MAX_TIME) {
-              stopCallTimer();
-              hangUp();
-            }
-          }, 1000);
+          phaseT2Ref.current = 'actif';
+          setPhaseT2('actif');
           return;
         }
 
@@ -1576,6 +1609,53 @@ function RealtimeCall({ onBack = null }) {
       }, 100);
     }
   }, [debriefState]);
+
+  // ── Timer T2 piloté par phases (calque T1) ──
+  useEffect(() => {
+    if (phaseT2 === 'idle' || phaseT2 === 'termine') return;
+    if (!tempsDebutRef.current) return;
+
+    const intervalle = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - tempsDebutRef.current) / 1000);
+      setCallTime(elapsed);
+
+      if (phaseT2Ref.current === 'actif') {
+        if (elapsed >= TASK2_CONCLUSION_SEND) {
+          phaseT2Ref.current = 'conclusion_attendue';
+          setPhaseT2('conclusion_attendue');
+          envoyerInstructionClotureT2();
+        }
+        return;
+      }
+
+      if (phaseT2Ref.current === 'conclusion_attendue') {
+        if (elapsed >= TASK2_HARD_CUT) {
+          phaseT2Ref.current = 'termine';
+          setPhaseT2('termine');
+          hangUp();
+        }
+        return;
+      }
+
+      if (phaseT2Ref.current === 'cloture_detectee') {
+        const tempsDepuisCloture = momentClotureT2Ref.current
+          ? (Date.now() - momentClotureT2Ref.current) / 1000 : 0;
+        if (tempsDepuisCloture >= 2) {
+          phaseT2Ref.current = 'termine';
+          setPhaseT2('termine');
+          hangUp();
+          return;
+        }
+        if (elapsed >= TASK2_ABSOLUTE_CUT) {
+          phaseT2Ref.current = 'termine';
+          setPhaseT2('termine');
+          hangUp();
+        }
+      }
+    }, 200);
+
+    return () => clearInterval(intervalle);
+  }, [phaseT2]);
 
   useEffect(() => {
     return () => {
