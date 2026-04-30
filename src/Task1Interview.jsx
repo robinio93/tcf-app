@@ -502,7 +502,11 @@ function Task1Interview({ onBack = null }) {
       setDernierMomentParole(Date.now());
       activeResponseRef.current = false;
       pendingExaminerTurnRef.current = false;
-      if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'conclusion_attendue') {
+      if (phaseEntretienRef.current === 'cloture_detectee') {
+        // L'audio de la phrase de clôture vient de finir — démarre le délai de grâce de 2s
+        // depuis ici plutôt que depuis response.done, pour éviter la coupure en cours de phrase.
+        momentClotureDetecteeRef.current = Date.now();
+      } else if (phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'conclusion_attendue') {
         setMicrophoneEnabled(true);
         scheduleUserTurn("Votre tour. Repondez a la question.");
       }
