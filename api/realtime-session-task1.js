@@ -322,7 +322,7 @@ function buildSessionPayload() {
   return {
     session: {
       type: "realtime",
-      model: "gpt-realtime-1.5",
+      model: "gpt-realtime",
       instructions: SESSION_INSTRUCTIONS,
       output_modalities: ["audio"],
       max_output_tokens: "inf",
