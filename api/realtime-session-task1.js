@@ -333,6 +333,7 @@ function buildSessionPayload() {
             threshold: 0.5,
             prefix_padding_ms: 300,
             silence_duration_ms: 2500,
+            idle_timeout_ms: 25000,    // keepalive WebRTC — évite la mort silencieuse à ~30s
             create_response: false,
             interrupt_response: false,
           },

@@ -184,6 +184,7 @@ function Task1Interview({ onBack = null }) {
   const speechBlobsRef = useRef([]);
   const callTimerRef = useRef(null);
   const callTimeAtHangUpRef = useRef(0);
+  const hangupTriggeredRef = useRef(false);
 
   const [callTime, setCallTime] = useState(0);
   const [debriefState, setDebriefState] = useState("idle");
@@ -377,6 +378,13 @@ function Task1Interview({ onBack = null }) {
   function handleServerEvent(event) {
     if (!event || typeof event.type !== "string") return;
 
+    if (event.type === "input_audio_buffer.timeout_triggered") {
+      // Mode TCF strict : on ne déclenche AUCUNE relance.
+      // L'event est juste un keepalive pour empêcher la fermeture WebRTC.
+      // L'examinateur reste silencieux, le candidat reste maître du timing.
+      return;
+    }
+
     if (event.type === "session.created") {
       sessionReadyRef.current = true;
       maybeStartAssistantGreeting();
@@ -549,6 +557,7 @@ function Task1Interview({ onBack = null }) {
   async function startCall() {
     if (isConnecting || isConnected) return;
 
+    hangupTriggeredRef.current = false;
     const attemptId = connectAttemptRef.current + 1;
     connectAttemptRef.current = attemptId;
 
@@ -619,20 +628,30 @@ function Task1Interview({ onBack = null }) {
         }
 
         if (nextState === "failed") {
-          setErrorMessage("La connexion WebRTC a echoue.");
-          setCallState("error");
-          setStatusNote("La connexion a echoue. Vous pouvez relancer un entretien.");
-          stopCallTimer();
-          closeRealtimeResources();
+          if ((phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'conclusion_attendue') && conversationLogRef.current.length > 0 && !hangupTriggeredRef.current) {
+            hangupTriggeredRef.current = true;
+            hangUp();
+          } else {
+            setErrorMessage("La connexion WebRTC a echoue.");
+            setCallState("error");
+            setStatusNote("La connexion a echoue. Vous pouvez relancer un entretien.");
+            stopCallTimer();
+            closeRealtimeResources();
+          }
           return;
         }
 
         if (nextState === "disconnected" || nextState === "closed") {
-          setCallState("idle");
-          setUserTurn("Entretien termine.");
-          setStatusNote("Entretien termine.");
-          stopCallTimer();
-          closeRealtimeResources();
+          if ((phaseEntretienRef.current === 'actif' || phaseEntretienRef.current === 'conclusion_attendue') && conversationLogRef.current.length > 0 && !hangupTriggeredRef.current) {
+            hangupTriggeredRef.current = true;
+            hangUp();
+          } else {
+            setCallState("idle");
+            setUserTurn("Entretien termine.");
+            setStatusNote("Entretien termine.");
+            stopCallTimer();
+            closeRealtimeResources();
+          }
         }
       };
 

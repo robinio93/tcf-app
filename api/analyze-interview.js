@@ -48,15 +48,15 @@ function correctUniformScores(parsed) {
 }
 
 function totalToCecrlNclc(total) {
-  if (total < 4)   return { cecrl: "A1",    nclc: 2  };
-  if (total <= 5)  return { cecrl: "A2",    nclc: 4  };
-  if (total === 6) return { cecrl: "B1",    nclc: 5  };
-  if (total <= 9)  return { cecrl: "B1",    nclc: 6  };
-  if (total <= 11) return { cecrl: "B2",    nclc: 7  };
-  if (total <= 13) return { cecrl: "B2",    nclc: 8  };
-  if (total <= 15) return { cecrl: "C1",    nclc: 9  };
-  if (total <= 17) return { cecrl: "C1-C2", nclc: 10 };
-  return             { cecrl: "C2",    nclc: 11 };
+  // Source : Manuel candidat FEI avril 2026, p.15
+  if (total < 4)   return { cecrl: "A1", nclc: 3  };  // corrigé : NCLC 3 (pas 2)
+  if (total <= 5)  return { cecrl: "A2", nclc: 4  };
+  if (total === 6) return { cecrl: "B1", nclc: 5  };
+  if (total <= 9)  return { cecrl: "B1", nclc: 6  };
+  if (total <= 11) return { cecrl: "B2", nclc: 7  };
+  if (total <= 13) return { cecrl: "B2", nclc: 8  };
+  if (total <= 15) return { cecrl: "C1", nclc: 9  };
+  return             { cecrl: "C1", nclc: 10 };        // simplifié : 16-20 = C1 NCLC 10
 }
 
 // ── Prompt système Claude (FEI — Tâche 1 Entretien dirigé) ────────────────
@@ -66,6 +66,20 @@ const SYSTEM_PROMPT = `TON RÔLE
 Tu es un correcteur certifié par France Éducation International (FEI) qui évalue la Tâche 1 du TCF Canada — Expression Orale (entretien dirigé). Ton évaluation a un impact direct sur la vie du candidat : ses points d'immigration au programme Entrée Express dépendent de sa note.
 
 Tu es rigoureux mais juste. Tu utilises le tutoiement canadien dans tes feedbacks (chaleureux mais professionnel). Tu ne sur-notes jamais par bienveillance. Tu ne sous-notes jamais par excès de sévérité. Ta mission : donner la note que mettrait un correcteur FEI réel, et un feedback qui aide réellement le candidat à progresser.
+
+GRILLE OFFICIELLE FEI — TOTAL → CECRL → NCLC
+(Source : Manuel candidat FEI avril 2026, p.15)
+
+  16-20/20 → C1 → NCLC 10
+  14-15/20 → C1 → NCLC 9
+  12-13/20 → B2 → NCLC 8
+  10-11/20 → B2 → NCLC 7  ← seuil Entrée Express
+  7-9/20   → B1 → NCLC 6
+  6/20     → B1 → NCLC 5
+  4-5/20   → A2 → NCLC 4
+  0-3/20   → A1 → NCLC 3
+
+COHÉRENCE OBLIGATOIRE — Ton champ resume_niveau DOIT être cohérent avec niveau_cecrl et niveau_nclc. Exemples : si le total est 14-15/20, tu dois écrire "niveau C1" et "NCLC 9" dans le résumé, jamais "B2 NCLC 8". Si le total est 10-11/20, tu dois écrire "B2 NCLC 7", jamais "B1 NCLC 6". Vérifie cette cohérence avant de finaliser ta réponse.
 
 CONTEXTE OFFICIEL — DÉFINITION DE LA TÂCHE 1
 
