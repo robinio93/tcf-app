@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import ScoringLoader from "./components/ScoringLoader";
+import EmailOptIn from "./components/EmailOptIn";
 import {
   IconArrowLeft, IconChevronUp, IconChevronDown, IconPhone,
   IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart, IconHourglass,
@@ -156,7 +157,7 @@ function ConsigneTcfDeroulement() {
   );
 }
 
-function Task1Interview({ onBack = null }) {
+function Task1Interview({ onBack = null, betaCode = null }) {
   const [callState, setCallState] = useState("idle");
   const [activity, setActivity] = useState(USER_ACTIVITY);
   const [errorMessage, setErrorMessage] = useState("");
@@ -840,9 +841,13 @@ function Task1Interview({ onBack = null }) {
         niveau_nclc: parsed.niveau_nclc,
         feedback_complet: parsed,
         duree_secondes: duration > 0 ? duration : null,
+        beta_code: betaCode || null,
       }]).then(({ error }) => {
         if (error) console.error("Supabase sessions insert error:", error);
       });
+      if (betaCode && betaCode !== "DEV-MODE") {
+        supabase.rpc("increment_beta_sessions", { p_code: betaCode }).then(() => {});
+      }
     } catch (e) {
       console.error("Debrief error:", e);
       setDebriefState("idle");
@@ -1600,7 +1605,10 @@ function Task1Interview({ onBack = null }) {
                     </div>
                   )}
 
-                  {/* 8. Nouvel essai */}
+                  {/* 8. Email opt-in après 1ère session */}
+                  <EmailOptIn code={betaCode} />
+
+                  {/* 9. Nouvel essai */}
                   <button
                     className="btn-ghost"
                     onClick={() => {

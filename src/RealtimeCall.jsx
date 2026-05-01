@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import ScoringLoader from "./components/ScoringLoader";
 import AxisChecklist from "./components/AxisChecklist";
+import EmailOptIn from "./components/EmailOptIn";
 import {
   IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
   IconPhone, IconCheck, IconAlert, IconLightbulb, IconTarget,
@@ -700,7 +701,7 @@ function EncartTcfT2() {
   );
 }
 
-function RealtimeCall({ onBack = null }) {
+function RealtimeCall({ onBack = null, betaCode = null }) {
   const [callState, setCallState] = useState("idle");
   const [activity, setActivity] = useState(WAITING_ACTIVITY);
   const [errorMessage, setErrorMessage] = useState("");
@@ -1561,9 +1562,13 @@ function RealtimeCall({ onBack = null }) {
         niveau_nclc: parsed.niveau_nclc,
         feedback_complet: parsed,
         duree_secondes: callTime > 0 ? callTime : null,
+        beta_code: betaCode || null,
       }]).then(({ error }) => {
         if (error) console.error("Supabase sessions insert error:", error);
       });
+      if (betaCode && betaCode !== "DEV-MODE") {
+        supabase.rpc("increment_beta_sessions", { p_code: betaCode }).then(() => {});
+      }
     } catch (e) {
       console.error("Debrief error:", e);
       setDebriefState("idle");
@@ -2487,7 +2492,10 @@ function RealtimeCall({ onBack = null }) {
                 </div>
               )}
 
-              {/* 8. Bouton Nouvel essai */}
+              {/* 8. Email opt-in après 1ère session */}
+              <EmailOptIn code={betaCode} />
+
+              {/* 9. Bouton Nouvel essai */}
               <button
                 className="btn-ghost"
                 onClick={() => { setDebrief(null); setDebriefState("idle"); setConversationTranscript([]); setShowTranscript(false); setExpandedScore(null); }}

@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import RealtimeCall from "./RealtimeCall";
 import Task1Interview from "./Task1Interview";
 import DevPanel from "./DevPanel";
+import BetaAccess from "./BetaAccess";
+import Onboarding from "./Onboarding";
+import EmailOptIn from "./components/EmailOptIn";
 import { supabase } from "./lib/supabase";
 import {
   IconChoose, IconSpeak, IconChart,
@@ -41,6 +44,10 @@ function App() {
   // null | "transcribing" | "analyzing"
   const [t3ProcessingStep, setT3ProcessingStep] = useState(null);
   const [toast, setToast] = useState(null);
+  const [betaState, setBetaState] = useState("checking"); // "checking"|"needs_code"|"needs_onboarding"|"ready"
+  const [betaCode, setBetaCode] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("tcf_beta_code") : null
+  );
 
   const mediaRecorderRef = useRef(null);
   const resultRef = useRef(null);
@@ -75,6 +82,41 @@ function App() {
       }
     }
     loadTask3Subjects();
+  }, []);
+
+  useEffect(() => {
+    async function checkBeta() {
+      if (isDevMode) {
+        localStorage.setItem("tcf_beta_code", "DEV-MODE");
+        setBetaCode("DEV-MODE");
+        setBetaState("ready");
+        return;
+      }
+      const stored = localStorage.getItem("tcf_beta_code");
+      if (!stored) { setBetaState("needs_code"); return; }
+
+      const { data, error } = await supabase
+        .from("beta_testers")
+        .select("code, onboarding_completed_at")
+        .eq("code", stored)
+        .maybeSingle();
+
+      if (error || !data) {
+        localStorage.removeItem("tcf_beta_code");
+        localStorage.removeItem("tcf_beta_profile");
+        setBetaCode(null);
+        setBetaState("needs_code");
+        return;
+      }
+
+      setBetaCode(stored);
+      if (!data.onboarding_completed_at) {
+        setBetaState("needs_onboarding");
+      } else {
+        setBetaState("ready");
+      }
+    }
+    checkBeta();
   }, []);
 
   useEffect(() => {
@@ -337,32 +379,6 @@ function App() {
     return "Niveau A1 — travail ciblé nécessaire";
   }
 
-  async function saveAttempt({ transcript, normalizedFeedback }) {
-    try {
-      const totalScore =
-        typeof normalizedFeedback?.total === "number"
-          ? normalizedFeedback.total
-          : null;
-
-      const levelValue = normalizedFeedback?.niveau_cecrl || null;
-
-      const { error } = await supabase.from("attempts").insert([
-        {
-          transcript,
-          score: totalScore,
-          level: levelValue,
-          feedback: normalizedFeedback,
-        },
-      ]);
-
-      if (error) {
-        console.error("SUPABASE SAVE ERROR:", error);
-      }
-    } catch (error) {
-      console.error("SUPABASE SAVE CATCH:", error);
-    }
-  }
-
   async function analyserTexte(texte, duree) {
     try {
       const cleanText = String(texte || "").trim();
@@ -445,12 +461,7 @@ function App() {
       setFeedback(normalized);
       setNiveau(normalized.niveau_cecrl);
 
-      await saveAttempt({
-        transcript: cleanText,
-        normalizedFeedback: normalized,
-      });
-
-      // Sauvegarde session Supabase (anonyme, best-effort)
+      // Sauvegarde session Supabase
       supabase.from("sessions").insert([{
         tache: 3,
         sujet: subjectAtRecordingRef.current?.sujet ?? sujet,
@@ -461,9 +472,15 @@ function App() {
         niveau_nclc: normalized.niveau_nclc,
         feedback_complet: normalized,
         duree_secondes: durationSec,
+        beta_code: betaCode || null,
       }]).then(({ error }) => {
         if (error) console.error("Supabase sessions insert error:", error);
       });
+
+      // Incrémenter compteur beta
+      if (betaCode && betaCode !== "DEV-MODE") {
+        supabase.rpc("increment_beta_sessions", { p_code: betaCode }).then(() => {});
+      }
 
       setT3ProcessingStep(null);
       setStatus("result");
@@ -611,6 +628,33 @@ function App() {
 
   const statusConfig = getStatusConfig();
   const SHOW_REALTIME_TEST = true;
+
+  // ── Gate bêta ──────────────────────────────────────────────────────────────
+  if (betaState === "checking") {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#475569", fontSize: "14px" }}>Chargement...</div>
+      </div>
+    );
+  }
+  if (betaState === "needs_code") {
+    return (
+      <BetaAccess
+        onSuccess={(code, data) => {
+          setBetaCode(code);
+          if (!data?.onboarding_completed_at) {
+            setBetaState("needs_onboarding");
+          } else {
+            setBetaState("ready");
+          }
+        }}
+      />
+    );
+  }
+  if (betaState === "needs_onboarding") {
+    return <Onboarding code={betaCode} onComplete={() => setBetaState("ready")} />;
+  }
+  // ── Fin gate bêta ──────────────────────────────────────────────────────────
 
   if (SHOW_REALTIME_TEST && appMode === "chooser") {
     return (
@@ -819,7 +863,7 @@ function App() {
     return (
       <>
         {isDevMode && <DevPanel />}
-        <Task1Interview onBack={() => setAppMode("chooser")} />
+        <Task1Interview onBack={() => setAppMode("chooser")} betaCode={betaCode} />
       </>
     );
   }
@@ -828,7 +872,7 @@ function App() {
     return (
       <>
         {isDevMode && <DevPanel />}
-        <RealtimeCall onBack={() => setAppMode("chooser")} />
+        <RealtimeCall onBack={() => setAppMode("chooser")} betaCode={betaCode} />
       </>
     );
   }
@@ -1427,7 +1471,10 @@ function App() {
                 </div>
               )}
 
-              {/* ── 8. Bouton Nouvel essai ── */}
+              {/* ── 8. Email opt-in après 1ère session ── */}
+              <EmailOptIn code={betaCode} />
+
+              {/* ── 9. Bouton Nouvel essai ── */}
               <button
                 className="btn-ghost"
                 onClick={resetVisualResultOnly}
