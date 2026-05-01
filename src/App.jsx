@@ -40,6 +40,7 @@ function App() {
   const [expandedScore, setExpandedScore] = useState(null);
   // null | "transcribing" | "analyzing"
   const [t3ProcessingStep, setT3ProcessingStep] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const resultRef = useRef(null);
@@ -835,6 +836,11 @@ function App() {
   return (
     <>
       {isDevMode && <DevPanel />}
+      {toast && (
+        <div style={{ position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)", padding: "12px 24px", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: "8px", color: "#86efac", fontSize: "14px", fontWeight: 500, zIndex: 1000, whiteSpace: "nowrap" }}>
+          {toast}
+        </div>
+      )}
     <div
       style={{
         minHeight: "100vh",
@@ -1270,6 +1276,44 @@ function App() {
                   </div>
                 )}
               </div>
+
+              {/* ── Boutons copier ── */}
+              {(() => {
+                const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
+                const handleCopyFeedback = async () => {
+                  const scoreLines = criteria
+                    .map(([label, key]) => `${label} : ${(feedback.scores?.[key]?.note ?? "—")}/4\n${feedback.scores?.[key]?.justification || ""}`)
+                    .join("\n\n");
+                  const text = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${feedback.niveau_cecrl} — NCLC ${feedback.niveau_nclc} — ${feedback.total}/20\n\nRÉSUMÉ :\n${feedback.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(feedback.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(feedback.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n${feedback.phrases_utiles?.length ? `=== PHRASES UTILES ===\n${feedback.phrases_utiles.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n` : ""}=== CONSEIL PRIORITAIRE ===\n${feedback.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${feedback.objectif_prochain_essai || ""}`;
+                  try { await navigator.clipboard.writeText(text); showToast("✓ Feedback copié"); }
+                  catch { showToast("⚠️ Erreur copie"); }
+                };
+                const handleCopyTranscription = async () => {
+                  const fmtTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+                  const text = `=== TRANSCRIPTION TCF SPEAKING AI ===\n\nTâche : 3\nSujet : ${subjectAtRecordingRef.current?.sujet || sujet}\nDurée : ${fmtTime(time)}\n\n=== MONOLOGUE ===\n\n${transcription}`;
+                  try { await navigator.clipboard.writeText(text); showToast("✓ Transcription copiée"); }
+                  catch { showToast("⚠️ Erreur copie"); }
+                };
+                const handleCopyAll = async () => {
+                  const scoreLines = criteria
+                    .map(([label, key]) => `${label} : ${(feedback.scores?.[key]?.note ?? "—")}/4\n${feedback.scores?.[key]?.justification || ""}`)
+                    .join("\n\n");
+                  const feedbackText = `=== FEEDBACK TCF SPEAKING AI ===\n\nNIVEAU : ${feedback.niveau_cecrl} — NCLC ${feedback.niveau_nclc} — ${feedback.total}/20\n\nRÉSUMÉ :\n${feedback.resume_niveau || ""}\n\n=== SCORES DÉTAILLÉS ===\n\n${scoreLines}\n\n=== POINTS POSITIFS ===\n${(feedback.points_positifs || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n=== À AMÉLIORER ===\n${(feedback.points_ameliorer || []).map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n${feedback.phrases_utiles?.length ? `=== PHRASES UTILES ===\n${feedback.phrases_utiles.map((p, i) => `${i + 1}. ${p}`).join("\n")}\n\n` : ""}=== CONSEIL PRIORITAIRE ===\n${feedback.conseil_prioritaire || ""}\n\n=== OBJECTIF PROCHAIN ESSAI ===\n${feedback.objectif_prochain_essai || ""}`;
+                  const fmtTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+                  const transcriptionText = `\n\n=== TRANSCRIPTION ===\n\nSujet : ${subjectAtRecordingRef.current?.sujet || sujet}\nDurée : ${fmtTime(time)}\n\n${transcription}`;
+                  try { await navigator.clipboard.writeText(feedbackText + transcriptionText); showToast("✓ Feedback + transcription copiés"); }
+                  catch { showToast("⚠️ Erreur copie"); }
+                };
+                const btnStyle = { padding: "8px 14px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", border: "1px solid rgba(99,102,241,0.4)", background: "rgba(99,102,241,0.15)", color: "#a5b4fc" };
+                const btnStyleAll = { ...btnStyle, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.15)", color: "#c4b5fd" };
+                return (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "16px" }}>
+                    <button onClick={handleCopyFeedback} style={btnStyle}>📋 Copier le feedback</button>
+                    {transcription && <button onClick={handleCopyTranscription} style={btnStyle}>📄 Copier la transcription</button>}
+                    {transcription && <button onClick={handleCopyAll} style={btnStyleAll}>📋📋 Copier tout</button>}
+                  </div>
+                );
+              })()}
 
               {/* ── 2. Barres de score ── */}
               <div style={{ ...getCardStyle(), marginBottom: "16px" }}>
