@@ -22,7 +22,7 @@ function extractJson(rawText) {
 
 function correctUniformScores(parsed) {
   if (!parsed || !parsed.scores) return parsed;
-  const keys = ["realisation_tache", "lexique", "grammaire", "fluidite", "interaction_coherence"];
+  const keys = ["realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_coherence"];
   const notes = keys.map((k) => parsed.scores[k]?.note).filter((n) => typeof n === "number");
   if (notes.length !== 5) return parsed;
   const allIdentical = notes.every((n) => n === notes[0]);
@@ -40,9 +40,6 @@ function correctUniformScores(parsed) {
   parsed.scores[targetKey].note = newNote;
   console.warn(`[analyze-text] Notes uniformes (${notes[0]}/4 partout). Correction : ${targetKey} ${oldNote} → ${newNote}`);
 
-  if (parsed.scores.fluidite_prononciation && targetKey === "fluidite") {
-    parsed.scores.fluidite_prononciation.note = newNote;
-  }
   return parsed;
 }
 
@@ -224,7 +221,6 @@ Tu retournes UNIQUEMENT un objet JSON valide (pas de markdown, pas de backticks)
     "realisation_tache": { "note": 0, "justification": "" },
     "lexique": { "note": 0, "justification": "" },
     "grammaire": { "note": 0, "justification": "" },
-    "fluidite": { "note": 0, "justification": "" },
     "fluidite_prononciation": { "note": 0, "justification": "" },
     "interaction_coherence": { "note": 0, "justification": "" }
   },
@@ -249,7 +245,7 @@ Tu retournes UNIQUEMENT un objet JSON valide (pas de markdown, pas de backticks)
   "objectif_prochain_essai": ""
 }
 
-Note : fluidite_prononciation doit avoir la même valeur que fluidite (alias de compatibilité). resume_niveau peut reprendre le contenu de synthese_globale.`;
+Note : resume_niveau peut reprendre le contenu de synthese_globale.`;
 
 // ── Contexte sujet (données Supabase) ──────────────────────────────────────
 
@@ -356,7 +352,7 @@ export default async function handler(req, res) {
       parsed = correctUniformScores(parsed);
 
       // a) Clamp notes /4 dans scores
-      const scoreKeys = ["realisation_tache", "lexique", "grammaire", "fluidite", "interaction_coherence"];
+      const scoreKeys = ["realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_coherence"];
       scoreKeys.forEach((key) => {
         if (parsed.scores?.[key] && parsed.scores[key].note !== null && parsed.scores[key].note !== undefined) {
           parsed.scores[key].note = Math.min(4, Math.max(0, Math.round(Number(parsed.scores[key].note))));
@@ -374,13 +370,7 @@ export default async function handler(req, res) {
       parsed.niveau_nclc = nclc;
       parsed.seuil_entree_express_atteint = nclc >= 7;
 
-      // d) Sync alias fluidite_prononciation
-      if (parsed.scores?.fluidite_prononciation && parsed.scores?.fluidite) {
-        parsed.scores.fluidite_prononciation.note = parsed.scores.fluidite.note;
-        parsed.scores.fluidite_prononciation.justification = parsed.scores.fluidite.justification;
-      }
-
-      // e) Rétrocompatibilité front-end : aliaser les nouveaux champs vers les anciens
+      // d) Rétrocompatibilité front-end : aliaser les nouveaux champs vers les anciens
       if (!parsed.resume_niveau && parsed.synthese_globale) {
         parsed.resume_niveau = parsed.synthese_globale;
       }
