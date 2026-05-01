@@ -486,6 +486,54 @@ const sujets = [
       "Tout en / Ce qui / En tant que / Reposer sur",
       "Reconnaître / Préserver / Encourager / Constituer"
     ]
+  },
+  {
+    numero: 11,
+    sujet: "Dans le monde actuel, les médias peuvent manipuler volontairement notre opinion. Qu'en pensez-vous ?",
+    consigne: "Donnez votre opinion personnelle sur ce sujet et justifiez-la avec au moins 2 arguments. Illustrez vos idées avec des exemples concrets.",
+    categorie: "Société & Médias",
+    emoji_categorie: "📰",
+    arguments_pour: [
+      "Concentration des médias entre les mains de quelques milliardaires (cas en France)",
+      "Algorithmes des réseaux sociaux qui filtrent l'information",
+      "Sélection éditoriale partisane (ligne politique des journaux)",
+      "Sensationnalisme pour faire de l'audience",
+      "Désinformation et fake news"
+    ],
+    arguments_contre: [
+      "Pluralité des sources accessibles via Internet",
+      "Esprit critique des lecteurs/spectateurs aujourd'hui",
+      "Médias indépendants, journalisme d'investigation",
+      "Régulation et déontologie journalistique"
+    ],
+    erreurs_typiques_b1: [
+      "Confusion 'média' / 'moyen' (faux ami)",
+      "'manipuler' mal conjugué",
+      "Pas d'utilisation du subjonctif après 'il faut que'",
+      "Vocabulaire trop simple ('c'est mauvais', 'c'est bien')",
+      "Argumentation linéaire sans nuance",
+      "Pas de connecteurs logiques variés"
+    ],
+    difference_b1_b2: "B1 : 'Je pense que les médias mentent. C'est mauvais pour les gens.' (position binaire, lexique simple) B2 : 'Je pense que les médias peuvent manipuler l'opinion, mais la vraie question est de savoir s'ils le font systématiquement. Avec Internet, le contrôle est moins fort qu'avant.' (nuance, lexique précis, structure argumentée)",
+    monologue_a2: "",
+    monologue_b1: "",
+    monologue_b2: "",
+    note_cible_a2: {},
+    note_cible_b1: {},
+    note_cible_b2: {},
+    expressions_cles: [
+      "manipuler l'opinion publique",
+      "se rendre compte que",
+      "racheter un journal / un média",
+      "contrôler l'information",
+      "avoir un monopole sur"
+    ],
+    connecteurs_utiles: [
+      "Cause : 'à cause de cela', 'puisque', 'étant donné que'",
+      "Opposition : 'mais', 'cependant', 'en revanche'",
+      "Concession : 'bien sûr', 'il est vrai que'",
+      "Conclusion : 'finalement', 'en somme', 'pour conclure'"
+    ]
   }
 ];
 
