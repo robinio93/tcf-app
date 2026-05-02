@@ -117,10 +117,21 @@ export default function Onboarding({ mode = "complet", onComplete }) {
     return false;
   };
 
-  const goNext = () => setStep(s => s + 1);
+  // Skip Q4 en mode complet si Q3 = "pas_de_date" (date déjà écartée)
+  const skipQ4 = mode === "complet" && answers.timeline === "pas_de_date";
+
+  const goNext = () => setStep(s => {
+    const next = s + 1;
+    if (skipQ4 && next === 4) return 5;
+    return next;
+  });
   const goPrev = () => {
     const minStep = mode === "reonboarding" ? 4 : 1;
-    setStep(s => Math.max(minStep, s - 1));
+    setStep(s => {
+      const prev = Math.max(minStep, s - 1);
+      if (skipQ4 && prev === 4) return Math.max(minStep, s - 2);
+      return prev;
+    });
   };
   const canGoPrev = mode === "reonboarding" ? step > 4 : step > 1;
 
@@ -232,6 +243,7 @@ export default function Onboarding({ mode = "complet", onComplete }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "28px" }}>
           <input
             type="date"
+            lang="fr-FR"
             min={today}
             value={answers.date_examen_prevu || ""}
             onChange={e => set("date_examen_prevu", e.target.value || null)}
