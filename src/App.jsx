@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "./contexts/UserContext";
 import Dashboard from "./Dashboard";
+import DashboardStatusBar from "./DashboardStatusBar";
 import RealtimeCall from "./RealtimeCall";
 import Task1Interview from "./Task1Interview";
 import DevPanel from "./DevPanel";
@@ -625,6 +626,10 @@ function App() {
     return (
       <>
         {isDevMode && <DevPanel />}
+        <DashboardStatusBar onStartNewSession={() => {
+          const anchor = document.getElementById("task-cards-anchor");
+          if (anchor) anchor.scrollIntoView({ behavior: "smooth", block: "start" });
+        }} />
       <div
         style={{
           minHeight: "100vh",
@@ -635,12 +640,6 @@ function App() {
           padding: "clamp(32px, 6vw, 64px) 18px",
         }}
       >
-        {/* ── Dashboard ── */}
-        <Dashboard onStartNewSession={() => {
-          const anchor = document.getElementById("task-cards-anchor");
-          if (anchor) anchor.scrollIntoView({ behavior: "smooth", block: "start" });
-        }} />
-
         <div style={{ maxWidth: "840px", width: "100%" }}>
 
           {/* ── Branding ── */}
