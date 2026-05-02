@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useUser } from "./contexts/UserContext";
 import RealtimeCall from "./RealtimeCall";
 import Task1Interview from "./Task1Interview";
 import DevPanel from "./DevPanel";
@@ -44,10 +45,7 @@ function App() {
   // null | "transcribing" | "analyzing"
   const [t3ProcessingStep, setT3ProcessingStep] = useState(null);
   const [toast, setToast] = useState(null);
-  const [betaState, setBetaState] = useState("checking"); // "checking"|"needs_code"|"needs_onboarding"|"ready"
-  const [betaCode, setBetaCode] = useState(() =>
-    typeof window !== "undefined" ? localStorage.getItem("tcf_beta_code") : null
-  );
+  const { betaCode, setBetaCode, isLoading: betaLoading, needsOnboarding, needsReonboarding } = useUser();
 
   const mediaRecorderRef = useRef(null);
   const resultRef = useRef(null);
@@ -84,40 +82,10 @@ function App() {
     loadTask3Subjects();
   }, []);
 
+  // DevMode : court-circuit auth via Context
   useEffect(() => {
-    async function checkBeta() {
-      if (isDevMode) {
-        localStorage.setItem("tcf_beta_code", "DEV-MODE");
-        setBetaCode("DEV-MODE");
-        setBetaState("ready");
-        return;
-      }
-      const stored = localStorage.getItem("tcf_beta_code");
-      if (!stored) { setBetaState("needs_code"); return; }
-
-      const { data, error } = await supabase
-        .from("beta_testers")
-        .select("code, onboarding_completed_at")
-        .eq("code", stored)
-        .maybeSingle();
-
-      if (error || !data) {
-        localStorage.removeItem("tcf_beta_code");
-        localStorage.removeItem("tcf_beta_profile");
-        setBetaCode(null);
-        setBetaState("needs_code");
-        return;
-      }
-
-      setBetaCode(stored);
-      if (!data.onboarding_completed_at) {
-        setBetaState("needs_onboarding");
-      } else {
-        setBetaState("ready");
-      }
-    }
-    checkBeta();
-  }, []);
+    if (isDevMode) setBetaCode("DEV-MODE");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (hasResult && resultRef.current) {
@@ -634,29 +602,21 @@ function App() {
   const SHOW_REALTIME_TEST = true;
 
   // ── Gate bêta ──────────────────────────────────────────────────────────────
-  if (betaState === "checking") {
+  if (betaLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ color: "#475569", fontSize: "14px" }}>Chargement...</div>
       </div>
     );
   }
-  if (betaState === "needs_code") {
-    return (
-      <BetaAccess
-        onSuccess={(code, data) => {
-          setBetaCode(code);
-          if (!data?.onboarding_completed_at) {
-            setBetaState("needs_onboarding");
-          } else {
-            setBetaState("ready");
-          }
-        }}
-      />
-    );
+  if (!betaCode) {
+    return <BetaAccess onSuccess={(code) => setBetaCode(code)} />;
   }
-  if (betaState === "needs_onboarding") {
-    return <Onboarding code={betaCode} onComplete={() => setBetaState("ready")} />;
+  if (needsOnboarding) {
+    return <Onboarding mode="complet" onComplete={() => {}} />;
+  }
+  if (needsReonboarding) {
+    return <Onboarding mode="reonboarding" onComplete={() => {}} />;
   }
   // ── Fin gate bêta ──────────────────────────────────────────────────────────
 
