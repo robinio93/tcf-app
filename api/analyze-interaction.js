@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getActivePromptVersion } from './_lib/supabase-server.js';
+import { generateLevelSummary } from './_lib/level-summary.js';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -466,12 +467,33 @@ export default async function handler(req, res) {
     }
     // ────────────────────────────────────────────────────────────────────────
 
+    // Post-correction resume_niveau (anti-contamination "B2/NCLC 7")
+    try {
+      const analysisObj = JSON.parse(analysis);
+      const cecrl = analysisObj.niveau_cecrl;
+      const nclc = analysisObj.niveau_nclc;
+      const total = analysisObj.total;
+      if (cecrl && typeof nclc === 'number' && typeof total === 'number') {
+        const summary = generateLevelSummary(cecrl, nclc, total);
+        analysisObj.resume_niveau = summary.resume_niveau;
+        if (analysisObj.seuil_entree_express_atteint !== undefined) {
+          analysisObj.seuil_entree_express_atteint = summary.seuil_atteint;
+        }
+        if (analysisObj.seuil_express_atteint !== undefined) {
+          analysisObj.seuil_express_atteint = summary.seuil_atteint;
+        }
+      }
+      analysis = JSON.stringify(analysisObj);
+    } catch (err) {
+      console.warn('[post-correction resume_niveau] Skipped:', err.message);
+    }
+
     // Prompt versioning metadata (_meta)
     const promptVersionInfo = await getActivePromptVersion(2);
     try {
       const analysisObj = JSON.parse(analysis);
       analysisObj._meta = {
-        prompt_version: promptVersionInfo ? `T2.v${promptVersionInfo.version_number}` : 'T2.v1',
+        prompt_version: promptVersionInfo ? `T2.v${promptVersionInfo.version_number}` : 'T2.v2',
         model_used: 'claude-sonnet-4-6',
       };
       analysis = JSON.stringify(analysisObj);
