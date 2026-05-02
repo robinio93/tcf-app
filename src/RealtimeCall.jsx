@@ -1561,6 +1561,10 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
         niveau_cecrl: parsed.niveau_cecrl,
         niveau_nclc: parsed.niveau_nclc,
         feedback_complet: parsed,
+        raw_analysis: parsed,
+        prompt_version: parsed._meta?.prompt_version || 'T2.v1',
+        model_used: parsed._meta?.model_used || 'claude-sonnet-4-6',
+        audit_status: 'pending',
         duree_secondes: callTime > 0 ? callTime : null,
         beta_code: betaCode || null,
       }]).then(({ error }) => {

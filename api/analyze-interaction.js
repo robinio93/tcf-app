@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { getActivePromptVersion } from './_lib/supabase-server.js';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -464,6 +465,17 @@ export default async function handler(req, res) {
       // Si parsing échoue, renvoyer tel quel — le front gère gracieusement
     }
     // ────────────────────────────────────────────────────────────────────────
+
+    // Prompt versioning metadata (_meta)
+    const promptVersionInfo = await getActivePromptVersion(2);
+    try {
+      const analysisObj = JSON.parse(analysis);
+      analysisObj._meta = {
+        prompt_version: promptVersionInfo ? `T2.v${promptVersionInfo.version_number}` : 'T2.v1',
+        model_used: 'claude-sonnet-4-6',
+      };
+      analysis = JSON.stringify(analysisObj);
+    } catch { /* _meta non critique — on continue sans */ }
 
     return res.status(200).json({ analysis });
   } catch (error) {
