@@ -96,6 +96,17 @@ export default function Onboarding({ mode = "complet", onComplete }) {
 
   const set = (key, value) => setAnswers(prev => ({ ...prev, [key]: value }));
 
+  // Q1 : pré-remplissage NCLC 7 si immigration Canada (complet seulement, sans écraser un choix existant)
+  function handleQ1Select(value) {
+    setAnswers(prev => {
+      const next = { ...prev, objectif: value };
+      if (mode === "complet" && value === "immigration_canada" && prev.nclc_cible === null) {
+        next.nclc_cible = 7;
+      }
+      return next;
+    });
+  }
+
   const isStepValid = () => {
     if (step === 1) return answers.objectif !== null;
     if (step === 2) return answers.familiarite !== null;
@@ -169,10 +180,22 @@ export default function Onboarding({ mode = "complet", onComplete }) {
   }
 
   function renderQ1() {
+    const selected = answers.objectif;
     return (
       <>
         <div style={titleStyle}>Pourquoi tu prépares le TCF ?</div>
-        {renderOptions(Q1_OPTIONS, "objectif")}
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "28px" }}>
+          {Q1_OPTIONS.map(opt => (
+            <button key={opt.value} onClick={() => handleQ1Select(opt.value)} style={optionStyle(selected === opt.value)}>
+              <span style={{ fontSize: "22px", flexShrink: 0, lineHeight: 1 }}>{opt.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={labelStyle(selected === opt.value)}>{opt.label}</div>
+                {opt.desc && <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>{opt.desc}</div>}
+              </div>
+              {selected === opt.value && <div style={checkBadge}>✓</div>}
+            </button>
+          ))}
+        </div>
       </>
     );
   }
