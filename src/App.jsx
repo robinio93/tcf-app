@@ -9,6 +9,7 @@ import BetaAccess from "./BetaAccess";
 import Onboarding from "./Onboarding";
 import EmailOptIn from "./components/EmailOptIn";
 import AxesPrioritaires from "./components/AxesPrioritaires";
+import PatternRecurrent from "./components/PatternRecurrent";
 import { supabase } from "./lib/supabase";
 import {
   IconChoose, IconSpeak, IconChart,
@@ -393,6 +394,7 @@ function App() {
           prompt: cleanText,
           durationSec,
           sujetData,
+          betaCode: localStorage.getItem('tcf_beta_code'),
         }),
       });
 
@@ -426,6 +428,7 @@ function App() {
         points_positifs: Array.isArray(parsedJson.points_positifs) ? parsedJson.points_positifs : [],
         points_ameliorer: Array.isArray(parsedJson.points_ameliorer) ? parsedJson.points_ameliorer : [],
         axes_prioritaires: Array.isArray(parsedJson.axes_prioritaires) ? parsedJson.axes_prioritaires : [],
+        patterns_recurrents: parsedJson.patterns_recurrents || null,
         correction_simple: parsedJson.correction_simple || "",
         version_amelioree: parsedJson.version_amelioree || null,
         phrases_utiles: Array.isArray(parsedJson.phrases_utiles) ? parsedJson.phrases_utiles : [],
@@ -1306,6 +1309,8 @@ function App() {
                   </div>
                 )}
               </div>
+
+              <PatternRecurrent patterns={feedback.patterns_recurrents} />
 
               {/* ── Boutons copier ── */}
               {(() => {

@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { getActivePromptVersion } from './_lib/supabase-server.js';
+import { getActivePromptVersion, supabaseServer } from './_lib/supabase-server.js';
+import { classifierErreurs, persistErreurs } from './_lib/classify-errors.js';
+import { getRecurringPatterns } from './_lib/get-recurring-patterns.js';
 import { generateLevelSummary } from './_lib/level-summary.js';
 
 const anthropic = new Anthropic({
@@ -452,7 +454,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { conversation, scenario, scenarioData, durationSec } = req.body;
+    const { conversation, scenario, scenarioData, durationSec, betaCode } = req.body;
 
     if (!conversation?.trim()) {
       return res.status(400).json({ error: "conversation is required" });
@@ -540,6 +542,37 @@ export default async function handler(req, res) {
       };
       analysis = JSON.stringify(analysisObj);
     } catch { /* _meta non critique — on continue sans */ }
+
+    // ─── PHASE 4 : classification erreurs + patterns récurrents ──────────────
+    try {
+      const parsedForPhase4 = JSON.parse(analysis);
+
+      const { data: profile } = await supabaseServer
+        .from('beta_testers')
+        .select('langue_maternelle, total_sessions')
+        .eq('code', betaCode)
+        .maybeSingle();
+
+      const erreurs = await classifierErreurs(parsedForPhase4, conversation, 2);
+
+      await persistErreurs({
+        erreurs,
+        betaCode,
+        tache: 2,
+        langueMaternelle: profile?.langue_maternelle,
+        niveauSession: parsedForPhase4.niveau_cecrl,
+        numeroSession: (profile?.total_sessions || 0) + 1,
+      });
+
+      const patternsRecurrents = await getRecurringPatterns(betaCode);
+      if (patternsRecurrents) {
+        parsedForPhase4.patterns_recurrents = patternsRecurrents;
+        analysis = JSON.stringify(parsedForPhase4);
+      }
+    } catch (err) {
+      console.warn('[Phase 4] Échec non-bloquant :', err.message);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     return res.status(200).json({ analysis });
   } catch (error) {

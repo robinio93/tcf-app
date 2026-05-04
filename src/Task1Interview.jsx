@@ -3,6 +3,7 @@ import { supabase } from "./lib/supabase";
 import ScoringLoader from "./components/ScoringLoader";
 import EmailOptIn from "./components/EmailOptIn";
 import AxesPrioritaires from "./components/AxesPrioritaires";
+import PatternRecurrent from "./components/PatternRecurrent";
 import {
   IconArrowLeft, IconChevronUp, IconChevronDown, IconPhone,
   IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart, IconHourglass,
@@ -798,7 +799,7 @@ function Task1Interview({ onBack = null, betaCode = null }) {
       const response = await fetch("/api/analyze-interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversation: conversationText, durationSec: duration }),
+        body: JSON.stringify({ conversation: conversationText, durationSec: duration, betaCode: localStorage.getItem('tcf_beta_code') }),
       });
 
       const raw = await response.text();
@@ -1486,7 +1487,14 @@ function Task1Interview({ onBack = null, betaCode = null }) {
               const lc = debrief.niveau_cecrl === "C1" || debrief.niveau_cecrl === "C2" ? "#60a5fa" : debrief.niveau_cecrl === "B2" ? "#4ade80" : debrief.niveau_cecrl === "B1" ? "#f59e0b" : "#fb7185";
               const total = debrief.total ?? 0;
               const sc = total >= 12 ? "#4ade80" : total >= 8 ? "#f59e0b" : "#fb7185";
-              const sl = total >= 16 ? "Niveau C1 — excellent" : total >= 12 ? "Niveau B2 atteint" : total >= 8 ? "Niveau B1 — bon socle" : total >= 5 ? "Niveau A2 — à renforcer" : "Niveau A1 — travail ciblé nécessaire";
+              const sl = total >= 16 ? "Niveau C1 — excellent"
+                      : total >= 14 ? "Niveau C1 — solide"
+                      : total >= 12 ? "Niveau B2 confirmé"
+                      : total >= 10 ? "Niveau B2 — seuil Entrée Express"
+                      : total >= 7  ? "Niveau B1 — bon socle"
+                      : total === 6 ? "Niveau B1 — limite"
+                      : total >= 4  ? "Niveau A2 — à renforcer"
+                      :                "Niveau A1 — travail ciblé nécessaire";
               return (
                 <>
                   {/* 1. En-tête niveau */}
@@ -1509,6 +1517,8 @@ function Task1Interview({ onBack = null, betaCode = null }) {
                       </div>
                     )}
                   </div>
+
+                  <PatternRecurrent patterns={debrief.patterns_recurrents} />
 
                   {/* 2. Barres de score */}
                   <div style={{ ...card, padding: "24px", marginBottom: "14px" }}>

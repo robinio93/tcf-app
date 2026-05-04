@@ -4,6 +4,7 @@ import ScoringLoader from "./components/ScoringLoader";
 import AxisChecklist from "./components/AxisChecklist";
 import EmailOptIn from "./components/EmailOptIn";
 import AxesPrioritaires from "./components/AxesPrioritaires";
+import PatternRecurrent from "./components/PatternRecurrent";
 import {
   IconArrowLeft, IconRefresh, IconChevronUp, IconChevronDown,
   IconPhone, IconCheck, IconAlert, IconLightbulb, IconTarget,
@@ -1516,6 +1517,7 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
           scenario: scenario?.title || selectedScenario?.title,
           scenarioData,
           durationSec: durationSec > 0 ? durationSec : null,
+          betaCode: localStorage.getItem('tcf_beta_code'),
         }),
       });
 
@@ -2321,7 +2323,14 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
           const lc = debrief.niveau_cecrl === "C1" || debrief.niveau_cecrl === "C2" ? "#60a5fa" : debrief.niveau_cecrl === "B2" ? "#4ade80" : debrief.niveau_cecrl === "B1" ? "#f59e0b" : "#fb7185";
           const total = debrief.total ?? 0;
           const sc = total >= 12 ? "#4ade80" : total >= 8 ? "#f59e0b" : "#fb7185";
-          const sl = total >= 16 ? "Niveau C1 — excellent" : total >= 12 ? "Niveau B2 atteint" : total >= 8 ? "Niveau B1 — bon socle" : total >= 5 ? "Niveau A2 — à renforcer" : "Niveau A1 — travail ciblé nécessaire";
+          const sl = total >= 16 ? "Niveau C1 — excellent"
+                  : total >= 14 ? "Niveau C1 — solide"
+                  : total >= 12 ? "Niveau B2 confirmé"
+                  : total >= 10 ? "Niveau B2 — seuil Entrée Express"
+                  : total >= 7  ? "Niveau B1 — bon socle"
+                  : total === 6 ? "Niveau B1 — limite"
+                  : total >= 4  ? "Niveau A2 — à renforcer"
+                  :                "Niveau A1 — travail ciblé nécessaire";
           const bc = (n) => n >= 4 ? "#3b82f6" : n >= 3 ? "#22c55e" : n >= 2 ? "#f59e0b" : "#ef4444";
           const card = { borderRadius: "20px", border: "1px solid rgba(148,163,184,0.12)", background: "rgba(15,23,42,0.65)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", boxShadow: "0 8px 32px rgba(0,0,0,0.24)" };
           const criteria = [
@@ -2353,6 +2362,8 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
                   </div>
                 )}
               </div>
+
+              <PatternRecurrent patterns={debrief.patterns_recurrents} />
 
               {/* Boutons copier */}
               {(() => {
