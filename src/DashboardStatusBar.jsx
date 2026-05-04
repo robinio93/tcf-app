@@ -5,14 +5,14 @@ import Dashboard from './Dashboard';
 // Mapping cohérent avec totalToCecrlNclc serveur (api/analyze-*.js)
 function computeLevel(total) {
   if (total === null || total === undefined || isNaN(total)) return { cecrl: '—', nclc: '—' };
-  if (total < 4)  return { cecrl: 'A1', nclc: 3 };
-  if (total < 6)  return { cecrl: 'A2', nclc: 4 };
-  if (total < 7)  return { cecrl: 'B1', nclc: 5 };
-  if (total < 10) return { cecrl: 'B1', nclc: 6 };
-  if (total < 12) return { cecrl: 'B2', nclc: 7 };
-  if (total < 14) return { cecrl: 'B2', nclc: 8 };
-  if (total < 16) return { cecrl: 'C1', nclc: 9 };
-  return           { cecrl: 'C1', nclc: 10 };
+  if (total < 4)   return { cecrl: 'A1', nclc: 3 };
+  if (total <= 5)  return { cecrl: 'A2', nclc: 4 };
+  if (total === 6) return { cecrl: 'B1', nclc: 5 };
+  if (total <= 9)  return { cecrl: 'B1', nclc: 6 };
+  if (total <= 11) return { cecrl: 'B2', nclc: 7 };
+  if (total <= 13) return { cecrl: 'B2', nclc: 8 };
+  if (total <= 15) return { cecrl: 'C1', nclc: 9 };
+  return             { cecrl: 'C1', nclc: 10 };
 }
 
 export default function DashboardStatusBar({ onStartNewSession }) {

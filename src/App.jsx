@@ -344,9 +344,12 @@ function App() {
 
   function getScoreLabel(total) {
     if (total >= 16) return "Niveau C1 — excellent";
-    if (total >= 12) return "Niveau B2 atteint";
-    if (total >= 8) return "Niveau B1 — bon socle";
-    if (total >= 5) return "Niveau A2 — à renforcer";
+    if (total >= 14) return "Niveau C1 — solide";
+    if (total >= 12) return "Niveau B2 confirmé";
+    if (total >= 10) return "Niveau B2 — seuil Entrée Express";
+    if (total >= 7)  return "Niveau B1 — bon socle";
+    if (total === 6) return "Niveau B1 — limite";
+    if (total >= 4)  return "Niveau A2 — à renforcer";
     return "Niveau A1 — travail ciblé nécessaire";
   }
 
@@ -422,6 +425,7 @@ function App() {
         resume_niveau: parsedJson.resume_niveau || "",
         points_positifs: Array.isArray(parsedJson.points_positifs) ? parsedJson.points_positifs : [],
         points_ameliorer: Array.isArray(parsedJson.points_ameliorer) ? parsedJson.points_ameliorer : [],
+        axes_prioritaires: Array.isArray(parsedJson.axes_prioritaires) ? parsedJson.axes_prioritaires : [],
         correction_simple: parsedJson.correction_simple || "",
         version_amelioree: parsedJson.version_amelioree || null,
         phrases_utiles: Array.isArray(parsedJson.phrases_utiles) ? parsedJson.phrases_utiles : [],
