@@ -350,12 +350,12 @@ export default function DevPanel() {
                 </div>
               )}
 
-              {/* profil_detecte + seuil_express_atteint (T2 v4 spécifique) */}
-              {(result.profil_detecte || result.seuil_express_atteint != null) && (
+              {/* profil_detecte + seuil_entree_express_atteint */}
+              {(result.profil_detecte || result.seuil_entree_express_atteint != null) && (
                 <div style={{ fontSize: "12px", color: "#78716c", display: "flex", gap: "16px", flexWrap: "wrap" }}>
                   {result.profil_detecte && <span>Profil : <strong style={{ color: "#a5b4fc" }}>{result.profil_detecte}</strong></span>}
-                  {result.seuil_express_atteint != null && (
-                    <span>Seuil Entrée Express : <strong style={{ color: result.seuil_express_atteint ? "#4ade80" : "#fb7185" }}>{result.seuil_express_atteint ? "✅ Atteint" : "❌ Non atteint"}</strong></span>
+                  {result.seuil_entree_express_atteint != null && (
+                    <span>Seuil Entrée Express : <strong style={{ color: result.seuil_entree_express_atteint ? "#4ade80" : "#fb7185" }}>{result.seuil_entree_express_atteint ? "✅ Atteint" : "❌ Non atteint"}</strong></span>
                   )}
                 </div>
               )}

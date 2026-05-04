@@ -46,15 +46,14 @@ function alignTotal(parsed) {
 }
 
 function totalToCecrlNclc(total) {
-  // Source : Manuel candidat FEI avril 2026, p.15 — seuil C1 à 14/20
-  if (total >= 16) return { cecrl: "C1", nclc: 10 };
-  if (total >= 14) return { cecrl: "C1", nclc: 9  };
-  if (total >= 12) return { cecrl: "B2", nclc: 8  };
-  if (total >= 10) return { cecrl: "B2", nclc: 7  };  // seuil Entrée Express
-  if (total >= 7)  return { cecrl: "B1", nclc: 6  };
+  if (total < 4)   return { cecrl: "A1", nclc: 3  };
+  if (total <= 5)  return { cecrl: "A2", nclc: 4  };
   if (total === 6) return { cecrl: "B1", nclc: 5  };
-  if (total >= 4)  return { cecrl: "A2", nclc: 4  };
-  return                   { cecrl: "A1", nclc: 3  };
+  if (total <= 9)  return { cecrl: "B1", nclc: 6  };
+  if (total <= 11) return { cecrl: "B2", nclc: 7  };
+  if (total <= 13) return { cecrl: "B2", nclc: 8  };
+  if (total <= 15) return { cecrl: "C1", nclc: 9  };
+  return             { cecrl: "C1", nclc: 10 };
 }
 
 function correctUniformScores(parsed) {
@@ -78,7 +77,7 @@ function normalizeNclc(parsed) {
 }
 
 function alignSeuilExpress(parsed) {
-  parsed.seuil_express_atteint = (parsed.niveau_nclc ?? 0) >= 7;
+  parsed.seuil_entree_express_atteint = (parsed.niveau_nclc ?? 0) >= 7;
   return parsed;
 }
 
@@ -308,7 +307,7 @@ Tu dois renvoyer EXCLUSIVEMENT un JSON valide, sans markdown, sans backticks, sa
   "niveau_cecrl": "",
   "niveau_nclc": 0,
   "profil_detecte": "",
-  "seuil_express_atteint": false,
+  "seuil_entree_express_atteint": false,
   "resume_niveau": "",
   "points_positifs": ["", "", ""],
   "points_ameliorer": ["", "", ""],
@@ -478,9 +477,6 @@ export default async function handler(req, res) {
         analysisObj.resume_niveau = summary.resume_niveau;
         if (analysisObj.seuil_entree_express_atteint !== undefined) {
           analysisObj.seuil_entree_express_atteint = summary.seuil_atteint;
-        }
-        if (analysisObj.seuil_express_atteint !== undefined) {
-          analysisObj.seuil_express_atteint = summary.seuil_atteint;
         }
       }
       analysis = JSON.stringify(analysisObj);

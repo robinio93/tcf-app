@@ -1551,27 +1551,38 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
       setDebriefState("done");
       setProcessingStep(null);
 
-      // Sauvegarde session Supabase (anonyme, best-effort)
-      supabase.from("sessions").insert([{
-        tache: 2,
-        sujet: scenario?.title || selectedScenario.title,
-        transcription: conversationText,
-        scores: parsed.scores,
-        total: parsed.total,
-        niveau_cecrl: parsed.niveau_cecrl,
-        niveau_nclc: parsed.niveau_nclc,
-        feedback_complet: parsed,
-        raw_analysis: parsed,
-        prompt_version: parsed._meta?.prompt_version || 'T2.v1',
-        model_used: parsed._meta?.model_used || 'claude-sonnet-4-6',
-        audit_status: 'pending',
-        duree_secondes: callTime > 0 ? callTime : null,
-        beta_code: betaCode || null,
-      }]).then(({ error }) => {
-        if (error) console.error("Supabase sessions insert error:", error);
-      });
-      if (betaCode && betaCode !== "DEV-MODE") {
+      const isValidSession = (parsed.total > 0) && (callTime >= 30);
+      const shouldPersist = betaCode && betaCode !== "DEV-MODE" && isValidSession;
+
+      if (shouldPersist) {
+        supabase.from("sessions").insert([{
+          tache: 2,
+          sujet: scenario?.title || selectedScenario.title,
+          transcription: conversationText,
+          scores: parsed.scores,
+          total: parsed.total,
+          niveau_cecrl: parsed.niveau_cecrl,
+          niveau_nclc: parsed.niveau_nclc,
+          feedback_complet: parsed,
+          raw_analysis: parsed,
+          prompt_version: parsed._meta?.prompt_version || 'T2.v1',
+          model_used: parsed._meta?.model_used || 'claude-sonnet-4-6',
+          audit_status: 'pending',
+          duree_secondes: callTime > 0 ? callTime : null,
+          beta_code: betaCode,
+        }]).then(({ error }) => {
+          if (error) console.error("Supabase sessions insert error:", error);
+        });
         supabase.rpc("increment_beta_sessions", { p_code: betaCode }).then(() => {});
+      } else {
+        console.log("[Session non sauvegardée]", {
+          reason: !betaCode ? "no_betaCode"
+                : betaCode === "DEV-MODE" ? "dev_mode"
+                : !isValidSession ? `invalid (total=${parsed.total}, duree=${callTime}s)`
+                : "unknown",
+          total: parsed.total,
+          duree_secondes: callTime,
+        });
       }
     } catch (e) {
       console.error("Debrief error:", e);

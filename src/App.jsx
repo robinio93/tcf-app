@@ -431,29 +431,39 @@ function App() {
       setFeedback(normalized);
       setNiveau(normalized.niveau_cecrl);
 
-      // Sauvegarde session Supabase
-      supabase.from("sessions").insert([{
-        tache: 3,
-        sujet: subjectAtRecordingRef.current?.sujet ?? sujet,
-        transcription: cleanText,
-        scores: parsedJson.scores,
-        total: parsedJson.total,
-        niveau_cecrl: parsedJson.niveau_cecrl,
-        niveau_nclc: parsedJson.niveau_nclc,
-        feedback_complet: normalized,
-        raw_analysis: parsedJson,
-        prompt_version: parsedJson._meta?.prompt_version || 'T3.v1',
-        model_used: parsedJson._meta?.model_used || 'claude-sonnet-4-6',
-        audit_status: 'pending',
-        duree_secondes: durationSec,
-        beta_code: betaCode || null,
-      }]).then(({ error }) => {
-        if (error) console.error("Supabase sessions insert error:", error);
-      });
+      // ── Garde anti-pollution BDD : pas de DEV-MODE, pas de sessions vides ──
+      const isValidSession = (parsedJson.total > 0) && (durationSec >= 30);
+      const shouldPersist = betaCode && betaCode !== "DEV-MODE" && isValidSession;
 
-      // Incrémenter compteur beta
-      if (betaCode && betaCode !== "DEV-MODE") {
+      if (shouldPersist) {
+        supabase.from("sessions").insert([{
+          tache: 3,
+          sujet: subjectAtRecordingRef.current?.sujet ?? sujet,
+          transcription: cleanText,
+          scores: parsedJson.scores,
+          total: parsedJson.total,
+          niveau_cecrl: parsedJson.niveau_cecrl,
+          niveau_nclc: parsedJson.niveau_nclc,
+          feedback_complet: normalized,
+          raw_analysis: parsedJson,
+          prompt_version: parsedJson._meta?.prompt_version || 'T3.v1',
+          model_used: parsedJson._meta?.model_used || 'claude-sonnet-4-6',
+          audit_status: 'pending',
+          duree_secondes: durationSec,
+          beta_code: betaCode,
+        }]).then(({ error }) => {
+          if (error) console.error("Supabase sessions insert error:", error);
+        });
         supabase.rpc("increment_beta_sessions", { p_code: betaCode }).then(() => {});
+      } else {
+        console.log("[Session non sauvegardée]", {
+          reason: !betaCode ? "no_betaCode"
+                : betaCode === "DEV-MODE" ? "dev_mode"
+                : !isValidSession ? `invalid (total=${parsedJson.total}, duree=${durationSec}s)`
+                : "unknown",
+          total: parsedJson.total,
+          duree_secondes: durationSec,
+        });
       }
 
       setT3ProcessingStep(null);

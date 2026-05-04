@@ -831,26 +831,38 @@ function Task1Interview({ onBack = null, betaCode = null }) {
       setDebriefState("done");
       setProcessingStep(null);
 
-      supabase.from("sessions").insert([{
-        tache: 1,
-        sujet: "Entretien dirige — Tache 1",
-        transcription: conversationText,
-        scores: parsed.scores,
-        total: parsed.total,
-        niveau_cecrl: parsed.niveau_cecrl,
-        niveau_nclc: parsed.niveau_nclc,
-        feedback_complet: parsed,
-        raw_analysis: parsed,
-        prompt_version: parsed._meta?.prompt_version || 'T1.v1',
-        model_used: parsed._meta?.model_used || 'claude-sonnet-4-6',
-        audit_status: 'pending',
-        duree_secondes: duration > 0 ? duration : null,
-        beta_code: betaCode || null,
-      }]).then(({ error }) => {
-        if (error) console.error("Supabase sessions insert error:", error);
-      });
-      if (betaCode && betaCode !== "DEV-MODE") {
+      const isValidSession = (parsed.total > 0) && (duration >= 30);
+      const shouldPersist = betaCode && betaCode !== "DEV-MODE" && isValidSession;
+
+      if (shouldPersist) {
+        supabase.from("sessions").insert([{
+          tache: 1,
+          sujet: "Entretien dirige — Tache 1",
+          transcription: conversationText,
+          scores: parsed.scores,
+          total: parsed.total,
+          niveau_cecrl: parsed.niveau_cecrl,
+          niveau_nclc: parsed.niveau_nclc,
+          feedback_complet: parsed,
+          raw_analysis: parsed,
+          prompt_version: parsed._meta?.prompt_version || 'T1.v1',
+          model_used: parsed._meta?.model_used || 'claude-sonnet-4-6',
+          audit_status: 'pending',
+          duree_secondes: duration > 0 ? duration : null,
+          beta_code: betaCode,
+        }]).then(({ error }) => {
+          if (error) console.error("Supabase sessions insert error:", error);
+        });
         supabase.rpc("increment_beta_sessions", { p_code: betaCode }).then(() => {});
+      } else {
+        console.log("[Session non sauvegardée]", {
+          reason: !betaCode ? "no_betaCode"
+                : betaCode === "DEV-MODE" ? "dev_mode"
+                : !isValidSession ? `invalid (total=${parsed.total}, duree=${duration}s)`
+                : "unknown",
+          total: parsed.total,
+          duree_secondes: duration,
+        });
       }
     } catch (e) {
       console.error("Debrief error:", e);
