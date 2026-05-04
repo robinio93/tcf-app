@@ -419,6 +419,25 @@ Tu retournes UNIQUEMENT un objet JSON valide (pas de markdown, pas de backticks)
   "objectif_prochain_essai": ""
 }
 
+Champs clés axes_prioritaires :
+- "critere" = OBLIGATOIRE, une seule valeur EXACTE parmi cette liste fermée :
+  "realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_spontaneite"
+  (pas de variante, pas d'espace, pas de majuscule)
+
+- "probleme" = problème concret avec EXTRAIT EXACT de la transcription du candidat entre guillemets simples. Format : description courte + citation. Tutoie le candidat (tu as dit, ta réponse).
+  Exemple : "Tu as répondu très brièvement à la question sur tes projets : 'Peut-être travailler comme cuisinier au Canada'. C'est une seule phrase vague sans détail."
+
+- "reformulation" = la version corrigée concrète que le candidat aurait pu dire, modèle à imiter au niveau juste au-dessus.
+  Exemple : "Mon projet principal, c'est de m'installer au Canada, à Toronto plus précisément, parce que j'ai de la famille là-bas qui pourrait m'aider..."
+
+- "impact_sur_note" = bénéfice CHIFFRÉ et COURT, format strict : "+X sur <critere>" ou "+X points (NCLC Y → NCLC Z)". MAXIMUM 60 caractères. Pas de phrase, pas d'explication.
+  Exemples valides : "+1 sur lexique", "+2 points (NCLC 6 → NCLC 7)"
+  Exemples INVALIDES : "Développer ainsi 2 ou 3 réponses ferait passer..." (trop long, c'est de la justification)
+
+CONTRAINTES axes_prioritaires :
+- Les 3 axes DOIVENT pointer vers 3 critères DIFFÉRENTS si possible (sauf si le candidat est faible sur un seul critère majeur).
+- Les axes DOIVENT être cohérents avec les notes : ne pas pointer un axe sur grammaire si grammaire = 4/4.
+
 Note : resume_niveau peut reprendre synthese_globale.
 
 Ne rajoute aucun texte avant ou après le JSON.`;
