@@ -311,6 +311,11 @@ Tu dois renvoyer EXCLUSIVEMENT un JSON valide, sans markdown, sans backticks, sa
   "resume_niveau": "",
   "points_positifs": ["", "", ""],
   "points_ameliorer": ["", "", ""],
+  "axes_prioritaires": [
+    { "critere": "", "probleme": "", "reformulation": "", "impact_sur_note": "" },
+    { "critere": "", "probleme": "", "reformulation": "", "impact_sur_note": "" },
+    { "critere": "", "probleme": "", "reformulation": "", "impact_sur_note": "" }
+  ],
   "correction_simple": "",
   "version_amelioree": {
     "niveau_cible": "",
@@ -328,7 +333,16 @@ Champs clés :
 - version_amelioree.texte = répliques modèles du candidat AU NIVEAU JUSTE AU-DESSUS
 - phrases_utiles = 4 expressions utiles adaptées au scénario
 - Tutoie le candidat dans tout le feedback (tu, ton, tes)
-- Cite des extraits exacts de la transcription dans les justifications et points_ameliorer`;
+- Cite des extraits exacts de la transcription dans les justifications et points_ameliorer
+- axes_prioritaires = LES 3 PROBLÈMES PRIORITAIRES À CORRIGER POUR GAGNER DES POINTS
+  Pour chaque axe, remplis 4 champs :
+  • critere = un seul parmi : "realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_coherence"
+  • probleme = problème concret cité avec extrait EXACT entre guillemets de la transcription (ex : "tu as dit 'je veux savoir si possible' à 3 reprises sans varier la formulation"). Privilégie les problèmes SPÉCIFIQUES À L'INTERACTION : qualité des questions posées, gestion des rebonds, registre interactionnel, capacité à reformuler quand l'interlocuteur n'a pas compris.
+  • reformulation = la version corrigée concrète, modèle à imiter (ex : "Pourriez-vous me dire si... ? / Est-il possible de... ? / Je voudrais savoir...")
+  • impact_sur_note = bénéfice chiffré, format court (ex : "+1 sur interaction_coherence", "+1 sur lexique")
+- Les 3 axes_prioritaires DOIVENT pointer vers des CRITÈRES DIFFÉRENTS si possible (sauf si le candidat est faible sur un seul critère majeur)
+- Les 3 axes_prioritaires DOIVENT être cohérents avec les notes attribuées : on ne pointe pas un axe sur grammaire si grammaire = 4/4
+- Tutoie le candidat dans probleme et reformulation (tu, ton, tes)`;
 
 // ── Prompt utilisateur ──────────────────────────────────────────────────────
 
@@ -458,6 +472,20 @@ export default async function handler(req, res) {
       parsed.niveau_nclc = nclc;
 
       parsed = alignSeuilExpress(parsed);
+
+      // Fallback axes_prioritaires ↔ points_ameliorer
+      if (!parsed.axes_prioritaires?.length && parsed.points_ameliorer?.length) {
+        parsed.axes_prioritaires = parsed.points_ameliorer.slice(0, 3).map((p) => ({
+          critere: "interaction_coherence",
+          probleme: p,
+          reformulation: "",
+          impact_sur_note: ""
+        }));
+      }
+      if (!parsed.conseil_prioritaire && parsed.axes_prioritaires?.[0]) {
+        const a = parsed.axes_prioritaires[0];
+        parsed.conseil_prioritaire = `${a.critere} : ${a.reformulation || a.probleme} (${a.impact_sur_note})`;
+      }
 
       analysis = JSON.stringify(parsed);
     } catch (e) {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import ScoringLoader from "./components/ScoringLoader";
 import EmailOptIn from "./components/EmailOptIn";
+import AxesPrioritaires from "./components/AxesPrioritaires";
 import {
   IconArrowLeft, IconChevronUp, IconChevronDown, IconPhone,
   IconCheck, IconAlert, IconLightbulb, IconTarget, IconBarChart, IconHourglass,
@@ -1544,26 +1545,18 @@ function Task1Interview({ onBack = null, betaCode = null }) {
                   </div>
 
                   {/* 3. Points positifs / à améliorer */}
-                  {(Array.isArray(debrief.points_positifs) && debrief.points_positifs.length > 0) || (Array.isArray(debrief.points_ameliorer) && debrief.points_ameliorer.length > 0) ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "14px" }}>
-                      {Array.isArray(debrief.points_positifs) && debrief.points_positifs.length > 0 && (
-                        <div style={{ ...card, padding: "20px", borderColor: "rgba(34,197,94,0.2)" }}>
-                          <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
-                          <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
-                            {debrief.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
-                          </ul>
-                        </div>
-                      )}
-                      {Array.isArray(debrief.points_ameliorer) && debrief.points_ameliorer.length > 0 && (
-                        <div style={{ ...card, padding: "20px", borderColor: "rgba(245,158,11,0.2)" }}>
-                          <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconAlert size={13} /> Points à améliorer</div>
-                          <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
-                            {debrief.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
-                          </ul>
-                        </div>
-                      )}
+                  {Array.isArray(debrief.points_positifs) && debrief.points_positifs.length > 0 && (
+                    <div style={{ ...card, padding: "20px", borderColor: "rgba(34,197,94,0.2)", marginBottom: "14px" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
+                      <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
+                        {debrief.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
+                      </ul>
                     </div>
-                  ) : null}
+                  )}
+                  <AxesPrioritaires
+                    axes={debrief.axes_prioritaires}
+                    fallbackPoints={debrief.points_ameliorer}
+                  />
 
                   {/* 4. Correction + Version améliorée */}
                   {(debrief.correction_simple || debrief.version_amelioree?.texte) && (

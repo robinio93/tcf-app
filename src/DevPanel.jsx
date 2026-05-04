@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
+import AxesPrioritaires from "./components/AxesPrioritaires";
 import {
   IconChevronUp, IconChevronDown, IconCheck, IconAlert, IconLightbulb, IconHourglass, IconX,
 } from "./components/Icons";
@@ -294,24 +295,18 @@ export default function DevPanel() {
               </div>
 
               {/* Points / Conseil */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
-                {result.points_positifs?.length > 0 && (
-                  <div style={{ ...card, borderColor: "rgba(34,197,94,0.2)" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#22c55e", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}><IconCheck size={12} /> Points positifs</div>
-                    <ul style={{ margin: 0, padding: "0 0 0 14px", color: "#e2e8f0", fontSize: "12px", lineHeight: 1.8 }}>
-                      {result.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
-                    </ul>
-                  </div>
-                )}
-                {result.points_ameliorer?.length > 0 && (
-                  <div style={{ ...card, borderColor: "rgba(245,158,11,0.2)" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}><IconAlert size={12} /> À améliorer</div>
-                    <ul style={{ margin: 0, padding: "0 0 0 14px", color: "#e2e8f0", fontSize: "12px", lineHeight: 1.8 }}>
-                      {result.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
-                    </ul>
-                  </div>
-                )}
-              </div>
+              {result.points_positifs?.length > 0 && (
+                <div style={{ ...card, borderColor: "rgba(34,197,94,0.2)", marginBottom: "10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#22c55e", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}><IconCheck size={12} /> Points positifs</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 14px", color: "#e2e8f0", fontSize: "12px", lineHeight: 1.8 }}>
+                    {result.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
+                </div>
+              )}
+              <AxesPrioritaires
+                axes={result.axes_prioritaires}
+                fallbackPoints={result.points_ameliorer}
+              />
               {result.conseil_prioritaire && (
                 <div style={{ ...card, background: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.25)" }}>
                   <span style={{ display: "inline-flex", color: "#60a5fa", marginRight: "4px" }}><IconLightbulb size={14} /></span>

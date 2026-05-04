@@ -8,6 +8,7 @@ import DevPanel from "./DevPanel";
 import BetaAccess from "./BetaAccess";
 import Onboarding from "./Onboarding";
 import EmailOptIn from "./components/EmailOptIn";
+import AxesPrioritaires from "./components/AxesPrioritaires";
 import { supabase } from "./lib/supabase";
 import {
   IconChoose, IconSpeak, IconChart,
@@ -1375,26 +1376,18 @@ function App() {
               </div>
 
               {/* ── 3. Points ── */}
-              {(feedback.points_positifs?.length > 0 || feedback.points_ameliorer?.length > 0) && (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "14px", marginBottom: "16px" }}>
-                  {feedback.points_positifs?.length > 0 && (
-                    <div style={{ ...getCardStyle(), borderColor: "rgba(34,197,94,0.2)" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
-                      <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
-                        {feedback.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
-                      </ul>
-                    </div>
-                  )}
-                  {feedback.points_ameliorer?.length > 0 && (
-                    <div style={{ ...getCardStyle(), borderColor: "rgba(245,158,11,0.2)" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconAlert size={13} /> Points à améliorer</div>
-                      <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
-                        {feedback.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
-                      </ul>
-                    </div>
-                  )}
+              {feedback.points_positifs?.length > 0 && (
+                <div style={{ ...getCardStyle(), borderColor: "rgba(34,197,94,0.2)", marginBottom: "16px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#22c55e", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}><IconCheck size={13} /> Points positifs</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 16px", lineHeight: 1.9, color: "#e2e8f0", fontSize: "14px" }}>
+                    {feedback.points_positifs.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
                 </div>
               )}
+              <AxesPrioritaires
+                axes={feedback.axes_prioritaires}
+                fallbackPoints={feedback.points_ameliorer}
+              />
 
               {/* ── 4. Correction + Version côte à côte ── */}
               {(feedback.correction_simple || feedback.version_amelioree?.texte) && (

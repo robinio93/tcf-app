@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AxesPrioritaires from './components/AxesPrioritaires';
 
 export default function SessionDetailModal({ sessionId, betaCode, onClose }) {
   const [session, setSession] = useState(null);
@@ -159,15 +160,11 @@ function SessionDetail({ session }) {
         </div>
       )}
 
-      {/* Points à améliorer */}
-      {fb.points_ameliorer?.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '13px', color: '#f59e0b', fontWeight: 700, marginBottom: '8px' }}>⚡ Points à améliorer</div>
-          <ul style={{ margin: 0, paddingLeft: '20px', color: '#cbd5e1', fontSize: '13px', lineHeight: 1.7 }}>
-            {fb.points_ameliorer.map((p, i) => <li key={i}>{p}</li>)}
-          </ul>
-        </div>
-      )}
+      {/* Axes prioritaires */}
+      <AxesPrioritaires
+        axes={fb.axes_prioritaires}
+        fallbackPoints={fb.points_ameliorer}
+      />
 
       {/* Conseil prioritaire */}
       {fb.conseil_prioritaire && (
