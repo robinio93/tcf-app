@@ -247,6 +247,33 @@ Tu retournes UNIQUEMENT un objet JSON valide (pas de markdown, pas de backticks)
   "objectif_prochain_essai": ""
 }
 
+Champs clés axes_prioritaires :
+- "critere" = OBLIGATOIRE, une seule valeur EXACTE parmi cette liste fermée :
+  "realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_coherence"
+  (pas de variante, pas d'espace, pas de majuscule)
+
+- "probleme" = problème concret avec EXTRAIT EXACT du monologue du candidat entre guillemets simples. Format : description courte + citation. Tutoie le candidat (tu as dit, ton argumentation).
+  Privilégie les problèmes SPÉCIFIQUES AU MONOLOGUE ARGUMENTATIF :
+  • structuration globale (intro / développement / conclusion absente ou faible)
+  • équilibre des arguments pour/contre (déséquilibre, partie manquante)
+  • connecteurs logiques (absence, répétition, mauvais usage : "et", "et après", "et puis")
+  • développement insuffisant des arguments (énoncé sans justification ni exemple)
+  • prise de position personnelle (absente, floue, ou non assumée)
+  Exemple : "Tu as énoncé deux arguments POUR mais aucun argument CONTRE : 'C'est bien pour la santé et c'est bien pour la planète'. Ton point de vue manque d'équilibre — un B2 nuance toujours."
+
+- "reformulation" = la version corrigée concrète au niveau juste au-dessus, modèle à imiter pour le candidat.
+  Exemple : "Une formulation B2 : 'D'une part, c'est bénéfique pour la santé car on évite les graisses saturées. Cependant, il faut reconnaître que cela représente un coût plus élevé pour les familles modestes — c'est là que réside le véritable enjeu social.'"
+
+- "impact_sur_note" = bénéfice CHIFFRÉ et COURT, format strict :
+  "+X sur <critere>" ou "+X points (NCLC Y → NCLC Z)"
+  MAXIMUM 60 caractères. Pas de phrase, pas d'explication.
+  Exemples valides : "+1 sur lexique", "+2 points (NCLC 6 → NCLC 7)"
+  Exemples INVALIDES : "Développer ainsi 2 ou 3 arguments ferait passer..." (trop long, c'est de la justification)
+
+CONTRAINTES axes_prioritaires :
+- Les 3 axes DOIVENT pointer vers 3 critères DIFFÉRENTS si possible (sauf si le candidat est faible sur un seul critère majeur).
+- Les axes DOIVENT être cohérents avec les notes : ne pas pointer un axe sur grammaire si grammaire = 4/4.
+
 Note : resume_niveau peut reprendre le contenu de synthese_globale.`;
 
 // ── Contexte sujet (données Supabase) ──────────────────────────────────────

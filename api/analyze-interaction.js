@@ -334,15 +334,33 @@ Champs clés :
 - phrases_utiles = 4 expressions utiles adaptées au scénario
 - Tutoie le candidat dans tout le feedback (tu, ton, tes)
 - Cite des extraits exacts de la transcription dans les justifications et points_ameliorer
-- axes_prioritaires = LES 3 PROBLÈMES PRIORITAIRES À CORRIGER POUR GAGNER DES POINTS
-  Pour chaque axe, remplis 4 champs :
-  • critere = un seul parmi : "realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_coherence"
-  • probleme = problème concret cité avec extrait EXACT entre guillemets de la transcription (ex : "tu as dit 'je veux savoir si possible' à 3 reprises sans varier la formulation"). Privilégie les problèmes SPÉCIFIQUES À L'INTERACTION : qualité des questions posées, gestion des rebonds, registre interactionnel, capacité à reformuler quand l'interlocuteur n'a pas compris.
-  • reformulation = la version corrigée concrète, modèle à imiter (ex : "Pourriez-vous me dire si... ? / Est-il possible de... ? / Je voudrais savoir...")
-  • impact_sur_note = bénéfice chiffré, format court (ex : "+1 sur interaction_coherence", "+1 sur lexique")
-- Les 3 axes_prioritaires DOIVENT pointer vers des CRITÈRES DIFFÉRENTS si possible (sauf si le candidat est faible sur un seul critère majeur)
-- Les 3 axes_prioritaires DOIVENT être cohérents avec les notes attribuées : on ne pointe pas un axe sur grammaire si grammaire = 4/4
-- Tutoie le candidat dans probleme et reformulation (tu, ton, tes)`;
+Champs clés axes_prioritaires :
+- "critere" = OBLIGATOIRE, une seule valeur EXACTE parmi cette liste fermée :
+  "realisation_tache", "lexique", "grammaire", "fluidite_prononciation", "interaction_coherence"
+  (pas de variante, pas d'espace, pas de majuscule)
+
+- "probleme" = problème concret avec EXTRAIT EXACT de la transcription du candidat entre guillemets simples. Format : description courte + citation. Tutoie le candidat (tu as dit, ta réponse).
+  Privilégie les problèmes SPÉCIFIQUES À L'INTERACTION-DIALOGUE :
+  • qualité et quantité des questions posées (manque de questions, questions superficielles)
+  • gestion des rebonds (absence de relance, pas d'écoute active des réponses de l'interlocuteur)
+  • registre interactionnel (rupture du cadre officiel, familiarité inappropriée, mélange de langues)
+  • points clés du scénario non abordés (tarifs, modalités, conditions, etc.)
+  • capacité à reformuler quand l'interlocuteur n'a pas compris
+  Exemple : "Tu as posé seulement 3 questions sur les 6-8 attendues, et tu as clôturé avec 'Eh bien, écoutez, on fait comme ça' sans avoir abordé les tarifs ni les modalités."
+
+- "reformulation" = la version corrigée concrète au niveau juste au-dessus, modèle à imiter pour le candidat.
+  Exemple : "Une formulation B2 : 'Pourriez-vous me détailler les différentes formules disponibles, notamment en ce qui concerne les tarifs et les modalités ?'"
+
+- "impact_sur_note" = bénéfice CHIFFRÉ et COURT, format strict :
+  "+X sur <critere>" ou "+X points (NCLC Y → NCLC Z)"
+  MAXIMUM 60 caractères. Pas de phrase, pas d'explication.
+  Exemples valides : "+1 sur interaction_coherence", "+2 points (NCLC 6 → NCLC 7)"
+  Exemples INVALIDES : "Poser plus de questions ferait passer..." (trop long, c'est de la justification)
+
+CONTRAINTES axes_prioritaires :
+- Les 3 axes DOIVENT pointer vers 3 critères DIFFÉRENTS si possible (sauf si le candidat est faible sur un seul critère majeur).
+- Les axes DOIVENT être cohérents avec les notes : ne pas pointer un axe sur grammaire si grammaire = 4/4.
+- Tutoie le candidat dans probleme et reformulation (tu, ton, tes).`;
 
 // ── Prompt utilisateur ──────────────────────────────────────────────────────
 
