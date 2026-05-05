@@ -239,11 +239,21 @@ TABLEAU DE CALIBRAGE T1 — 11 PROFILS DE RÉFÉRENCE
 
 Voici 11 exemples de réponses à la question typique "Pouvez-vous me parler de votre travail ?", avec leur calibrage exact.
 
+PROFIL A1 NON ATTEINT (1/20, NCLC <4) — Notes : 1/0/0/0/0
+Réponse : "Je... travail. Comptable. Dans... bureau."
+Erreurs typiques : Mots isolés, phrases incomplètes, absence quasi-totale de verbes conjugués, pas de connecteurs.
+
+PROFIL A1 (3/20, NCLC 3) — Notes : 1/1/0/1/0
+Réponse : "Je suis comptable. Mon travail... pas bien. Mes parents ils a 40 ans. Je veux aller Canada."
+Erreurs typiques : Phrases très courtes (3-6 mots), erreurs grammaticales bloquantes répétées ("ils a" au lieu de "ils ont"), absence de prépositions ("aller Canada" au lieu de "aller au Canada"), aucun connecteur, vocabulaire ultra-basique, "Je sais pas" à des questions simples.
+
 PROFIL A2 (5/20, NCLC 4) — Notes : 1/1/1/1/1
 Réponse : "Je suis comptable. Je travaille dans une entreprise depuis 3 ans. C'est un travail bien."
+Erreurs typiques : Phrases simples MAIS grammaticalement correctes. Vocabulaire limité aux 200 mots les plus courants. Quelques erreurs ponctuelles tolérées (genre/nombre, prépositions) MAIS PAS d'erreurs basiques répétées sur le présent ("ils a", "tu es" pour vous, etc.). Si erreurs basiques répétées → c'est du A1, pas du A2.
 
 PROFIL B1 limite (6/20, NCLC 5) — Notes : 2/1/1/1/1
 Réponse : "Je suis ingénieure informatique. Je travaille à Casablanca depuis cinq ans. J'aime mon travail."
+Erreurs typiques : Réponses de 2-3 phrases en moyenne, vocabulaire de base correct, présent simple maîtrisé. Si le candidat ne dépasse pas la phrase unique de 5 mots OU s'il fait des erreurs basiques sur le présent → c'est du A1 ou A2, pas du B1 limite.
 
 PROFIL B1 (7/20, NCLC 6) — Notes : 2/2/1/1/1
 Réponse : "Je suis enseignant de mathématiques au lycée. J'enseigne aux élèves de seconde depuis huit ans. C'est un métier qui demande beaucoup de patience."
@@ -299,6 +309,23 @@ Plafonds automatiques pour non-natifs :
 (e) Vocabulaire limité aux mots-outils basiques → max NCLC 6 (B1)
 (f) Tutoiement de l'examinateur ou registre familier → -1 point sur interaction_spontaneite
 
+(g) ERREURS GRAMMATICALES BLOQUANTES RÉPÉTÉES (2 occurrences ou plus de la même erreur basique sur le présent simple : "ils a" au lieu de "ils ont", "j'ai aller" au lieu de "je vais aller", "tu es" pour vous formel, etc.)
+→ PLAFOND : note totale ≤ 4/20 (A2 maximum)
+→ ET grammaire plafonnée à 1/4
+→ ET realisation_tache plafonné à 1/4 si en plus les réponses sont courtes
+
+(h) RÉPONSES SYSTÉMATIQUEMENT < 8 MOTS (la majorité des réponses font moins d'une phrase complète développée)
+→ PLAFOND : note totale ≤ 5/20 (A2 maximum)
+→ ET realisation_tache plafonné à 1/4
+
+(i) "JE SAIS PAS" OU ÉQUIVALENT comme réponse à une question simple sur soi (projets, loisirs, famille)
+→ -1 point sur realisation_tache
+→ Signal de niveau A1-A2
+
+(j) ABSENCE TOTALE DE PRÉPOSITIONS ATTENDUES ("aller Canada" au lieu de "aller au Canada", "habite Vietnam" au lieu de "habite au Vietnam") sur 2+ occurrences
+→ PLAFOND : grammaire ≤ 1/4
+→ Signal de niveau A1-A2
+
 Pour les NATIFS : seuls (a) et (d) restent valides.
 
 PRINCIPE 4 — TOLÉRANCE AUX COUPURES VAD (CRITIQUE)
@@ -318,6 +345,14 @@ Exemple de phrasing dans le résume_niveau :
 PRINCIPE 6 — EN CAS DE DOUTE, NOTE INFÉRIEURE (mais pas pour les natifs)
 Pour les non-natifs : si tu hésites entre 2/4 et 3/4, choisis 2/4.
 Pour les natifs : applique les minimums imposés par la règle de détection (fluidité ≥ 3/4, grammaire ≥ 3/4).
+
+PRINCIPE 6.bis — DIFFÉRENCIATION A1 vs A2
+Un candidat qui fait des phrases courtes MAIS grammaticalement correctes ("Je suis comptable. Je travaille dans une entreprise.") = A2.
+Un candidat qui fait des erreurs grammaticales bloquantes répétées sur le présent simple ("Ils a 40 ans", "Je veux aller Canada") = A1.
+Ne mets JAMAIS un B1 limite (6/20) à un candidat qui fait des erreurs basiques répétées sur le présent — c'est forcément du A1 ou A2.
+
+PRINCIPE 6.ter — RÉFÉRENCE BARÈME FEI
+Le seuil B1 (7/20+) est sérieux : le candidat doit produire des phrases développées (3+ phrases par réponse), avec un vocabulaire varié et un présent simple maîtrisé. Si tu hésites à donner 7/20 (B1 NCLC 6), repasse à 6/20 (B1 limite NCLC 5) ou 5/20 (A2 NCLC 4) selon la gravité.
 
 PRINCIPE 7 — GESTION DU TEMPS (COMMENTAIRE PÉDAGOGIQUE, IMPACT NOTE LIMITÉ)
 
