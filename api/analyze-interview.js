@@ -265,13 +265,27 @@ PROFIL B1 (9/20, NCLC 6) — Notes : 2/2/2/2/1
 Réponse : "Je suis architecte d'intérieur. Je travaille à Tunis pour des clients particuliers qui veulent rénover leur appartement. Ce que j'aime, c'est de transformer des espaces et de créer quelque chose de nouveau pour chaque famille."
 
 PROFIL B2 limite — SEUIL ENTRÉE EXPRESS (10/20, NCLC 7) — Notes : 2/2/2/2/2
-Réponse : "Je travaille comme chef de projet dans une société de conseil à Casablanca. Mon rôle, c'est de coordonner les équipes techniques sur des missions de transformation digitale. C'est passionnant parce que chaque projet apporte de nouveaux défis."
+Réponse : "Je travaille comme chef de projet dans une société de conseil à Casablanca. Mon rôle, c'est de coordonner les équipes techniques sur des missions de transformation digitale. C'est passionnant parce que chaque projet apporte de nouveaux défis, et honnêtement ce qui me plaît particulièrement, c'est cette dimension humaine — accompagner les équipes dans le changement."
+Marqueurs B2 présents : adverbe nuanceur ("particulièrement"), adverbe modal ("honnêtement"), structure complexe avec relative ("ce qui me plaît"), justification psychologique nuancée.
 
 PROFIL B2 (11/20, NCLC 7) — Notes : 3/2/2/2/2
 Réponse : "Je suis avocate spécialisée en droit du travail. Depuis huit ans, j'accompagne des entreprises et des particuliers dans leurs litiges, principalement à Tunis. Ce qui me motive, c'est la dimension humaine du métier — on aide vraiment les gens à se défendre."
 
 PROFIL B2 (12/20, NCLC 8) — Notes : 3/2/3/2/2
 Réponse : "Je suis architecte d'intérieur, à mon compte depuis cinq ans. Je travaille principalement avec des clients particuliers qui veulent rénover leur appartement. Ce que j'aime dans ce métier, c'est de transformer des espaces, mais aussi d'accompagner les gens dans une étape importante de leur vie."
+
+PROFIL B2 ENRICHI A — avec autocorrection et lexique précis (12/20, NCLC 8) — Notes : 3/2/3/2/2
+Réponse : "Pour l'instant je travaille comme une... comme assistante logistique à Dunkerque. Je prépare tous les documents légals — pardon, légaux — pour les camions qui sortent de notre entrepôt vers l'Allemagne, les Pays-Bas, parfois la Chine. Ce qui est intéressant, c'est qu'on doit anticiper beaucoup de contraintes douanières."
+Marqueurs B2 présents : autocorrection visible ("comme une... comme assistante" et "légals — pardon, légaux"), lexique professionnel précis (contraintes douanières, anticiper), relatives multiples ("qui sortent", "ce qui est intéressant").
+ATTENTION : ce profil contient encore des erreurs persistantes ("documents légals" même corrigé après) — ne PAS plafonner à A2 sous prétexte d'erreurs. La densité des marqueurs B2 prime.
+
+PROFIL B2 ENRICHI B — avec articulateurs hiérarchisants et concession (12/20, NCLC 8) — Notes : 2/3/2/3/2
+Réponse : "Je suis enseignant de langues, en ligne principalement. D'une part c'est un métier qui me donne énormément de flexibilité — je peux travailler depuis n'importe où, ce qui est rare aujourd'hui. D'autre part, c'est vrai que parfois ça peut être un peu solitaire. Mais en réalité, le contact avec les apprenants compense largement ce côté isolé."
+Marqueurs B2 présents : articulateurs hiérarchisants ("d'une part / d'autre part"), concession + nuance ("c'est vrai que... mais en réalité"), adverbes nuanceurs ("énormément", "largement"), justification psychologique.
+
+PROFIL B2 ENRICHI C — avec annonce de structure et comparaison interculturelle (13/20, NCLC 8) — Notes : 3/3/2/3/2
+Réponse : "Je travaille comme infirmière à Casablanca. Il y a deux raisons pour lesquelles ce métier me passionne. Une première raison, c'est le contact humain — on est vraiment au cœur des moments importants pour les patients. Une deuxième raison, et peut-être la plus importante pour moi, c'est l'aspect technique — comme à Paris où j'ai fait mon stage, on doit constamment se former aux nouvelles pratiques."
+Marqueurs B2 présents : annonce explicite de structure ("Il y a deux raisons... une première raison... une deuxième raison"), comparaison interculturelle ("comme à Paris"), relatives complexes, articulateurs hiérarchisants.
 
 PROFIL C1 NATIF — entretien moyennement développé (13/20, NCLC 8) — Notes : 2/3/3/3/2
 Réponse type : "Je suis enseignant de français à Lingoda, du coup je travaille en ligne depuis Da Nang où j'habite. C'est un job qui me plaît parce qu'il me permet d'avoir de la flexibilité."
@@ -313,6 +327,13 @@ Plafonds automatiques pour non-natifs :
 → PLAFOND : note totale ≤ 4/20 (A2 maximum)
 → ET grammaire plafonnée à 1/4
 → ET realisation_tache plafonné à 1/4 si en plus les réponses sont courtes
+
+EXCEPTION CRITIQUE — Le plafond (g) NE S'APPLIQUE PAS si le candidat présente 3+ marqueurs B2 décisifs (cf. section MARQUEURS POSITIFS B2 ci-après). Un B2 réel peut avoir des erreurs persistantes sur le présent (calques L1, fossilisation) tout en démontrant des structures complexes denses, des articulateurs hiérarchisants, de l'autocorrection visible, etc. Dans ce cas :
+→ Le candidat reste B2 (note totale 10-13/20)
+→ Mais grammaire reste plafonnée à 2/4 (les erreurs persistent même chez un B2)
+→ Les autres critères se notent normalement selon les marqueurs présents
+
+Cette exception évite une erreur de calibration documentée chez les correcteurs FEI : sous-évaluer un B2 → B1 par pénalisation excessive des erreurs de surface.
 
 (h) RÉPONSES SYSTÉMATIQUEMENT < 8 MOTS (la majorité des réponses font moins d'une phrase complète développée)
 → PLAFOND : note totale ≤ 5/20 (A2 maximum)
@@ -401,6 +422,126 @@ POURQUOI : tu ne peux pas distinguer avec certitude entre (a) le candidat a rée
 
 EXCEPTION — uniquement si la transcription est claire et identifiable :
 Si le fragment est manifestement et clairement dans une langue connue (par exemple "I don't understand" en anglais, "no entiendo" en espagnol), tu peux le mentionner. Mais en cas de doute, opte toujours pour la description factuelle.
+
+PATTERNS WHISPER CRITIQUES À AUDITER (NE PAS PÉNALISER LE CANDIDAT)
+
+Whisper hallucine régulièrement sur certains mots français. Si tu vois un de ces patterns dans la transcription, donne le bénéfice du doute au candidat (le mot correct est probablement celui de droite) :
+
+- "ponctuaires" → probablement "ponctuels" (lexique B2)
+- "en contraire" → probablement "au contraire" ⚠️ ARTICULATEUR B2 CRITIQUE
+- "musou" → probablement "museau" (lexique précis B2)
+- "colibre" → probablement "collier" (lexique B2)
+- "bannier" → probablement "véhicule"
+- "mouchants" → probablement "méchants"
+- "bonhomme" → probablement "bonheur" (erreur sémantique grave)
+- "la retardation" → probablement "la retraite"
+- "j'étais en conduit permis" → probablement "j'ai mon permis de conduire"
+- Noms propres très étranges (Arielle de Vannes-le-Bond, Corvallisant, L'Atelier des Fêtes, Chris Mann) → presque toujours noms réels mal transcrits
+
+RÈGLE ANTI-WHISPER : si un mot du transcript ressemble phonétiquement à un mot français correct mais n'existe pas en français, ou si le contexte sémantique est cassé sans raison apparente :
+→ Suspecter Whisper avant de pénaliser le candidat
+→ Si l'audit révèle un articulateur B2 ("au contraire", "par ailleurs") qui aurait été cassé par Whisper, COMPTER l'articulateur comme présent
+→ Mentionner dans la justification : "transcription possiblement imprécise sur ce passage"
+
+PRINCIPE 9 — MARQUEURS POSITIFS PAR NIVEAU (LOGIQUE FEI)
+
+PRINCIPE FONDAMENTAL : on cherche des PREUVES de niveau, pas des FAUTES. Un candidat est B2 dès qu'il présente 3+ marqueurs B2 décisifs récurrents, même avec des erreurs morphosyntaxiques persistantes. La densité et la diversité des marqueurs priment sur l'absence d'erreurs.
+
+A1 — MARQUEURS DÉCISIFS (production très basique)
+- Formules figées de présentation NON acquises : "Je 30 ans" au lieu de "J'ai 30 ans", "Je 3 enfants" au lieu de "J'ai 3 enfants" (marqueur clé A1 absolu)
+- Verbe régulièrement omis dans phrases simples : "Moi marocain", "Mon mari travail", "Famille là-bas"
+- Production très brève sur sujets familiers (< 30 secondes pour questions ouvertes)
+- Énumération de mots-clés sans phrases construites
+- Absence quasi-totale de connecteurs
+
+A2 — MARQUEURS DÉCISIFS (élémentaire avancé)
+- Formules figées de présentation ACQUISES : "J'ai 30 ans", "J'ai 3 enfants" (différence clé avec A1)
+- Confusion être/avoir SYSTÉMATIQUE : "j'ai réveillé", "j'ai sorti", "j'ai entré", "j'ai un serveur" (au lieu de "je suis serveur")
+- Pattern verbe conjugué + verbe à l'infinitif : "nous sommes apprendre", "nous sommes travaillés"
+- Connecteurs A2 en boucle : "après... après... après" ou "et... et... et" > 50% des connecteurs
+- Mots-bouchons compensateurs en répétition : "d'autres choses", "comme ça", "voilà", "par exemple" (5+ fois)
+- Périphrases vagues : "truc", "chose", "machin"
+- Échos lexicaux : reprend > 30% du lexique de l'examinateur (candidat-écho)
+- Brèves interventions : < 12 mots/tour en moyenne
+- Présent dominant > 80% des temps verbaux
+
+B1 — MARQUEURS DÉCISIFS (seuil intermédiaire)
+- Marqueurs d'opinion explicites : "à mon avis", "je pense que", "pour moi", "je trouve que"
+- Relatives présentes mais pas denses (1-2 par minute) : "un livre que j'ai déjà lu", "la personne qui s'occupe"
+- Conditionnelles avec si + présent : "si j'ai le temps, je vais..."
+- Comparaisons simples : "plus... que", "moins... que"
+- Périphrases de précision (pas juste "truc") : "l'endroit où on attend le bus", "la personne qui s'occupe des enfants"
+- Connecteurs causaux variés : "parce que", "donc", "alors", "par exemple"
+- Variété temporelle : 3-4 temps utilisés (présent, PC, imparfait, futur proche)
+- Développement spontané sans relance sur chaque point
+- "Pratique courante de la langue orale" : production fluide même avec erreurs (marqueur clé)
+- "Parce que" en boucle reste possible (caractéristique B1)
+
+B2 — MARQUEURS DÉCISIFS (12 marqueurs, viser 3+ pour B2)
+1. Densité de structures complexes : 3+ relatives ou complétives par 100 mots (relatives multiples, "je crois que", "il me semble que", concessives "même si", "bien que")
+2. Articulateurs hiérarchisants présents : "au contraire", "cependant", "par contre", "en revanche", "par ailleurs", "d'une part / d'autre part", "néanmoins", "toutefois", "en effet"
+3. Adverbes nuanceurs en variété : 5+ différents (normalement, tellement, particulièrement, généralement, finalement, principalement, essentiellement, naturellement)
+4. Variété temporelle : 5+ temps verbaux différents (présent, PC, imparfait, futur, conditionnel, gérondif, parfois subjonctif)
+5. Autocorrection visible (marqueur B2 le plus fort) : "je travaille comme une... comme assistante", "il a... ils ont parlé"
+6. Justifications psychologiques nuancées (pas juste "parce que c'est bien") : "ça me détend parce que je sais déjà ce qui va arriver, ça ne crée pas de stress"
+7. Lexique précis sur concepts abstraits : "déprimé", "apaisé", "angoissé", "selon", "à la lumière de", "relativement", "plutôt"
+8. Annonce explicite de structure : "une autre raison...", "deuxièmement...", "ce qui est important c'est que..."
+9. Adaptation sociolinguistique au destinataire (registre formel/amical adapté à la situation)
+10. Comparaisons interculturelles : "comme à Paris", "contrairement à mon pays"
+11. Concession + nuance : "oui, c'est vrai, mais en réalité..."
+12. Anticipation des objections : "on pourrait dire que... mais..."
+
+DENSITÉ > PRÉSENCE PONCTUELLE
+- Un B1 peut produire UNE relative correcte. Un B2 en produit PLUSIEURS récurrentes.
+- Un B1 peut utiliser UN adverbe nuanceur. Un B2 en utilise 5+ différents.
+- Mesurer la fréquence et la diversité, pas la simple présence.
+
+PRINCIPE 10 — RÈGLE DE FRONTIÈRE B1 ↔ B2 (zone critique pour Express Entry)
+
+Si 3+ marqueurs B2 décisifs sont présents → B2 (note 10-13/20), MÊME AVEC ERREURS PERSISTANTES.
+
+Tableau différentiel B1 vs B2 :
+
+| Critère | B1 | B2 |
+|---|---|---|
+| Lexique | Suffisant + périphrases de précision | Précis + bonne gamme + nuances |
+| Erreurs | Sérieuses sur idées complexes | Rares OU persistantes mais structures réussies dominent |
+| Autocorrection | Absente | Visible (marqueur clé) |
+| Densité structures complexes | Éparses (1-2/min) | Dense (3+/100 mots) |
+| Articulateurs | "donc, parce que, mais, par exemple" | + "au contraire, cependant, par ailleurs, d'une part/d'autre part" |
+| Adverbes nuanceurs | Quasi absents | 5+ différents présents |
+| Variété temporelle | 3-4 temps | 5+ temps (incluant conditionnel, gérondif) |
+| Argumentation | Justifications simples | Annonce structure + nuance + concession |
+
+⚠️ PIÈGE 1 : la fluidité ne fait pas le niveau. Un B1 peut être très fluide et parler longtemps. Ce qui fait le B2 c'est la richesse structurelle (densité, articulateurs hiérarchisants, adverbes nuanceurs), pas le confort d'écoute.
+
+⚠️ PIÈGE 2 : les erreurs morphosyntaxiques NE PLAFONNENT PAS. Un B2 peut avoir des erreurs persistantes ("un ordre anglaise", "première profiter"). Ce sont les structures réussies qui définissent le niveau.
+
+⚠️ PIÈGE 3 : le profil B2 conversationnel ≠ B2 argumentatif. Pour T1 (entretien dirigé), on est dans un profil intermédiaire — densité de structures complexes + adverbes nuanceurs + autocorrection suffisent. Les articulateurs hiérarchisants sont un BONUS, pas un PRÉREQUIS pour T1 (ils sont plus attendus en T3).
+
+PRINCIPE 11 — ANTI-MARQUEURS (NE PAS PÉNALISER À TORT)
+
+Signaux à NE PAS considérer comme marqueurs de niveau inférieur :
+
+- Erreurs morphosyntaxiques chez un candidat avec 3+ marqueurs B2 → reste B2 (cf. PRINCIPE 10)
+- Phrases abandonnées avec reprise → naturel à l'oral spontané, peut même être un marqueur B2 (autocorrection)
+- Mot inventé phonétiquement proche d'un mot français correct → suspecter Whisper (cf. PRINCIPE 8)
+- Connecteurs B1 ("donc", "parce que") chez un candidat avec autres marqueurs B2 → ne plafonne pas à B1, les articulateurs hiérarchisants sont un bonus pas un prérequis pour T1
+- Une seule structure complexe ratée isolée → le contexte global compte, pas l'erreur isolée
+- Hésitations ponctuelles sur idées complexes → normales à tous les niveaux, ne pas les compter comme défaut de fluidité
+
+CHECKLIST DE SCORING AVANT DE FINALISER LA NOTE T1
+
+Avant d'attribuer la note finale, vérifier mentalement :
+☐ Les 5 critères ont été examinés indépendamment
+☐ La logique d'évaluation positive a été appliquée (preuves > fautes)
+☐ La densité des marqueurs B2 a été comptée (pas juste leur présence)
+☐ Les structures complexes RÉUSSIES ont été comptées (pas juste les erreurs)
+☐ Les artefacts Whisper probables ont été audités
+☐ Le profil B2 avec erreurs persistantes n'a pas été plafonné à A2 par le signal (g)
+☐ Les formules figées de présentation A1 vs A2 ont été distinguées
+☐ Le candidat-écho A2 a été identifié si applicable
+☐ Le niveau attribué reflète le PLAFOND atteint, pas le PLANCHER des erreurs
 
 FEEDBACK ACTIONNABLE — FORMAT STRICT
 
