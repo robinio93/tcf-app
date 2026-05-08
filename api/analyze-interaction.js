@@ -410,7 +410,7 @@ function buildScenarioContext(scenario, scenarioData) {
   return block;
 }
 
-function buildUserPrompt(conversation, scenario, scenarioData, durationSec) {
+function buildUserPrompt(conversation, scenario, scenarioData, durationSec, metadataContext = "") {
   const contextBlock = buildScenarioContext(scenario, scenarioData);
   const fewShotBlock = buildFewShotBlock(scenarioData);
 
@@ -427,7 +427,7 @@ function buildUserPrompt(conversation, scenario, scenarioData, durationSec) {
     else if (d < 150) durationNote = "\nNote : interaction courte (< 2:30), realisation_tache plafonnée à 3/4 selon PRINCIPE 7.";
   }
 
-  return `${contextBlock}
+  return `${metadataContext}${contextBlock}
 
 ${fewShotBlock}
 
@@ -454,7 +454,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { conversation, scenario, scenarioData, durationSec, betaCode } = req.body;
+    const { conversation, scenario, scenarioData, durationSec, betaCode, isDev, metadata, expected } = req.body;
+
+    // Construction du bloc de contexte méta-audio si présent (calibration FEI)
+    let metadataContext = "";
+    if (metadata && typeof metadata === "object") {
+      const lines = ["", "=== CONTEXTE AUDIO (non-transcrit) ==="];
+      if (metadata.debit) lines.push(`- Débit : ${metadata.debit}`);
+      if (metadata.accent) lines.push(`- Accent : ${metadata.accent}`);
+      if (metadata.hesitations) lines.push(`- Hésitations : ${metadata.hesitations}`);
+      if (metadata.autocorrection) lines.push(`- Autocorrections : ${metadata.autocorrection}`);
+      if (metadata.confiance) lines.push(`- Confiance/volume : ${metadata.confiance}`);
+      if (metadata.notesLibres) lines.push(`- Notes : ${metadata.notesLibres}`);
+      lines.push("=== FIN CONTEXTE AUDIO ===", "");
+      metadataContext = lines.join("\n");
+    }
 
     if (!conversation?.trim()) {
       return res.status(400).json({ error: "conversation is required" });
@@ -468,7 +482,7 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "user",
-          content: buildUserPrompt(conversation, scenario, scenarioData, durationSec),
+          content: buildUserPrompt(conversation, scenario, scenarioData, durationSec, metadataContext),
         },
       ],
     });
@@ -545,30 +559,34 @@ export default async function handler(req, res) {
 
     // ─── PHASE 4 : classification erreurs + patterns récurrents ──────────────
     try {
-      const parsedForPhase4 = JSON.parse(analysis);
+      if (isDev) {
+        console.log('[Phase 4] Mode dev détecté — skip persistance Supabase');
+      } else {
+        const parsedForPhase4 = JSON.parse(analysis);
 
-      const { data: profile } = await supabaseServer
-        .from('beta_testers')
-        .select('langue_maternelle, total_sessions')
-        .eq('code', betaCode)
-        .maybeSingle();
+        const { data: profile } = await supabaseServer
+          .from('beta_testers')
+          .select('langue_maternelle, total_sessions')
+          .eq('code', betaCode)
+          .maybeSingle();
 
-      const erreurs = await classifierErreurs(parsedForPhase4, conversation, 2);
+        const erreurs = await classifierErreurs(parsedForPhase4, conversation, 2);
 
-      await persistErreurs({
-        erreurs,
-        betaCode,
-        tache: 2,
-        langueMaternelle: profile?.langue_maternelle,
-        niveauSession: parsedForPhase4.niveau_cecrl,
-        numeroSession: (profile?.total_sessions || 0) + 1,
-      });
+        await persistErreurs({
+          erreurs,
+          betaCode,
+          tache: 2,
+          langueMaternelle: profile?.langue_maternelle,
+          niveauSession: parsedForPhase4.niveau_cecrl,
+          numeroSession: (profile?.total_sessions || 0) + 1,
+        });
 
-      const patternsRecurrents = await getRecurringPatterns(betaCode);
-      if (patternsRecurrents) {
-        parsedForPhase4.patterns_recurrents = patternsRecurrents;
-        analysis = JSON.stringify(parsedForPhase4);
-      }
+        const patternsRecurrents = await getRecurringPatterns(betaCode);
+        if (patternsRecurrents) {
+          parsedForPhase4.patterns_recurrents = patternsRecurrents;
+          analysis = JSON.stringify(parsedForPhase4);
+        }
+      } // fin else (skip si isDev)
     } catch (err) {
       console.warn('[Phase 4] Échec non-bloquant :', err.message);
     }

@@ -327,14 +327,14 @@ ${sujetData.monologue_b2}
 Compare la transcription du candidat à ces exemples pour calibrer ton scoring.`;
 }
 
-function buildUserPrompt(transcript, durationSec, sujetData) {
+function buildUserPrompt(transcript, durationSec, sujetData, metadataContext = "") {
   const dureeStr = Number.isFinite(Number(durationSec))
     ? `${Math.max(1, Number(durationSec))} secondes`
     : "inconnue";
   const contextBlock = buildSujetContext(sujetData);
   const fewShotBlock = buildFewShotBlock(sujetData);
 
-  return `SUJET : ${sujetData?.sujet || "Expression d'un point de vue"}
+  return `${metadataContext}SUJET : ${sujetData?.sujet || "Expression d'un point de vue"}
 DURÉE DE L'ENREGISTREMENT : ${dureeStr}
 
 ${contextBlock}
@@ -352,7 +352,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, durationSec, sujetData, betaCode } = req.body;
+    const { prompt, durationSec, sujetData, betaCode, isDev, metadata, expected } = req.body;
+
+    // Construction du bloc de contexte méta-audio si présent (calibration FEI)
+    let metadataContext = "";
+    if (metadata && typeof metadata === "object") {
+      const lines = ["", "=== CONTEXTE AUDIO (non-transcrit) ==="];
+      if (metadata.debit) lines.push(`- Débit : ${metadata.debit}`);
+      if (metadata.accent) lines.push(`- Accent : ${metadata.accent}`);
+      if (metadata.hesitations) lines.push(`- Hésitations : ${metadata.hesitations}`);
+      if (metadata.autocorrection) lines.push(`- Autocorrections : ${metadata.autocorrection}`);
+      if (metadata.confiance) lines.push(`- Confiance/volume : ${metadata.confiance}`);
+      if (metadata.notesLibres) lines.push(`- Notes : ${metadata.notesLibres}`);
+      lines.push("=== FIN CONTEXTE AUDIO ===", "");
+      metadataContext = lines.join("\n");
+    }
 
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: "Prompt is required" });
@@ -366,7 +380,7 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "user",
-          content: buildUserPrompt(prompt, durationSec, sujetData),
+          content: buildUserPrompt(prompt, durationSec, sujetData, metadataContext),
         },
       ],
     });
@@ -469,30 +483,34 @@ export default async function handler(req, res) {
 
     // ─── PHASE 4 : classification erreurs + patterns récurrents ──────────────
     try {
-      const parsedForPhase4 = JSON.parse(analysis);
+      if (isDev) {
+        console.log('[Phase 4] Mode dev détecté — skip persistance Supabase');
+      } else {
+        const parsedForPhase4 = JSON.parse(analysis);
 
-      const { data: profile } = await supabaseServer
-        .from('beta_testers')
-        .select('langue_maternelle, total_sessions')
-        .eq('code', betaCode)
-        .maybeSingle();
+        const { data: profile } = await supabaseServer
+          .from('beta_testers')
+          .select('langue_maternelle, total_sessions')
+          .eq('code', betaCode)
+          .maybeSingle();
 
-      const erreurs = await classifierErreurs(parsedForPhase4, prompt, 3);
+        const erreurs = await classifierErreurs(parsedForPhase4, prompt, 3);
 
-      await persistErreurs({
-        erreurs,
-        betaCode,
-        tache: 3,
-        langueMaternelle: profile?.langue_maternelle,
-        niveauSession: parsedForPhase4.niveau_cecrl,
-        numeroSession: (profile?.total_sessions || 0) + 1,
-      });
+        await persistErreurs({
+          erreurs,
+          betaCode,
+          tache: 3,
+          langueMaternelle: profile?.langue_maternelle,
+          niveauSession: parsedForPhase4.niveau_cecrl,
+          numeroSession: (profile?.total_sessions || 0) + 1,
+        });
 
-      const patternsRecurrents = await getRecurringPatterns(betaCode);
-      if (patternsRecurrents) {
-        parsedForPhase4.patterns_recurrents = patternsRecurrents;
-        analysis = JSON.stringify(parsedForPhase4);
-      }
+        const patternsRecurrents = await getRecurringPatterns(betaCode);
+        if (patternsRecurrents) {
+          parsedForPhase4.patterns_recurrents = patternsRecurrents;
+          analysis = JSON.stringify(parsedForPhase4);
+        }
+      } // fin else (skip si isDev)
     } catch (err) {
       console.warn('[Phase 4] Échec non-bloquant :', err.message);
     }

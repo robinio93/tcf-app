@@ -35,6 +35,19 @@ export default function DevPanel() {
   const [result, setResult] = useState(null);
   const [errMsg, setErrMsg] = useState("");
 
+  // Méta-audio (optionnel, pour calibration FEI)
+  const [debit, setDebit] = useState("");
+  const [accent, setAccent] = useState("");
+  const [hesitations, setHesitations] = useState("");
+  const [autocorrection, setAutocorrection] = useState("");
+  const [confiance, setConfiance] = useState("");
+  const [notesLibres, setNotesLibres] = useState("");
+
+  // Note FEI attendue (optionnel, pour comparaison automatique)
+  const [niveauAttendu, setNiveauAttendu] = useState("");
+  const [noteAttendue, setNoteAttendue] = useState("");
+  const [correctionFei, setCorrectionFei] = useState("");
+
   useEffect(() => {
     supabase.from("scenario_references")
       .select("id, numero, titre, consigne, role_examinateur, points_cles_attendus, erreurs_typiques_b1, difference_b1_b2_bon, expressions_cles, dialogue_a2, dialogue_b1, dialogue_b2")
@@ -56,6 +69,25 @@ export default function DevPanel() {
 
   // Clear transcript when scenario/subject changes
   useEffect(() => { setTranscript(""); }, [scenarioId, subjectId]);
+
+  function buildMetadata() {
+    const meta = {};
+    if (debit) meta.debit = debit;
+    if (accent) meta.accent = accent;
+    if (hesitations) meta.hesitations = hesitations;
+    if (autocorrection) meta.autocorrection = autocorrection;
+    if (confiance) meta.confiance = confiance;
+    if (notesLibres) meta.notesLibres = notesLibres;
+    return Object.keys(meta).length > 0 ? meta : null;
+  }
+
+  function buildExpected() {
+    const exp = {};
+    if (niveauAttendu) exp.niveau = niveauAttendu;
+    if (noteAttendue) exp.note = parseInt(noteAttendue);
+    if (correctionFei) exp.correction = correctionFei;
+    return Object.keys(exp).length > 0 ? exp : null;
+  }
 
   async function analyze() {
     if (!transcript.trim()) return;
@@ -84,6 +116,8 @@ export default function DevPanel() {
             dialogue_b1: sc.dialogue_b1,
             dialogue_b2: sc.dialogue_b2,
           } : null,
+          metadata: buildMetadata(),
+          expected: buildExpected(),
         };
       } else if (task === 3) {
         const sj = t3Subjects.find((s) => s.id === subjectId);
@@ -104,10 +138,12 @@ export default function DevPanel() {
             monologue_b1: sj.monologue_b1,
             monologue_b2: sj.monologue_b2,
           } : null,
+          metadata: buildMetadata(),
+          expected: buildExpected(),
         };
       } else {
         endpoint = "/api/analyze-interview";
-        body = { conversation: transcript, durationSec: duration, isDev: true };
+        body = { conversation: transcript, durationSec: duration, isDev: true, metadata: buildMetadata(), expected: buildExpected() };
       }
 
       const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -215,6 +251,103 @@ export default function DevPanel() {
             />
           </div>
 
+          {/* === BLOC MÉTA-AUDIO (optionnel pour calibration FEI) === */}
+          <div style={{
+            marginTop: 4,
+            padding: 12,
+            background: 'rgba(251, 191, 36, 0.08)',
+            border: '1px solid rgba(251, 191, 36, 0.3)',
+            borderRadius: 8
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#fbbf24', marginBottom: 8 }}>
+              🎙️ Méta-audio (optionnel — pour calibration FEI)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Débit
+                <select value={debit} onChange={(e) => setDebit(e.target.value)} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }}>
+                  <option value="">—</option>
+                  <option value="très lent">Très lent (pauses longues)</option>
+                  <option value="lent fluide">Lent mais fluide</option>
+                  <option value="normal">Normal</option>
+                  <option value="rapide">Rapide et fluide</option>
+                  <option value="hésitant">Hésitant (faux démarrages)</option>
+                </select>
+              </label>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Accent
+                <select value={accent} onChange={(e) => setAccent(e.target.value)} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }}>
+                  <option value="">—</option>
+                  <option value="fort marqué">Fort marqué (compréhension difficile)</option>
+                  <option value="perceptible mais clair">Perceptible mais clair</option>
+                  <option value="léger">Léger</option>
+                  <option value="quasi-natif">Quasi-natif</option>
+                </select>
+              </label>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Hésitations
+                <select value={hesitations} onChange={(e) => setHesitations(e.target.value)} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }}>
+                  <option value="">—</option>
+                  <option value="aucune">Aucune</option>
+                  <option value="quelques-unes">Quelques-unes</option>
+                  <option value="fréquentes">Fréquentes</option>
+                  <option value="très fréquentes">Très fréquentes</option>
+                </select>
+              </label>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Autocorrections (nombre)
+                <input type="number" min={0} max={20} value={autocorrection} onChange={(e) => setAutocorrection(e.target.value)} placeholder="0" style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }} />
+              </label>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Confiance / volume
+                <select value={confiance} onChange={(e) => setConfiance(e.target.value)} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }}>
+                  <option value="">—</option>
+                  <option value="faible">Voix faible, peu confiant</option>
+                  <option value="moyenne">Voix posée, moyenne</option>
+                  <option value="forte">Énergique, confiant</option>
+                </select>
+              </label>
+            </div>
+            <label style={{ fontSize: 12, color: '#e2e8f0', display: 'block' }}>
+              Notes libres sur l'audio
+              <textarea value={notesLibres} onChange={(e) => setNotesLibres(e.target.value)} placeholder="Ex: candidat coupe l'examinateur, intonation expressive, registre familier..." rows={2} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </label>
+          </div>
+
+          {/* === BLOC NOTE FEI ATTENDUE (optionnel pour comparaison) === */}
+          <div style={{
+            padding: 12,
+            background: 'rgba(34, 197, 94, 0.08)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            borderRadius: 8
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#22c55e', marginBottom: 8 }}>
+              🎯 Note FEI attendue (optionnel — pour comparaison automatique)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Niveau attendu
+                <select value={niveauAttendu} onChange={(e) => setNiveauAttendu(e.target.value)} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }}>
+                  <option value="">—</option>
+                  <option value="A1">A1</option>
+                  <option value="A2">A2</option>
+                  <option value="B1">B1</option>
+                  <option value="B2">B2</option>
+                  <option value="C1">C1</option>
+                  <option value="C2">C2</option>
+                </select>
+              </label>
+              <label style={{ fontSize: 12, color: '#e2e8f0' }}>
+                Note attendue /20
+                <input type="number" min={0} max={20} value={noteAttendue} onChange={(e) => setNoteAttendue(e.target.value)} placeholder="11" style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6 }} />
+              </label>
+            </div>
+            <label style={{ fontSize: 12, color: '#e2e8f0', display: 'block' }}>
+              Correction officielle FEI (à coller depuis la plateforme)
+              <textarea value={correctionFei} onChange={(e) => setCorrectionFei(e.target.value)} placeholder={"Compétence linguistique : ...\nCompétence pragmatique : ...\nCompétence sociolinguistique : ..."} rows={4} style={{ width: '100%', padding: 4, marginTop: 2, background: 'rgba(255,255,255,0.07)', color: '#e2e8f0', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </label>
+          </div>
+
           {/* Row 5: Duration + Submit */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "12px", color: "#78716c", fontWeight: 600 }}>Durée simulée (s)</span>
@@ -253,6 +386,67 @@ export default function DevPanel() {
           {/* Results */}
           {result && (
             <div style={{ display: "grid", gap: "12px" }}>
+              {/* === BLOC COMPARAISON FEI (si note attendue saisie) === */}
+              {(niveauAttendu || noteAttendue) && (() => {
+                const noteSonnet = result.total || 0;
+                const niveauSonnet = result.niveau_cecrl || '?';
+                const noteEcart = noteAttendue ? noteSonnet - parseInt(noteAttendue) : null;
+                const niveauOrder = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+                const niveauEcart = niveauAttendu
+                  ? niveauOrder.indexOf(niveauSonnet) - niveauOrder.indexOf(niveauAttendu)
+                  : null;
+
+                let verdictColor = '#22c55e';
+                let verdictText = '✅ Match parfait';
+
+                if (niveauEcart === null) {
+                  verdictColor = '#6b7280';
+                  verdictText = '— Données partielles';
+                } else if (Math.abs(niveauEcart) === 0) {
+                  verdictColor = '#22c55e';
+                  verdictText = '✅ Match niveau';
+                } else if (Math.abs(niveauEcart) === 1) {
+                  verdictColor = '#f59e0b';
+                  verdictText = `⚠️ Écart 1 niveau (${niveauEcart > 0 ? 'sur-évalué' : 'sous-évalué'})`;
+                } else {
+                  verdictColor = '#ef4444';
+                  verdictText = `❌ Écart ${Math.abs(niveauEcart)} niveaux (${niveauEcart > 0 ? 'sur-évalué' : 'sous-évalué'})`;
+                }
+
+                return (
+                  <div style={{ marginBottom: 4, padding: 16, background: `${verdictColor}15`, border: `2px solid ${verdictColor}`, borderRadius: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 COMPARAISON SONNET vs FEI</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Note Sonnet (V3)</div>
+                        <div style={{ fontSize: 18, fontWeight: 600 }}>{noteSonnet}/20 — {niveauSonnet}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Note FEI attendue</div>
+                        <div style={{ fontSize: 18, fontWeight: 600 }}>{noteAttendue || '—'}/20 — {niveauAttendu || '—'}</div>
+                      </div>
+                    </div>
+                    {noteEcart !== null && (
+                      <div style={{ fontSize: 13, marginBottom: 8 }}>
+                        <strong>Écart numérique :</strong> {noteEcart > 0 ? '+' : ''}{noteEcart} points
+                      </div>
+                    )}
+                    <div style={{ fontSize: 14, fontWeight: 600, color: verdictColor, padding: 8, background: 'rgba(0,0,0,0.2)', borderRadius: 6, textAlign: 'center' }}>
+                      {verdictText}
+                    </div>
+                    {correctionFei && (
+                      <details style={{ marginTop: 12 }}>
+                        <summary style={{ fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>📋 Voir correction officielle FEI</summary>
+                        <div style={{ marginTop: 8, padding: 8, background: 'rgba(0,0,0,0.2)', borderRadius: 6, fontSize: 12, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+                          {correctionFei}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                );
+              })()}
+              {/* === FIN BLOC COMPARAISON === */}
+
               {/* Level header */}
               <div style={{ ...card, textAlign: "center", padding: "20px" }}>
                 <div style={{ fontSize: "11px", color: "#78716c", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "8px" }}>
