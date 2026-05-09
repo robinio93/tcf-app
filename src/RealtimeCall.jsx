@@ -25,12 +25,12 @@ const TASK2_HARD_CUT = 270;           // 4:30 — hangUp étendu (était 225) po
 const TASK2_ABSOLUTE_CUT = 285;       // 4:45 — filet ultime étendu (était 240)
 
 const PATTERNS_CLOTURE_T2 = [
-  // Variante A (Section 9 du SYSTEM_PROMPT)
+  // Variante 1 (Section 6 du SYSTEM_PROMPT)
   /j'espère que ces informations vous aideront/i,
   /n'hésitez pas à revenir vers nous/i,
-  // Variante B
+  // Variante 2
   /vous avez tout ce qu'il (vous |te )?faut/i,
-  // Variante C
+  // Variante 3
   /je vous en prie\.?\s*bonne journée/i,
   // Filet commun aux 3 variantes
   /bonne (continuation à vous|chance dans votre démarche)/i,
@@ -911,7 +911,7 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
     sendClientEvent({
       type: 'response.create',
       response: {
-        instructions: "Le temps imparti est écoulé. Évalue mentalement en 1 seconde si le candidat a obtenu les informations essentielles dont il avait besoin pour son scénario.\n\n→ Si OUI (scénario couvert) : laisse le candidat finir sa phrase courante puis prononce UNE des 3 variantes de clôture verrouillées (Variante A, B ou C de la Section 6) adaptée à ton rôle. Puis tu ne génères plus aucun audio.\n\n→ Si NON (informations critiques manquantes comme coordonnées, adresse, date, confirmation) : continue le dialogue 30 secondes maximum DANS TON RÔLE pour compléter (donner une info essentielle non encore donnée, demander une info nécessaire). Puis prononce UNE variante de clôture verrouillée.\n\nTu as 60 secondes maximum pour avoir clôturé.",
+        instructions: "Le temps imparti est écoulé. Évalue mentalement en 1 seconde si le candidat a obtenu les informations essentielles dont il avait besoin pour son scénario.\n\n→ Si OUI (scénario couvert) : laisse le candidat finir sa phrase courante puis prononce UNE de tes 3 formules de clôture verrouillées (déjà définies dans le prompt) adaptée à ton rôle. Tu prononces UNIQUEMENT la formule entre guillemets, jamais son label ou son numéro. Puis tu ne génères plus aucun audio.\n\n→ Si NON (informations critiques manquantes comme coordonnées, adresse, date, confirmation) : continue le dialogue 30 secondes maximum DANS TON RÔLE pour compléter (donner une info essentielle non encore donnée, demander une info nécessaire). Puis prononce UNE de tes 3 formules de clôture verrouillées (texte exact, pas le label).\n\nTu as 60 secondes maximum pour avoir clôturé.",
       },
     });
   }
