@@ -16,13 +16,13 @@ const USER_ACTIVITY = "A vous de parler";
 const EXAMINER_ACTIVITY = "L'examinateur parle...";
 const WAITING_ACTIVITY = "L'examinateur va vous accueillir...";
 
-const TASK2_MAX_TIME = 210;           // 3 min 30 — interaction effective (la préparation 2 min est en amont)
-const TASK2_MIN_TIME = 120;           // 2 min — minimum évaluable
-const TASK2_WARN_TIME = 150;          // 2 min 30 — 1 min restante → orange
-const TASK2_DANGER_TIME = 180;        // 3 min — 30s restantes → rouge
-const TASK2_CONCLUSION_SEND = 210;    // 3:30 — envoi instruction clôture forcée
-const TASK2_HARD_CUT = 225;           // 3:45 — hangUp si instruction ignorée
-const TASK2_ABSOLUTE_CUT = 240;       // 4:00 — filet ultime
+const TASK2_MAX_TIME = 210;           // 3 min 30 — durée cible affichée (INCHANGÉ)
+const TASK2_MIN_TIME = 120;           // 2 min — minimum évaluable (INCHANGÉ)
+const TASK2_WARN_TIME = 150;          // 2 min 30 — 1 min restante → orange (INCHANGÉ)
+const TASK2_DANGER_TIME = 180;        // 3 min — 30s restantes → rouge (INCHANGÉ)
+const TASK2_CONCLUSION_SEND = 210;    // 3:30 — envoi instruction clôture adaptative (INCHANGÉ)
+const TASK2_HARD_CUT = 270;           // 4:30 — hangUp étendu (était 225) pour clôture intelligente
+const TASK2_ABSOLUTE_CUT = 285;       // 4:45 — filet ultime étendu (était 240)
 
 const PATTERNS_CLOTURE_T2 = [
   // Variante A (Section 9 du SYSTEM_PROMPT)
@@ -911,7 +911,7 @@ function RealtimeCall({ onBack = null, betaCode = null }) {
     sendClientEvent({
       type: 'response.create',
       response: {
-        instructions: "Le temps imparti pour cette interaction est écoulé. Conclus IMMÉDIATEMENT en prononçant UNE des 3 variantes de la Section 9 (A, B ou C) adaptée à ton rôle. Une seule phrase courte. Puis tu ne génères plus aucun audio.",
+        instructions: "Le temps imparti est écoulé. Évalue mentalement en 1 seconde si le candidat a obtenu les informations essentielles dont il avait besoin pour son scénario.\n\n→ Si OUI (scénario couvert) : laisse le candidat finir sa phrase courante puis prononce UNE des 3 variantes de clôture verrouillées (Variante A, B ou C de la Section 6) adaptée à ton rôle. Puis tu ne génères plus aucun audio.\n\n→ Si NON (informations critiques manquantes comme coordonnées, adresse, date, confirmation) : continue le dialogue 30 secondes maximum DANS TON RÔLE pour compléter (donner une info essentielle non encore donnée, demander une info nécessaire). Puis prononce UNE variante de clôture verrouillée.\n\nTu as 60 secondes maximum pour avoir clôturé.",
       },
     });
   }
