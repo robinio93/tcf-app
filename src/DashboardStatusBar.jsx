@@ -78,7 +78,7 @@ export default function DashboardStatusBar({ onStartNewSession }) {
   const objectiveNclc = userProfile?.nclc_cible || 7;
 
   // Rien à afficher : pas de sessions et pas de date d'examen
-  if (loading || (!sessions.length && daysLeft === null)) return null;
+  if (loading || !betaCode) return null;
 
   return (
     <>

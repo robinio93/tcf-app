@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from './contexts/UserContext';
+import { supabase } from './lib/supabase';
 import SessionDetailModal from './SessionDetailModal';
 
 // ── Styles constants ──────────────────────────────────────────────────────────
@@ -231,14 +232,71 @@ function ModuleHero({ stats }) {
 // ── Module 2 — Countdown ──────────────────────────────────────────────────────
 
 function ModuleCountdown({ userProfile }) {
+  const { betaCode, refreshProfile } = useUser();
+  const [editingDate, setEditingDate] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  async function handleSaveDate() {
+    if (!editingDate) return;
+    setSaving(true);
+    setSaveError(null);
+    const { error: dbErr } = await supabase
+      .from('beta_testers')
+      .update({ date_examen_prevu: editingDate })
+      .eq('code', betaCode);
+    if (dbErr) {
+      setSaveError("Impossible d'enregistrer. Réessaie.");
+      setSaving(false);
+      return;
+    }
+    await refreshProfile();
+    setSaving(false);
+  }
+
   if (!userProfile?.date_examen_prevu) {
+    const todayStr = new Date().toISOString().split('T')[0];
     return (
       <section style={cardStyle}>
         <div style={{ ...sectionLabel, color: '#94a3b8' }}>📅 Examen</div>
-        <div style={{ fontSize: '15px', color: '#94a3b8', marginBottom: '8px' }}>Pas encore de date prévue.</div>
-        <div style={{ fontSize: '13px', color: '#64748b' }}>
-          Mets-toi une date pour activer ton compte à rebours.
+        <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '14px' }}>
+          Renseigne ta date d'examen pour activer ton compte à rebours.
         </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            type="date"
+            lang="fr-FR"
+            min={todayStr}
+            value={editingDate}
+            onChange={(e) => setEditingDate(e.target.value)}
+            disabled={saving}
+            style={{
+              background: 'rgba(255,255,255,0.06)', color: '#f1f5f9',
+              border: '1px solid rgba(148,163,184,0.22)', borderRadius: '10px',
+              padding: '10px 14px', fontSize: '15px', outline: 'none',
+              cursor: 'pointer', colorScheme: 'dark',
+            }}
+          />
+          <button
+            onClick={handleSaveDate}
+            disabled={saving || !editingDate}
+            style={{
+              padding: '10px 18px', borderRadius: '10px', border: 'none',
+              background: editingDate && !saving ? '#8b5cf6' : 'rgba(139,92,246,0.3)',
+              color: 'white', fontSize: '14px', fontWeight: 600,
+              cursor: editingDate && !saving ? 'pointer' : 'not-allowed',
+              opacity: editingDate && !saving ? 1 : 0.6,
+              transition: 'all 0.2s',
+            }}
+          >
+            {saving ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+        </div>
+        {saveError && (
+          <div style={{ color: '#f87171', fontSize: '13px', marginTop: '10px' }}>
+            {saveError}
+          </div>
+        )}
       </section>
     );
   }
